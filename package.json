@@ -1,0 +1,12 @@
+{
+  "name": "maracaibo-light-monitor",
+  "version": "1.0.0",
+  "description": "Monitor de cortes eléctricos en Maracaibo, Zulia",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site, no build needed'"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

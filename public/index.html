@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hay Luz? — Monitor eléctrico Maracaibo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c0f;
+      --surface: #111418;
+      --surface2: #181c22;
+      --border: rgba(255,255,255,0.07);
+      --border-bright: rgba(255,255,255,0.15);
+      --text: #e8ecf0;
+      --text-muted: #6b7685;
+      --text-dim: #3d4651;
+      --accent: #f5c842;
+      --accent-dim: rgba(245,200,66,0.12);
+      --red: #ff4d4d;
+      --red-dim: rgba(255,77,77,0.12);
+      --amber: #f5a623;
+      --amber-dim: rgba(245,166,35,0.12);
+      --green: #3ddc84;
+      --green-dim: rgba(61,220,132,0.12);
+      --blue: #4d9fff;
+      --blue-dim: rgba(77,159,255,0.1);
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 6px;
+      --radius-lg: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+    /* Header */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-bolt {
+      width: 14px;
+      height: 18px;
+      background: var(--bg);
+      clip-path: polygon(60% 0%, 20% 50%, 50% 50%, 40% 100%, 80% 45%, 52% 45%);
+    }
+    .logo-text {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-top: 1px;
+    }
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--red-dim);
+      border: 1px solid rgba(255,77,77,0.25);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--red);
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .stat-val { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-val.red { color: var(--red); }
+    .stat-val.amber { color: var(--amber); }
+    .stat-val.green { color: var(--green); }
+    .stat-val.blue { color: var(--blue); }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 3px;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+    .nav-tab {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: var(--mono);
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .nav-tab.active {
+      background: var(--surface2);
+      color: var(--accent);
+      border: 1px solid var(--border-bright);
+    }
+    .nav-tab:hover:not(.active) { color: var(--text); }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Controls */
+    .controls-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      flex: 1;
+      min-width: 180px;
+      outline: none;
+    }
+    .search:focus { border-color: var(--border-bright); }
+    .search::placeholder { color: var(--text-dim); }
+    .btn {
+      background: transparent;
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+    .btn.primary {
+      background: var(--accent-dim);
+      border-color: rgba(245,200,66,0.4);
+      color: var(--accent);
+    }
+    .btn.primary:hover { background: rgba(245,200,66,0.2); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Filter pills */
+    .filter-pills { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--mono);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: transparent;
+      transition: all 0.12s;
+    }
+    .pill.active-pill { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+    /* Sector grid */
+    .sector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 10px;
+    }
+    .sector-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      cursor: default;
+      transition: border-color 0.15s;
+    }
+    .sector-card:hover { border-color: var(--border-bright); }
+    .sector-card.status-cut { border-left: 2px solid var(--red); }
+    .sector-card.status-inter { border-left: 2px solid var(--amber); }
+    .sector-card.status-ok { border-left: 2px solid var(--green); }
+
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .card-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .card-zone { font-size: 11px; color: var(--text-muted); font-family: var(--mono); margin-top: 2px; }
+    .badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,77,0.2); }
+    .badge.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+    .badge.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+
+    .card-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted); }
+    .meta-row { display: flex; justify-content: space-between; }
+    .meta-val { color: var(--text); font-family: var(--mono); font-size: 12px; }
+    .meta-cause { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
+
+    .bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; }
+    .bar-fill.red { background: var(--red); }
+    .bar-fill.amber { background: var(--amber); }
+    .bar-fill.green { background: var(--green); }
+
+    /* AI Panel */
+    .ai-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
+    .ai-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .ai-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .ai-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      min-height: 48px;
+    }
+    .ai-body.loading { color: var(--text-dim); font-style: italic; }
+    .timestamp { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+    /* Incidents */
+    .incident {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .incident:last-child { border-bottom: none; }
+    .inc-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+    .inc-dot.red { background: var(--red); }
+    .inc-dot.amber { background: var(--amber); }
+    .inc-dot.green { background: var(--green); }
+    .inc-text { font-size: 13px; color: var(--text); flex: 1; }
+    .inc-time { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+    /* ===== VERIFY VIEW ===== */
+    .verify-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 720px) { .verify-layout { grid-template-columns: 1fr; } }
+
+    .verify-input-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+    .verify-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .verify-textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 12px;
+      resize: vertical;
+      min-height: 160px;
+      outline: none;
+    }
+    .verify-textarea:focus { border-color: var(--border-bright); }
+    .verify-textarea::placeholder { color: var(--text-dim); }
+
+    .example-reports {
+      margin-top: 14px;
+    }
+    .example-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .example-chips { display: flex; flex-direction: column; gap: 6px; }
+    .example-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.12s;
+      line-height: 1.4;
+    }
+    .example-chip:hover { border-color: var(--border-bright); color: var(--text); }
+
+    /* Result card */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+    }
+    .result-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: center;
+      gap: 12px;
+    }
+    .result-empty-icon {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .score-ring-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .score-ring {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin-bottom: 8px;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring-track { fill: none; stroke: var(--border); stroke-width: 8; }
+    .score-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-num { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+    .score-pct { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+    .verdict-label {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .confidence-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .indicators-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .ind-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .ind-dot.yes { background: var(--green); }
+    .ind-dot.no { background: var(--red-dim); border: 1px solid var(--red); }
+
+    .flags-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .flag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--amber);
+      background: var(--amber-dim);
+      border: 1px solid rgba(245,166,35,0.15);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      line-height: 1.4;
+    }
+    .flag-sym { flex-shrink: 0; margin-top: 0px; }
+
+    .result-summary {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: auto;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .spinner-inline {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .verify-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .history-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .history-item:hover { border-color: var(--border-bright); }
+    .history-text { font-size: 12px; color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+    .history-badge { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ===== NOTIFICATIONS SYSTEM ===== */
+
+    /* Toast stack — bottom-right, stacks upward */
+    .toast-stack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: all;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      min-width: 280px;
+      max-width: 340px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: toastIn 0.25s ease forwards;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .toast.leaving { animation: toastOut 0.2s ease forwards; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(20px); }
+    }
+    .toast-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+    .toast-icon.red   { background: var(--red-dim);   color: var(--red); }
+    .toast-icon.amber { background: var(--amber-dim); color: var(--amber); }
+    .toast-icon.green { background: var(--green-dim); color: var(--green); }
+    .toast-icon.blue  { background: var(--blue-dim);  color: var(--blue); }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .toast-msg   { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .toast-time  { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+    .toast-close {
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 16px; padding: 0; line-height: 1;
+      flex-shrink: 0; align-self: flex-start;
+    }
+    .toast-close:hover { color: var(--text); }
+
+    /* Notification bell in topbar */
+    .notif-btn {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .notif-btn:hover { border-color: var(--border-bright); }
+    .notif-btn svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .notif-badge {
+      position: absolute;
+      top: -5px; right: -5px;
+      background: var(--red);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg);
+      display: none;
+    }
+
+    /* Notification drawer */
+    .notif-drawer {
+      display: none;
+      position: fixed;
+      top: 0; right: 0;
+      width: 360px;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border-bright);
+      z-index: 8888;
+      flex-direction: column;
+      animation: drawerIn 0.2s ease forwards;
+    }
+    .notif-drawer.open { display: flex; }
+    @keyframes drawerIn {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 8887;
+    }
+    .drawer-overlay.open { display: block; }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .drawer-title { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 700; }
+    .drawer-close {
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 20px; line-height: 1;
+    }
+    .drawer-close:hover { color: var(--text); }
+
+    /* Voltage meter */
+    .voltage-panel {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .voltage-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .voltage-sectors { display: flex; flex-direction: column; gap: 6px; }
+    .volt-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .volt-name { color: var(--text-muted); width: 110px; flex-shrink: 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .volt-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .volt-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.4s; }
+    .volt-val { font-family: var(--mono); font-size: 11px; width: 38px; text-align: right; flex-shrink: 0; }
+
+    /* Notification settings */
+    .notif-settings {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-label { font-size: 12px; color: var(--text-muted); }
+    .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+      flex-shrink: 0;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle.on { background: rgba(245,200,66,0.3); }
+    .toggle.on::after { transform: translateX(16px); background: var(--accent); }
+
+    .threshold-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .threshold-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 64px;
+      outline: none;
+      text-align: center;
+    }
+    .threshold-input:focus { border-color: var(--border-bright); }
+
+    /* Notification log */
+    .notif-log { flex: 1; overflow-y: auto; padding: 10px 18px; }
+    .notif-log::-webkit-scrollbar { width: 4px; }
+    .notif-log::-webkit-scrollbar-track { background: transparent; }
+    .notif-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .log-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-align: center;
+      gap: 8px;
+    }
+    .log-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .log-dot.red   { background: var(--red); }
+    .log-dot.amber { background: var(--amber); }
+    .log-dot.green { background: var(--green); }
+    .log-dot.blue  { background: var(--blue); }
+    .log-content { flex: 1; }
+    .log-title { font-size: 12px; color: var(--text); margin-bottom: 1px; }
+    .log-desc  { font-size: 11px; color: var(--text-muted); }
+    .log-time  { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
+    .drawer-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Waveform canvas */
+    .waveform-wrap {
+      padding: 10px 18px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .waveform-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    canvas#waveCanvas { width: 100%; height: 48px; display: block; }
+
+    @media (max-width: 400px) { .notif-drawer { width: 100%; } }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon"><div class="logo-bolt"></div></div>
+      <div>
+        <div class="logo-text">Hay Luz?</div>
+        <div class="logo-sub">Maracaibo · Zulia · Venezuela</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
+      <button class="notif-btn" onclick="toggleDrawer()" title="Notificaciones de fluctuación" id="notifBtn">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Drawer overlay -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+
+  <!-- Notification drawer -->
+  <div class="notif-drawer" id="notifDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title">Alertas de fluctuación</span>
+      <button class="drawer-close" onclick="toggleDrawer()">×</button>
+    </div>
+    <div class="waveform-wrap">
+      <div class="waveform-label">Voltaje en tiempo real — red Maracaibo</div>
+      <canvas id="waveCanvas" width="324" height="48"></canvas>
+    </div>
+    <div class="voltage-panel">
+      <div class="voltage-label">Estado de voltaje por sector</div>
+      <div class="voltage-sectors" id="voltageSectors"></div>
+    </div>
+    <div class="notif-settings">
+      <div class="voltage-label" style="margin-bottom:10px;">Configuración de alertas</div>
+      <div class="threshold-row">
+        <span>Alertar si voltaje baja de</span>
+        <input type="number" class="threshold-input" id="threshLow" value="90" min="50" max="110"> <span>V</span>
+      </div>
+      <div class="threshold-row">
+        <span>Alertar si voltaje sube de</span>
+        <input type="number" class="threshold-input" id="threshHigh" value="130" min="110" max="150"> <span>V</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Notificaciones del navegador</span>
+        <button class="toggle" id="toggleBrowser" onclick="toggleBrowserNotif(this)"></button>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Monitoreo activo</span>
+        <button class="toggle on" id="toggleMonitor" onclick="toggleMonitor(this)"></button>
+      </div>
+    </div>
+    <div class="notif-log" id="notifLog">
+      <div class="log-empty" id="logEmpty">
+        <span style="font-size:22px;">~</span>
+        Sin alertas aún — monitor activo
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn" style="flex:1;" onclick="clearLog()">Limpiar historial</button>
+      <button class="btn primary" style="flex:1;" onclick="testAlert()">Probar alerta ↗</button>
+    </div>
+  </div>
+
+  <!-- Toast stack -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">Con corte</div><div class="stat-val red" id="statCut">—</div></div>
+    <div class="stat"><div class="stat-label">Intermitentes</div><div class="stat-val amber" id="statInter">—</div></div>
+    <div class="stat"><div class="stat-label">Estables</div><div class="stat-val green" id="statOk">—</div></div>
+    <div class="stat"><div class="stat-label">Promedio (h)</div><div class="stat-val blue" id="statAvg">—</div></div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('monitor', this)">Monitor</button>
+    <button class="nav-tab" onclick="switchView('incidents', this)">Incidentes</button>
+    <button class="nav-tab" onclick="switchView('verify', this)">Verificador</button>
+  </div>
+
+  <!-- ===== MONITOR VIEW ===== -->
+  <div id="view-monitor" class="view active">
+    <div class="ai-card">
+      <div class="ai-header">
+        <span class="ai-title">Análisis IA del sistema</span>
+        <span class="timestamp" id="analysisTime"></span>
+      </div>
+      <div class="ai-body loading" id="aiOutput">Analizando situación eléctrica de Maracaibo...</div>
+    </div>
+
+    <div class="controls-bar">
+      <input type="text" class="search" id="searchInput" placeholder="Buscar sector o zona..." oninput="filterSectors()" />
+      <button class="btn" onclick="refreshAll()">↻ Actualizar</button>
+      <button class="btn primary" onclick="runAnalysis()">Analizar ↗</button>
+    </div>
+    <div class="filter-pills" id="filterPills">
+      <button class="pill active-pill" data-f="all" onclick="setFilter('all',this)">Todos</button>
+      <button class="pill" data-f="cut" onclick="setFilter('cut',this)">Corte activo</button>
+      <button class="pill" data-f="inter" onclick="setFilter('inter',this)">Intermitente</button>
+      <button class="pill" data-f="ok" onclick="setFilter('ok',this)">Estable</button>
+    </div>
+    <div class="sector-grid" id="sectorGrid"></div>
+  </div>
+
+  <!-- ===== INCIDENTS VIEW ===== -->
+  <div id="view-incidents" class="view">
+    <div class="ai-card">
+      <div class="ai-header">
+        <span class="ai-title">Resumen de incidentes</span>
+        <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="runIncidentSummary()">Resumir con IA ↗</button>
+      </div>
+      <div class="ai-body loading" id="incidentAI">Haz clic en "Resumir con IA" para analizar los incidentes activos.</div>
+    </div>
+    <div class="section-title">Registro de eventos</div>
+    <div id="incidentsList"></div>
+  </div>
+
+  <!-- ===== VERIFY VIEW ===== -->
+  <div id="view-verify" class="view">
+    <div class="verify-layout">
+      <div class="verify-input-card">
+        <span class="verify-label">Reporte a verificar</span>
+        <textarea class="verify-textarea" id="verifyInput" placeholder="Pega aquí el reporte, tweet, mensaje de WhatsApp o cualquier información sobre un corte eléctrico en Maracaibo que quieras verificar..."></textarea>
+
+        <div class="verify-actions">
+          <button class="btn primary" style="flex:1;" id="verifyBtn" onclick="runVerify()">Verificar autenticidad ↗</button>
+          <button class="btn" onclick="document.getElementById('verifyInput').value=''">Limpiar</button>
+        </div>
+
+        <div class="example-reports">
+          <div class="example-label">Ejemplos para probar:</div>
+          <div class="example-chips">
+            <button class="example-chip" onclick="loadExample(0)">
+              "Sin luz en Sabaneta desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Sector afectado completo."
+            </button>
+            <button class="example-chip" onclick="loadExample(1)">
+              "TODO MARACAIBO SIN LUZ DESDE AYER, EL GOBIERNO NOS TIENE ABANDONADOS, 48 HORAS SIN ELECTRICIDAD EN TODA LA CIUDAD"
+            </button>
+            <button class="example-chip" onclick="loadExample(2)">
+              "Fluctuaciones de voltaje en Las Mercedes desde mediodía, algunos negocios con planta eléctrica funcionando normal."
+            </button>
+            <button class="example-chip" onclick="loadExample(3)">
+              "Corpoelec informa corte programado en Circunvalación 1 para mantenimiento preventivo, duración estimada 4 horas, inicio 9am."
+            </button>
+          </div>
+        </div>
+
+        <div id="verifyHistory" style="display:none;">
+          <div class="divider"></div>
+          <div class="section-title">Verificaciones recientes</div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </div>
+
+      <div class="result-card" id="resultCard">
+        <div class="result-empty" id="resultEmpty">
+          <div class="result-empty-icon">?</div>
+          <span>Ingresa un reporte para verificar su autenticidad</span>
+        </div>
+        <div id="resultContent" style="display:none; flex:1; display:none; flex-direction:column;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Hay Luz? · Maracaibo, Zulia, Venezuela</span>
+    <span>Datos referenciales · Verificar con fuentes oficiales · Powered by Claude AI</span>
+  </footer>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+const sectors = [
+  { name: "Circunvalación 1", zone: "Norte", status: "cut", hours: 8, since: "06:30", affected: 92, cause: "Sobrecarga en subestación" },
+  { name: "Circunvalación 2", zone: "Norte", status: "cut", hours: 5, since: "09:00", affected: 78, cause: "Falla en transformador" },
+  { name: "Los Haticos", zone: "Sur", status: "inter", hours: 3, since: "11:00", affected: 45, cause: "Mantenimiento preventivo" },
+  { name: "Juana de Ávila", zone: "Centro", status: "ok", hours: 0, since: "—", affected: 5, cause: "—" },
+  { name: "Sabaneta", zone: "Sur", status: "cut", hours: 11, since: "03:15", affected: 88, cause: "Daño en línea de transmisión" },
+  { name: "La Lago", zone: "Este", status: "ok", hours: 0, since: "—", affected: 3, cause: "—" },
+  { name: "Las Mercedes", zone: "Este", status: "inter", hours: 2, since: "12:00", affected: 40, cause: "Fluctuación de voltaje" },
+  { name: "El Milagro", zone: "Norte", status: "cut", hours: 6, since: "08:00", affected: 70, cause: "Corte programado" },
+  { name: "Cañada Honda", zone: "Oeste", status: "cut", hours: 9, since: "05:30", affected: 85, cause: "Vandalismo en infraestructura" },
+  { name: "Los Olivos", zone: "Oeste", status: "inter", hours: 1, since: "13:00", affected: 30, cause: "Pruebas de restauración" },
+  { name: "Santa Lucía", zone: "Centro", status: "ok", hours: 0, since: "—", affected: 8, cause: "—" },
+  { name: "La Victoria", zone: "Sur", status: "cut", hours: 7, since: "07:00", affected: 60, cause: "Falla en subestación" },
+  { name: "Veritas", zone: "Norte", status: "ok", hours: 0, since: "—", affected: 2, cause: "—" },
+  { name: "Pomona", zone: "Oeste", status: "cut", hours: 4, since: "10:00", affected: 55, cause: "Sobrecarga" },
+  { name: "La Limpia", zone: "Sur", status: "inter", hours: 2, since: "12:30", affected: 35, cause: "Corte intermitente reportado" },
+  { name: "Bella Vista", zone: "Este", status: "ok", hours: 0, since: "—", affected: 6, cause: "—" },
+];
+
+const incidents = [
+  { text: "Sabaneta: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
+  { text: "Cañada Honda: vandalismo reportado en subestación Norte-Oeste", color: "red", time: "hace 9 h" },
+  { text: "Circunvalación 1: sobrecarga crítica, subestación al 97% de capacidad", color: "red", time: "hace 8 h" },
+  { text: "La Victoria: brigadas de Corpoelec en el sitio, ETA restauración 2 h", color: "amber", time: "hace 3 h" },
+  { text: "Los Olivos: servicio en proceso de restauración progresiva", color: "amber", time: "hace 45 min" },
+  { text: "Juana de Ávila: sistema estabilizado tras incidente menor", color: "green", time: "hace 2 h" },
+];
+
+const examples = [
+  "Sin luz en Sabaneta desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Sector afectado completo.",
+  "TODO MARACAIBO SIN LUZ DESDE AYER, EL GOBIERNO NOS TIENE ABANDONADOS, 48 HORAS SIN ELECTRICIDAD EN TODA LA CIUDAD",
+  "Fluctuaciones de voltaje en Las Mercedes desde mediodía, algunos negocios con planta eléctrica funcionando normal.",
+  "Corpoelec informa corte programado en Circunvalación 1 para mantenimiento preventivo, duración estimada 4 horas, inicio 9am.",
+];
+
+let currentFilter = "all";
+let verifyHistory = [];
+
+// ---- INIT ----
+function init() {
+  renderStats();
+  renderSectors(sectors);
+  renderIncidents();
+  runAnalysis();
+}
+
+// ---- VIEW SWITCH ----
+function switchView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ---- STATS ----
+function renderStats() {
+  const cut = sectors.filter(s => s.status === 'cut').length;
+  const inter = sectors.filter(s => s.status === 'inter').length;
+  const ok = sectors.filter(s => s.status === 'ok').length;
+  const hrs = sectors.filter(s => s.hours > 0).map(s => s.hours);
+  const avg = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
+  document.getElementById('statCut').textContent = cut;
+  document.getElementById('statInter').textContent = inter;
+  document.getElementById('statOk').textContent = ok;
+  document.getElementById('statAvg').textContent = avg + 'h';
+}
+
+// ---- SECTORS ----
+function statusInfo(s) {
+  if (s === 'cut') return { label: 'Corte activo', cls: 'red', barCls: 'red', cardCls: 'status-cut' };
+  if (s === 'inter') return { label: 'Intermitente', cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
+  return { label: 'Estable', cls: 'green', barCls: 'green', cardCls: 'status-ok' };
+}
+
+function renderSectors(list) {
+  const grid = document.getElementById('sectorGrid');
+  grid.innerHTML = '';
+  list.forEach(s => {
+    const si = statusInfo(s.status);
+    const div = document.createElement('div');
+    div.className = `sector-card ${si.cardCls}`;
+    div.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="card-name">${s.name}</div>
+          <div class="card-zone">Zona ${s.zone}</div>
+        </div>
+        <span class="badge ${si.cls}">${si.label}</span>
+      </div>
+      <div class="card-meta">
+        <div class="meta-row"><span>Duración</span><span class="meta-val">${s.hours > 0 ? s.hours + ' h' : '—'}</span></div>
+        <div class="meta-row"><span>Inicio</span><span class="meta-val">${s.since}</span></div>
+        <div class="meta-row"><span>Afectación</span><span class="meta-val">${s.affected}%</span></div>
+        ${s.cause !== '—' ? `<div class="meta-cause">${s.cause}</div>` : ''}
+      </div>
+      <div class="bar"><div class="bar-fill ${si.barCls}" style="width:${s.affected}%"></div></div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
+  el.classList.add('active-pill');
+  filterSectors();
+}
+
+function filterSectors() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let list = sectors;
+  if (currentFilter !== 'all') list = list.filter(s => s.status === currentFilter);
+  if (q) list = list.filter(s => s.name.toLowerCase().includes(q) || s.zone.toLowerCase().includes(q));
+  renderSectors(list);
+}
+
+function refreshAll() {
+  document.getElementById('analysisTime').textContent = new Date().toLocaleTimeString('es-VE');
+  filterSectors();
+}
+
+// ---- INCIDENTS ----
+function renderIncidents() {
+  const el = document.getElementById('incidentsList');
+  el.innerHTML = '';
+  incidents.forEach(i => {
+    const div = document.createElement('div');
+    div.className = 'incident';
+    div.innerHTML = `<div class="inc-dot ${i.color}"></div><div><div class="inc-text">${i.text}</div><div class="inc-time">${i.time}</div></div>`;
+    el.appendChild(div);
+  });
+}
+
+// ---- AI ANALYSIS ----
+async function callAPI(endpoint, body) {
+  const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function runAnalysis() {
+  const out = document.getElementById('aiOutput');
+  out.className = 'ai-body loading';
+  out.textContent = 'Analizando...';
+  const cut = sectors.filter(s => s.status === 'cut');
+  const inter = sectors.filter(s => s.status === 'inter');
+  const summary = `Sectores con corte activo (${cut.length}): ${cut.map(s => s.name + ' (' + s.hours + 'h, ' + s.cause + ')').join('; ')}. Intermitentes (${inter.length}): ${inter.map(s => s.name).join(', ')}. Estables: ${sectors.filter(s=>s.status==='ok').length}.`;
+
+  try {
+    const data = await callAPI('analyze', {
+      systemPrompt: 'Eres un analista experto del sistema eléctrico de Maracaibo, Venezuela. Responde siempre en español venezolano. Sé conciso, máximo 100 palabras. Usa viñetas si es útil.',
+      prompt: `Diagnostica brevemente esta situación eléctrica y da 2 recomendaciones ciudadanas: ${summary}`
+    });
+    out.className = 'ai-body';
+    out.innerHTML = (data.result || 'Sin respuesta.').replace(/\n/g, '<br>');
+    document.getElementById('analysisTime').textContent = new Date().toLocaleTimeString('es-VE');
+  } catch {
+    out.className = 'ai-body';
+    out.textContent = 'Agrega tu API key de Anthropic en las variables de entorno de Vercel para activar el análisis IA.';
+  }
+}
+
+async function runIncidentSummary() {
+  const out = document.getElementById('incidentAI');
+  out.className = 'ai-body loading';
+  out.textContent = 'Resumiendo incidentes...';
+  const txt = incidents.map(i => i.text).join(' | ');
+  try {
+    const data = await callAPI('analyze', {
+      systemPrompt: 'Eres analista eléctrico de Maracaibo, Venezuela. Responde en español, máximo 80 palabras.',
+      prompt: `Resume y prioriza estos incidentes eléctricos activos: ${txt}`
+    });
+    out.className = 'ai-body';
+    out.innerHTML = (data.result || '').replace(/\n/g, '<br>');
+  } catch {
+    out.className = 'ai-body';
+    out.textContent = 'Análisis no disponible. Configura ANTHROPIC_API_KEY en Vercel.';
+  }
+}
+
+// ---- VERIFY ----
+function loadExample(i) {
+  document.getElementById('verifyInput').value = examples[i];
+}
+
+async function runVerify() {
+  const report = document.getElementById('verifyInput').value.trim();
+  if (!report) return;
+
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-inline"></span> Verificando...';
+
+  document.getElementById('resultEmpty').style.display = 'none';
+  const rc = document.getElementById('resultContent');
+  rc.style.display = 'flex';
+  rc.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--mono);font-size:12px;gap:8px;"><span class="spinner-inline"></span> Analizando autenticidad...</div>`;
+
+  try {
+    const data = await callAPI('verify', { report });
+    renderVerifyResult(data, report);
+    addToHistory(report, data);
+  } catch (e) {
+    rc.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px;">Error al verificar. Asegúrate de que ANTHROPIC_API_KEY está configurada en Vercel.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Verificar autenticidad ↗';
+}
+
+function renderVerifyResult(d, report) {
+  const rc = document.getElementById('resultContent');
+  const score = d.score || 0;
+  const verdict = d.verdict || 'Dudoso';
+  const confidence = d.confidence || 'Baja';
+  const indicators = d.indicators || {};
+  const flags = d.flags || [];
+  const summary = d.summary || '';
+
+  const verdictColor = score >= 80 ? '#3ddc84' : score >= 60 ? '#f5a623' : score >= 40 ? '#f5a623' : '#ff4d4d';
+  const circumference = 2 * Math.PI * 38;
+  const offset = circumference - (score / 100) * circumference;
+
+  const indMap = [
+    { key: 'hasLocation', label: 'Ubicación específica' },
+    { key: 'hasTime', label: 'Hora/duración' },
+    { key: 'hasSource', label: 'Fuente citada' },
+    { key: 'hasDetails', label: 'Detalles creíbles' },
+    { key: 'consistentWithGrid', label: 'Consistente con red' },
+  ];
+
+  rc.innerHTML = `
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle class="score-ring-track" cx="50" cy="50" r="38"/>
+          <circle class="score-ring-fill" cx="50" cy="50" r="38"
+            stroke="${verdictColor}"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-num" style="color:${verdictColor}">${score}</div>
+          <div class="score-pct">/ 100</div>
+        </div>
+      </div>
+      <div class="verdict-label" style="color:${verdictColor}">${verdict}</div>
+      <div class="confidence-label">Confianza: ${confidence}</div>
+    </div>
+
+    <div class="section-title">Indicadores</div>
+    <div class="indicators-grid">
+      ${indMap.map(i => `
+        <div class="indicator">
+          <div class="ind-dot ${indicators[i.key] ? 'yes' : 'no'}"></div>
+          <span>${i.label}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    ${flags.length ? `
+      <div class="section-title">Señales de alerta</div>
+      <div class="flags-list">
+        ${flags.map(f => `<div class="flag-item"><span class="flag-sym">⚠</span>${f}</div>`).join('')}
+      </div>
+    ` : ''}
+
+    <div class="result-summary">${summary}</div>
+  `;
+}
+
+function addToHistory(report, result) {
+  const score = result.score || 0;
+  const verdict = result.verdict || '?';
+  const color = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--amber)' : 'var(--red)';
+  const bg = score >= 80 ? 'var(--green-dim)' : score >= 60 ? 'var(--amber-dim)' : 'var(--red-dim)';
+
+  verifyHistory.unshift({ report, result });
+  if (verifyHistory.length > 5) verifyHistory.pop();
+
+  const histEl = document.getElementById('verifyHistory');
+  const listEl = document.getElementById('historyList');
+  histEl.style.display = 'block';
+  listEl.innerHTML = '';
+
+  verifyHistory.forEach((h, i) => {
+    const s = h.result.score || 0;
+    const v = h.result.verdict || '?';
+    const c = s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--amber)' : 'var(--red)';
+    const b = s >= 80 ? 'var(--green-dim)' : s >= 60 ? 'var(--amber-dim)' : 'var(--red-dim)';
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `<span class="history-text">${h.report.substring(0, 80)}${h.report.length > 80 ? '...' : ''}</span><span class="history-badge" style="color:${c};background:${b};border:1px solid ${c};">${v}</span>`;
+    div.onclick = () => {
+      document.getElementById('verifyInput').value = h.report;
+      renderVerifyResult(h.result, h.report);
+      document.getElementById('resultEmpty').style.display = 'none';
+      document.getElementById('resultContent').style.display = 'flex';
+    };
+    listEl.appendChild(div);
+  });
+}
+
+// ======== NOTIFICATION & FLUCTUATION SYSTEM ========
+
+// Simulated voltage state per sector (120V nominal in Venezuela)
+const voltageState = {};
+sectors.forEach(s => {
+  // Sectors with cuts have 0V, intermittent fluctuate wildly, stable near 120V
+  voltageState[s.name] = {
+    v: s.status === 'cut' ? 0 : s.status === 'inter' ? 85 + Math.random() * 40 : 115 + Math.random() * 10,
+    trend: 0,
+    alerted: false
+  };
+});
+
+let monitorActive = true;
+let unreadCount = 0;
+let logEntries = [];
+let waveHistory = new Array(80).fill(120);
+let monitorInterval = null;
+let waveInterval = null;
+let audioCtx = null;
+
+// ---- DRAWER ----
+function toggleDrawer() {
+  const drawer = document.getElementById('notifDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  const isOpen = drawer.classList.contains('open');
+  drawer.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    unreadCount = 0;
+    updateBadge();
+    renderVoltageRows();
+  }
+}
+
+function updateBadge() {
+  const badge = document.getElementById('notifBadge');
+  if (unreadCount > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ---- VOLTAGE SIMULATION ----
+function stepVoltage(name) {
+  const vs = voltageState[name];
+  const sector = sectors.find(s => s.name === name);
+  if (!sector) return;
+
+  if (sector.status === 'cut') {
+    vs.v = 0;
+    return;
+  }
+  if (sector.status === 'inter') {
+    // Wild swings
+    vs.trend += (Math.random() - 0.5) * 8;
+    vs.trend = Math.max(-15, Math.min(15, vs.trend));
+    vs.v += vs.trend;
+    vs.v = Math.max(0, Math.min(155, vs.v));
+    // Occasionally spike or drop
+    if (Math.random() < 0.05) vs.v = Math.random() < 0.5 ? 20 + Math.random() * 30 : 130 + Math.random() * 20;
+  } else {
+    // Stable — gentle noise around 120V
+    vs.trend += (Math.random() - 0.5) * 1.5;
+    vs.trend = Math.max(-3, Math.min(3, vs.trend));
+    vs.v += vs.trend;
+    vs.v = Math.max(108, Math.min(132, vs.v));
+    // Occasional brief dip
+    if (Math.random() < 0.015) vs.v -= 20 + Math.random() * 20;
+  }
+}
+
+function getVoltColor(v) {
+  if (v === 0) return '#ff4d4d';
+  if (v < 90 || v > 130) return '#ff4d4d';
+  if (v < 100 || v > 125) return '#f5a623';
+  return '#3ddc84';
+}
+
+function renderVoltageRows() {
+  const container = document.getElementById('voltageSectors');
+  if (!container) return;
+  const monitored = sectors.filter(s => s.status !== 'cut').slice(0, 6);
+  container.innerHTML = '';
+  monitored.forEach(s => {
+    const vs = voltageState[s.name];
+    const v = Math.round(vs.v);
+    const col = getVoltColor(v);
+    const pct = Math.min(100, Math.max(0, (v / 140) * 100));
+    const row = document.createElement('div');
+    row.className = 'volt-row';
+    row.innerHTML = `
+      <span class="volt-name">${s.name}</span>
+      <div class="volt-bar-wrap"><div class="volt-bar-fill" style="width:${pct}%;background:${col};"></div></div>
+      <span class="volt-val" style="color:${col}">${v}V</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// ---- WAVEFORM CANVAS ----
+function drawWaveform() {
+  const canvas = document.getElementById('waveCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Avg voltage of non-cut sectors
+  const active = sectors.filter(s => s.status !== 'cut');
+  const avg = active.length ? active.reduce((a, s) => a + voltageState[s.name].v, 0) / active.length : 0;
+  waveHistory.push(avg);
+  if (waveHistory.length > 80) waveHistory.shift();
+
+  const min = 0, max = 140;
+  const toY = v => H - ((v - min) / (max - min)) * H;
+
+  // Danger zone shading
+  ctx.fillStyle = 'rgba(255,77,77,0.06)';
+  ctx.fillRect(0, 0, W, toY(130));
+  ctx.fillRect(0, toY(90), W, H - toY(90));
+
+  // Nominal line
+  ctx.strokeStyle = 'rgba(61,220,132,0.15)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(0, toY(120));
+  ctx.lineTo(W, toY(120));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Wave line
+  const lastV = waveHistory[waveHistory.length - 1];
+  const waveColor = getVoltColor(lastV);
+  ctx.strokeStyle = waveColor;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  waveHistory.forEach((v, i) => {
+    const x = (i / (waveHistory.length - 1)) * W;
+    const y = toY(v);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+// ---- CHECK THRESHOLDS & FIRE ALERTS ----
+function checkThresholds() {
+  if (!monitorActive) return;
+  const low  = parseFloat(document.getElementById('threshLow')?.value  || 90);
+  const high = parseFloat(document.getElementById('threshHigh')?.value || 130);
+
+  sectors.forEach(s => {
+    const vs = voltageState[s.name];
+    if (s.status === 'cut') { vs.alerted = false; return; }
+    const v = Math.round(vs.v);
+    const wasAlerted = vs.alerted;
+
+    if (v < low && v > 0) {
+      if (!wasAlerted) {
+        vs.alerted = true;
+        fireAlert({
+          color: 'red', icon: '↓',
+          title: `Baja tensión — ${s.name}`,
+          msg: `Voltaje caído a ${v}V (umbral: ${low}V). Zona ${s.zone}.`,
+        });
+      }
+    } else if (v > high) {
+      if (!wasAlerted) {
+        vs.alerted = true;
+        fireAlert({
+          color: 'amber', icon: '↑',
+          title: `Sobrevoltaje — ${s.name}`,
+          msg: `Voltaje elevado a ${v}V (umbral: ${high}V). Zona ${s.zone}.`,
+        });
+      }
+    } else {
+      if (wasAlerted) {
+        vs.alerted = false;
+        fireAlert({
+          color: 'green', icon: '✓',
+          title: `Voltaje normalizado — ${s.name}`,
+          msg: `Voltaje estabilizado en ${v}V. Zona ${s.zone}.`,
+        });
+      }
+    }
+  });
+}
+
+// ---- FIRE ALERT ----
+function fireAlert({ color, icon, title, msg }) {
+  const time = new Date().toLocaleTimeString('es-VE');
+
+  // Toast
+  showToast({ color, icon, title, msg, time });
+
+  // Browser notification
+  const browserToggle = document.getElementById('toggleBrowser');
+  if (browserToggle?.classList.contains('on') && Notification.permission === 'granted') {
+    new Notification(`Hay Luz? — ${title}`, { body: msg, icon: '/favicon.ico' });
+  }
+
+  // Sound
+  // Log entry
+  addLogEntry({ color, icon, title, msg, time });
+
+  // Badge
+  const drawerOpen = document.getElementById('notifDrawer')?.classList.contains('open');
+  if (!drawerOpen) {
+    unreadCount++;
+    updateBadge();
+  }
+}
+
+// ---- TOAST ----
+function showToast({ color, icon, title, msg, time }) {
+  const stack = document.getElementById('toastStack');
+  // Remove oldest toast if already at 3
+  const existing = stack.querySelectorAll('.toast:not(.leaving)');
+  if (existing.length >= 3) dismissToast(existing[0]);
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `
+    <div class="toast-icon ${color}">${icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+      <div class="toast-time">${time}</div>
+    </div>
+    <button class="toast-close" onclick="dismissToast(this.parentElement)">×</button>
+  `;
+  stack.appendChild(t);
+  setTimeout(() => dismissToast(t), 6000);
+}
+
+function dismissToast(el) {
+  if (!el || el.classList.contains('leaving')) return;
+  el.classList.add('leaving');
+  setTimeout(() => el.remove(), 220);
+}
+
+// ---- LOG ----
+function addLogEntry({ color, title, msg, time }) {
+  logEntries.unshift({ color, title, msg, time });
+  if (logEntries.length > 50) logEntries.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const logEl = document.getElementById('notifLog');
+  const empty = document.getElementById('logEmpty');
+  if (!logEl) return;
+  if (logEntries.length === 0) {
+    empty && (empty.style.display = 'flex');
+    return;
+  }
+  empty && (empty.style.display = 'none');
+  // Remove old entries, keep empty div
+  logEl.querySelectorAll('.log-item').forEach(el => el.remove());
+  logEntries.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerHTML = `
+      <div class="log-dot ${e.color}"></div>
+      <div class="log-content">
+        <div class="log-title">${e.title}</div>
+        <div class="log-desc">${e.msg}</div>
+        <div class="log-time">${e.time}</div>
+      </div>
+    `;
+    logEl.appendChild(div);
+  });
+}
+
+function clearLog() {
+  logEntries = [];
+  renderLog();
+  document.getElementById('logEmpty').style.display = 'flex';
+}
+
+// ---- SOUND ----
+function playBeep(color) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = color === 'red' ? 440 : color === 'amber' ? 660 : 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch {}
+}
+
+// ---- BROWSER NOTIF PERMISSION ----
+function toggleBrowserNotif(btn) {
+  if (btn.classList.contains('on')) {
+    btn.classList.remove('on');
+  } else {
+    if (!('Notification' in window)) {
+      showToast({ color: 'amber', icon: '!', title: 'No disponible', msg: 'Tu navegador no soporta notificaciones.', time: new Date().toLocaleTimeString('es-VE') });
+      return;
+    }
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        btn.classList.add('on');
+        showToast({ color: 'green', icon: '✓', title: 'Notificaciones activadas', msg: 'Recibirás alertas cuando haya fluctuaciones.', time: new Date().toLocaleTimeString('es-VE') });
+      } else {
+        showToast({ color: 'amber', icon: '!', title: 'Permiso denegado', msg: 'Activa los permisos en la configuración del navegador.', time: new Date().toLocaleTimeString('es-VE') });
+      }
+    });
+  }
+}
+
+// ---- TOGGLE MONITOR ----
+function toggleMonitor(btn) {
+  btn.classList.toggle('on');
+  monitorActive = btn.classList.contains('on');
+  if (monitorActive) {
+    startMonitor();
+    showToast({ color: 'green', icon: '▶', title: 'Monitor activado', msg: 'Vigilando fluctuaciones de voltaje en Maracaibo.', time: new Date().toLocaleTimeString('es-VE') });
+  } else {
+    stopMonitor();
+    showToast({ color: 'amber', icon: '■', title: 'Monitor pausado', msg: 'Las alertas están desactivadas.', time: new Date().toLocaleTimeString('es-VE') });
+  }
+}
+
+function startMonitor() {
+  if (monitorInterval) return;
+  monitorInterval = setInterval(() => {
+    sectors.forEach(s => stepVoltage(s.name));
+    checkThresholds();
+    const drawerOpen = document.getElementById('notifDrawer')?.classList.contains('open');
+    if (drawerOpen) renderVoltageRows();
+  }, 2500);
+  waveInterval = setInterval(() => {
+    sectors.forEach(s => stepVoltage(s.name));
+    drawWaveform();
+  }, 200);
+}
+
+function stopMonitor() {
+  clearInterval(monitorInterval);
+  clearInterval(waveInterval);
+  monitorInterval = null;
+  waveInterval = null;
+}
+
+// ---- TEST ALERT ----
+function testAlert() {
+  const sector = sectors.find(s => s.status === 'inter') || sectors[0];
+  fireAlert({
+    color: 'amber', icon: '↓',
+    title: `Prueba — ${sector.name}`,
+    msg: `Fluctuación simulada: 74V detectados en Zona ${sector.zone}.`,
+  });
+}
+
+// ---- INIT MONITOR ----
+startMonitor();
+
+init();
+</script>
+</body>
+</html>
