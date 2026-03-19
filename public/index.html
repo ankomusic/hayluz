@@ -92,7 +92,7 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: radial-gradient(var(--surface) 1px, transparent 1px);
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
       background-size: 28px 28px;
       pointer-events: none;
       z-index: 0;
@@ -877,15 +877,15 @@
     .waveform-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
     canvas#waveCanvas { width: 100%; height: 48px; display: block; }
 
-    /* Mute state — amber when muted */
-    .theme-btn.muted { border-color: var(--amber-dim); }
-    .theme-btn.muted svg { stroke: var(--amber); }
+    /* Mute state — red tint when muted */
+    .theme-btn.muted { border-color: var(--red-dim); }
+    .theme-btn.muted svg { stroke: var(--red); }
     .theme-btn.muted::after {
       content: '';
       position: absolute;
       top: 6px; right: 6px;
       width: 6px; height: 6px;
-      background: var(--amber);
+      background: var(--red);
       border-radius: 50%;
       border: 1.5px solid var(--bg);
     }
@@ -1543,7 +1543,7 @@
       top: calc(100% + 10px);
       right: 0;
       background: var(--surface2);
-      border: 1px solid var(--amber);
+      border: 1px solid var(--red);
       border-radius: var(--radius);
       padding: 11px 14px;
       width: 230px;
@@ -1567,8 +1567,8 @@
       width: 8px;
       height: 8px;
       background: var(--surface2);
-      border-left: 1px solid var(--amber);
-      border-top: 1px solid var(--amber);
+      border-left: 1px solid var(--red);
+      border-top: 1px solid var(--red);
       transform: rotate(45deg);
     }
     .tip-bubble strong {
@@ -1583,8 +1583,8 @@
       margin-left: 4px;
       font-size: 11px;
       font-family: var(--mono);
-      color: var(--amber);
-      border-bottom: 1px dashed var(--amber);
+      color: var(--red);
+      border-bottom: 1px dashed var(--red);
       cursor: pointer;
     }
     .tip-bubble .tip-cta:hover { opacity: 0.8; }
@@ -1632,7 +1632,7 @@
 <!-- Announcement banner -->
 <div class="top-banner" id="topBanner">
   <div class="banner-dot"></div>
-  <span><strong>Estamos trabajando para añadir más ciudades</strong> — lo sentimos si no se encuentra la tuya disponible aún.</span>
+  <span><strong>Estamos añadiendo más ciudades</strong> — lo sentimos si no se encuentra la tuya disponible aún.</span>
   <button class="banner-close" onclick="document.getElementById('topBanner').style.display='none'" title="Cerrar">×</button>
 </div>
 
@@ -1739,15 +1739,15 @@
   <!-- Toast stack -->
   <div class="toast-stack" id="toastStack"></div>
 
-  <!-- PWA install banner (shown when installable) -->
-  <div class="pwa-banner" id="pwaBanner">
+  <!-- PWA install banner — hidden until browser fires beforeinstallprompt -->
+  <div class="pwa-banner" id="pwaBanner" style="display:none;">
     <div class="pwa-banner-icon"><div class="pwa-banner-bolt"></div></div>
     <div class="pwa-banner-text">
       Instala Hay Luz? en tu dispositivo
       <small>Acceso rápido sin abrir el navegador · funciona sin conexión</small>
     </div>
     <button class="btn-pwa" id="pwaInstallBtn">Instalar</button>
-    <button class="btn" style="padding:7px 10px;font-size:11px;" onclick="document.getElementById('pwaBanner').classList.remove('show')">×</button>
+    <button class="btn" style="padding:7px 10px;font-size:11px;" onclick="document.getElementById('pwaBanner').style.display='none'">×</button>
   </div>
 
   <!-- Stats -->
@@ -1774,7 +1774,7 @@
         <span class="ai-title">Análisis IA del sistema</span>
         <span class="timestamp" id="analysisTime"></span>
       </div>
-      <div class="ai-body loading" id="aiOutput">Analizando situación eléctrica de Maracaibo...</div>
+      <div class="ai-body" id="aiOutput">Haz clic en "Analizar ↗" para obtener un diagnóstico del sistema eléctrico.</div>
     </div>
 
     <div class="controls-bar">
@@ -1819,14 +1819,25 @@
           <label class="rf-label">¿En qué parroquia?</label>
           <select class="rf-select" id="rpParroquia">
             <option value="">Selecciona tu parroquia...</option>
-            <option>Coquivacoa</option><option>Urdaneta</option><option>Olegario Villalobos</option>
-            <option>Bolívar</option><option>Chiquinquirá</option><option>Santa Lucía</option>
-            <option>Cristo de Aranza</option><option>Cecilio Acosta</option>
-            <option>Francisco Eugenio Bustamante</option><option>Juana de Ávila</option>
-            <option>Manuel Dagnino</option><option>Antonio Borjas Romero</option>
-            <option>Raúl Leoni</option><option>Luis Hurtado Higuera</option>
-            <option>San Isidro</option><option>Caracciolo Parra Pérez</option>
-            <option>Venancio Pulgar</option><option>El Cuji</option>
+            <option>Coquivacoa</option>
+            <option>Urdaneta</option>
+            <option>Idelfonso Vásquez</option>
+            <option>Venancio Pulgar</option>
+            <option>Juana de Ávila</option>
+            <option>Olegario Villalobos</option>
+            <option>Bolívar</option>
+            <option>Santa Lucía</option>
+            <option>Chiquinquirá</option>
+            <option>Caracciolo Parra Pérez</option>
+            <option>Raúl Leoni</option>
+            <option>Cacique Mara</option>
+            <option>Cecilio Acosta</option>
+            <option>Antonio Borjas Romero</option>
+            <option>San Isidro</option>
+            <option>Francisco Eugenio Bustamante</option>
+            <option>Manuel Dagnino</option>
+            <option>Cristo de Aranza</option>
+            <option>Luis Hurtado Higuera</option>
           </select>
         </div>
 
@@ -1905,16 +1916,16 @@
           <div class="example-label">Ejemplos para probar:</div>
           <div class="example-chips">
             <button class="example-chip" onclick="loadExample(0)">
-              "Sin luz en Sabaneta desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Sector afectado completo."
+              "Sin luz en Coquivacoa desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Parroquia afectada completa."
             </button>
             <button class="example-chip" onclick="loadExample(1)">
               "TODO MARACAIBO SIN LUZ DESDE AYER, EL GOBIERNO NOS TIENE ABANDONADOS, 48 HORAS SIN ELECTRICIDAD EN TODA LA CIUDAD"
             </button>
             <button class="example-chip" onclick="loadExample(2)">
-              "Fluctuaciones de voltaje en Las Mercedes desde mediodía, algunos negocios con planta eléctrica funcionando normal."
+              "Fluctuaciones de voltaje en Chiquinquirá desde mediodía, algunos negocios con planta eléctrica funcionando normal."
             </button>
             <button class="example-chip" onclick="loadExample(3)">
-              "Corpoelec informa corte programado en Circunvalación 1 para mantenimiento preventivo, duración estimada 4 horas, inicio 9am."
+              "Corpoelec informa corte programado en Cecilio Acosta para mantenimiento preventivo, duración estimada 4 horas, inicio 9am."
             </button>
           </div>
         </div>
@@ -1940,7 +1951,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-name">Hay Luz?</div>
-        <div class="footer-desc">Monitor de cortes eléctricos de Venezuela</div>
+        <div class="footer-desc">Monitor de cortes eléctricos de Venezuela · Maracaibo, Zulia</div>
       </div>
       <div class="footer-socials">
         <a href="#" class="social-link" title="Twitter / X">
@@ -1962,7 +1973,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI & Vercel</span>
+      <span class="footer-bottom-left">&copy; 2026 Hay Luz? · Hecho con <span class="heart">♥</span> en Maracaibo</span>
       <div class="footer-bottom-right">
         <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
@@ -2120,7 +2131,7 @@ const incidents = [
 ];
 
 const examples = [
-  "Sin luz en Caracciolo Parra Pérez desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Parroquia afectada completa.",
+  "Sin luz en Coquivacoa desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Parroquia afectada completa.",
   "TODO MARACAIBO SIN LUZ DESDE AYER, EL GOBIERNO NOS TIENE ABANDONADOS, 48 HORAS SIN ELECTRICIDAD EN TODA LA CIUDAD",
   "Fluctuaciones de voltaje en Chiquinquirá desde mediodía, algunos negocios con planta eléctrica funcionando normal.",
   "Corpoelec informa corte programado en Cecilio Acosta para mantenimiento preventivo, duración estimada 4 horas, inicio 9am.",
@@ -2143,8 +2154,6 @@ async function init() {
   renderStats();
   renderSectors(sectors);
   renderMapSectors();
-
-  runAnalysis();
 
   // Auto-show tooltip after 1.5s if muted
   setTimeout(() => {
@@ -2195,6 +2204,35 @@ function statusInfo(s) {
 function renderSectors(list) {
   const grid = document.getElementById('sectorGrid');
   grid.innerHTML = '';
+
+  // Show empty state when filtering yields no results
+  if (list.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-dim);font-family:var(--mono);font-size:12px;">
+        <div style="font-size:28px;margin-bottom:12px;">~</div>
+        <div style="color:var(--text-muted);margin-bottom:8px;">No hay sectores con ese filtro</div>
+        <div>Prueba con otro estado o limpia la búsqueda</div>
+      </div>`;
+    return;
+  }
+
+  // Show empty state when all sectors are ok and source appears to be fallback
+  const allOk = list.every(s => s.status === 'ok' && s.hours === 0 && s.cause === '—');
+  if (allOk && dataSource === 'fallback') {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;">
+        <div style="font-size:11px;font-family:var(--mono);color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Sin cortes reportados</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">
+          No hay datos de cortes activos en este momento.<br>
+          Si hay un corte en tu zona, puedes reportarlo.
+        </div>
+        <button class="btn primary" onclick="switchView('report', document.querySelector('[onclick*=\\'report\\']'))" style="font-size:12px;">
+          Reportar un corte ↗
+        </button>
+      </div>`;
+    return;
+  }
+
   list.forEach(s => {
     const si = statusInfo(s.status);
     const div = document.createElement('div');
@@ -2265,21 +2303,22 @@ async function runAnalysis() {
   const out = document.getElementById('aiOutput');
   out.className = 'ai-body loading';
   out.textContent = 'Analizando...';
-  const cut = sectors.filter(s => s.status === 'cut');
+  const cut   = sectors.filter(s => s.status === 'cut');
   const inter = sectors.filter(s => s.status === 'inter');
-  const summary = `Sectores con corte activo (${cut.length}): ${cut.map(s => s.name + ' (' + s.hours + 'h, ' + s.cause + ')').join('; ')}. Intermitentes (${inter.length}): ${inter.map(s => s.name).join(', ')}. Estables: ${sectors.filter(s=>s.status==='ok').length}.`;
+  const summary = `Parroquias con corte activo (${cut.length}): ${cut.map(s => s.name + ' (' + s.hours + 'h, ' + s.cause + ')').join('; ')}. Intermitentes (${inter.length}): ${inter.map(s => s.name).join(', ')}. Estables: ${sectors.filter(s=>s.status==='ok').length}.`;
 
   try {
     const data = await callAPI('analyze', {
       systemPrompt: 'Eres un analista experto del sistema eléctrico de Maracaibo, Venezuela. Responde siempre en español venezolano. Sé conciso, máximo 100 palabras. Usa viñetas si es útil.',
       prompt: `Diagnostica brevemente esta situación eléctrica y da 2 recomendaciones ciudadanas: ${summary}`
     });
+    if (data.error) throw new Error(data.error);
     out.className = 'ai-body';
     out.innerHTML = (data.result || 'Sin respuesta.').replace(/\n/g, '<br>');
     document.getElementById('analysisTime').textContent = new Date().toLocaleTimeString('es-VE');
   } catch {
     out.className = 'ai-body';
-    out.textContent = 'Agrega tu API key de Anthropic en las variables de entorno de Vercel para activar el análisis IA.';
+    out.textContent = 'Análisis IA no disponible. Verifica que OPENROUTER_API_KEY esté configurada en Vercel.';
   }
 }
 
@@ -2293,11 +2332,12 @@ async function runIncidentSummary() {
       systemPrompt: 'Eres analista eléctrico de Maracaibo, Venezuela. Responde en español, máximo 80 palabras.',
       prompt: `Resume y prioriza estos incidentes eléctricos activos: ${txt}`
     });
+    if (data.error) throw new Error(data.error);
     out.className = 'ai-body';
     out.innerHTML = (data.result || '').replace(/\n/g, '<br>');
   } catch {
     out.className = 'ai-body';
-    out.textContent = 'Análisis no disponible. Configura ANTHROPIC_API_KEY en Vercel.';
+    out.textContent = 'Resumen no disponible. Verifica que OPENROUTER_API_KEY esté configurada en Vercel.';
   }
 }
 
@@ -2324,7 +2364,7 @@ async function runVerify() {
     renderVerifyResult(data, report);
     addToHistory(report, data);
   } catch (e) {
-    rc.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px;">Error al verificar. Asegúrate de que ANTHROPIC_API_KEY está configurada en Vercel.</div>`;
+    rc.innerHTML = `<div style="color:var(--red);font-size:13px;padding:20px;">Error al verificar. Asegúrate de que OPENROUTER_API_KEY está configurada en Vercel.</div>`;
   }
 
   btn.disabled = false;
@@ -3366,7 +3406,8 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  document.getElementById('pwaBanner')?.classList.add('show');
+  const banner = document.getElementById('pwaBanner');
+  if (banner) banner.style.display = 'flex';
 });
 
 document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
@@ -3374,14 +3415,15 @@ document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => 
   deferredInstallPrompt.prompt();
   const { outcome } = await deferredInstallPrompt.userChoice;
   if (outcome === 'accepted') {
-    document.getElementById('pwaBanner')?.classList.remove('show');
+    document.getElementById('pwaBanner').style.display = 'none';
     showToast({ color:'green', icon:'✓', title:'App instalada', msg:'Hay Luz? está en tu pantalla de inicio.', time: new Date().toLocaleTimeString('es-VE') });
   }
   deferredInstallPrompt = null;
 });
 
 window.addEventListener('appinstalled', () => {
-  document.getElementById('pwaBanner')?.classList.remove('show');
+  const banner = document.getElementById('pwaBanner');
+  if (banner) banner.style.display = 'none';
   deferredInstallPrompt = null;
 });
 
