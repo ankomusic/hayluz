@@ -26,6 +26,9 @@ export default async function handler(req, res) {
     'Prefer': 'return=representation'
   };
 
+  // OPTIONS — CORS preflight
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   // GET — fetch all latest rows
   if (req.method === 'GET') {
     const r = await fetch(`${url}/rest/v1/outages?select=*&order=updated_at.desc&limit=100`, { headers });

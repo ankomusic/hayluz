@@ -10,7 +10,18 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { prompt, systemPrompt } = req.body;
+  let body = {};
+
+  try {
+    body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
+  } catch (e) {
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+
+  const { prompt, systemPrompt } = body;
+
   if (!prompt) return res.status(400).json({ error: 'Prompt required' });
 
   const key = process.env.OPENROUTER_API_KEY;
@@ -34,7 +45,13 @@ export default async function handler(req, res) {
         ]
       })
     });
-    if (!r.ok) { const e = await r.json(); return res.status(r.status).json({ error: e.error?.message || 'OpenRouter error' }); }
+
+    if (!r.ok) {
+      const text = await r.text();
+      console.error("OpenRouter ERROR:", text);
+      return res.status(r.status).json({ error: text });
+    }
+
     const data = await r.json();
     return res.status(200).json({ result: data.choices?.[0]?.message?.content || '' });
   } catch (e) {

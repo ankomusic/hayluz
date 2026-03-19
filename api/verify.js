@@ -39,7 +39,13 @@ Score: 80-100=Verificado, 60-79=Probable, 40-59=Dudoso, 0-39=Falso`;
         ]
       })
     });
-    if (!r.ok) return res.status(r.status).json({ error: 'OpenRouter error' });
+
+    if (!r.ok) {
+      const text = await r.text();
+      console.error("OpenRouter ERROR:", text);
+      return res.status(r.status).json({ error: text });
+    }
+
     const data = await r.json();
     const text = data.choices?.[0]?.message?.content || '{}';
     try {
