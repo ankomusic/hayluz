@@ -1061,6 +1061,217 @@
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
 
+    /* ══════════════════════════════════════
+       RESPONSIVE DESIGN
+       ══════════════════════════════════════ */
+
+    /* Topbar — stack on very small screens */
+    @media (max-width: 600px) {
+      .topbar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+      .topbar > div:last-child { width: 100%; justify-content: space-between; }
+      .city-select { min-width: 130px; }
+      .live-pill { font-size: 10px; }
+    }
+
+    /* Stats row */
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stat { padding: 12px; }
+      .stat-val { font-size: 22px; }
+      .stat-label { font-size: 10px; }
+    }
+
+    /* Nav tabs — scrollable on mobile */
+    .nav-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    @media (max-width: 500px) {
+      .nav-tab { padding: 7px 12px; font-size: 11px; white-space: nowrap; }
+    }
+
+    /* Sector grid */
+    @media (max-width: 500px) {
+      .sector-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Map */
+    @media (max-width: 600px) {
+      #leafletMap { height: 320px; }
+      .map-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .map-legend { flex-wrap: wrap; gap: 8px; }
+    }
+
+    /* Verify layout */
+    @media (max-width: 720px) {
+      .verify-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Drawer full-width on mobile */
+    @media (max-width: 480px) {
+      .notif-drawer { width: 100%; }
+    }
+
+    /* AI card */
+    @media (max-width: 500px) {
+      .ai-card { padding: 14px; }
+      .ai-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+
+    /* Footer */
+    @media (max-width: 640px) {
+      .footer-top { flex-direction: column; gap: 16px; }
+      .footer-socials { flex-wrap: wrap; gap: 6px; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .footer-bottom-right { flex-wrap: wrap; gap: 10px; }
+    }
+
+    /* Report form */
+    @media (max-width: 480px) {
+      .status-pills { gap: 6px; }
+      .status-pill { padding: 8px 6px; font-size: 10px; }
+      .status-pill-icon { font-size: 16px; }
+    }
+
+    /* PWA banner */
+    @media (max-width: 500px) {
+      .pwa-banner { flex-wrap: wrap; }
+      .pwa-banner-text { font-size: 12px; }
+    }
+
+    /* Controls bar */
+    @media (max-width: 500px) {
+      .controls-bar { flex-direction: column; }
+      .search { min-width: unset; width: 100%; }
+    }
+
+    /* Incidents */
+    @media (max-width: 500px) {
+      .incident { gap: 8px; }
+      .inc-text { font-size: 12px; }
+    }
+
+    /* ══════════════════════════════════════
+       CREDITS MODAL
+       ══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 9998;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 0 0 0 0;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .credits-modal {
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 28px 28px 36px;
+      width: 100%;
+      max-width: 520px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .modal-overlay.open .credits-modal {
+      transform: translateY(0);
+    }
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: var(--border-bright);
+      border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+    .modal-title {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .modal-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 400px) { .tech-grid { grid-template-columns: repeat(2, 1fr); } }
+    .tech-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 10px;
+      text-align: center;
+      text-decoration: none;
+      transition: border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .tech-card:hover { border-color: var(--border-bright); }
+    .tech-icon {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .tech-name { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 700; }
+    .tech-role { font-size: 10px; color: var(--text-dim); line-height: 1.3; }
+    .credits-divider { height: 1px; background: var(--border); margin: 18px 0; }
+    .credits-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .author-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .author-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .author-made {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+    .heart { color: var(--red); }
+    .modal-close {
+      width: 100%;
+      margin-top: 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { border-color: var(--border-bright); color: var(--text); }
+
     /* ── Community report form ── */
     .report-layout {
       display: grid;
@@ -1741,8 +1952,9 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 Hay Luz? · Powered by anko</span>
+      <span class="footer-bottom-left">&copy; 2026 Hay Luz? · Hecho con <span class="heart">♥</span> en Maracaibo</span>
       <div class="footer-bottom-right">
+        <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
           <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.243-8.558 6.243H9.824l-1.175 7.409h3.338c.46 0 .85-.334.922-.787l.038-.196.733-4.649.047-.257a.932.932 0 0 1 .922-.787h.58c3.76 0 6.701-1.528 7.559-5.946.36-1.847.174-3.389-.566-4.743z"/></svg>
           Donar con PayPal
@@ -1750,6 +1962,72 @@
       </div>
     </div>
   </footer>
+</div>
+
+<!-- ═══════════ CREDITS MODAL ═══════════ -->
+<div class="modal-overlay" id="creditsOverlay" onclick="if(event.target===this)closeCredits()">
+  <div class="credits-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Hay Luz?</div>
+    <div class="modal-subtitle">Monitor de cortes eléctricos de Venezuela · Maracaibo, Zulia</div>
+
+    <div class="tech-grid">
+      <a href="https://anthropic.com" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#1a1a2e;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 19h4l6-10 6 10h4L12 2z" fill="#cc785c"/></svg>
+        </div>
+        <div class="tech-name">Claude</div>
+        <div class="tech-role">Inteligencia artificial</div>
+      </a>
+      <a href="https://openrouter.ai" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#0f0f0f;border:1px solid #333;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#7c3aed"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="tech-name">OpenRouter</div>
+        <div class="tech-role">Gateway de IA</div>
+      </a>
+      <a href="https://vercel.com" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#000;border:1px solid #333;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 20h20L12 2z"/></svg>
+        </div>
+        <div class="tech-name">Vercel</div>
+        <div class="tech-role">Hosting y deploy</div>
+      </a>
+      <a href="https://supabase.com" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#1c1c1c;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 3l10 18V9H3V3z" fill="#3ecf8e"/><path d="M21 21L11 3v12h10v6z" fill="#3ecf8e" opacity=".4"/></svg>
+        </div>
+        <div class="tech-name">Supabase</div>
+        <div class="tech-role">Base de datos</div>
+      </a>
+      <a href="https://github.com" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#161b22;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </div>
+        <div class="tech-name">GitHub</div>
+        <div class="tech-role">Control de versiones</div>
+      </a>
+      <a href="https://leafletjs.com" target="_blank" rel="noopener" class="tech-card">
+        <div class="tech-icon" style="background:#1e3a2f;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22C12 22 4 16 4 10a8 8 0 0116 0c0 6-8 12-8 12z" fill="#4bba6f"/></svg>
+        </div>
+        <div class="tech-name">Leaflet</div>
+        <div class="tech-role">Mapas interactivos</div>
+      </a>
+    </div>
+
+    <div class="credits-divider"></div>
+
+    <div class="credits-author">
+      <div class="author-avatar">AR</div>
+      <div>
+        <div class="author-name">Aníbal Riera</div>
+        <div class="author-made">Hecho con <span class="heart">♥</span> desde Maracaibo, Venezuela<br>Una herramienta para mi gente y la de mi ciudad.</div>
+      </div>
+    </div>
+
+    <button class="modal-close" onclick="closeCredits()">Cerrar</button>
+  </div>
 </div>
 
 <script>
@@ -2974,6 +3252,18 @@ window.addEventListener('appinstalled', () => {
 
 // Seed community feed once sectors are loaded
 setTimeout(seedFeedFromSectors, 3000);
+
+// ======== CREDITS MODAL ========
+function openCredits() {
+  document.getElementById('creditsOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCredits() {
+  document.getElementById('creditsOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCredits(); });
 </script>
 </body>
 </html>
