@@ -1523,25 +1523,67 @@
 const API_BASE = window.location.origin;
 
 const sectors = [
-  { name: "Coquivacoa",                   zone: "Norte",      status: "cut",   hours: 8,  since: "06:30", affected: 90, cause: "Sobrecarga en subestación" },
-  { name: "Urdaneta",                     zone: "Norte",      status: "cut",   hours: 5,  since: "09:00", affected: 75, cause: "Falla en transformador" },
-  { name: "Olegario Villalobos",          zone: "Norte",      status: "ok",    hours: 0,  since: "—",    affected: 4,  cause: "—" },
-  { name: "Bolívar",                      zone: "Centro-Norte", status: "ok",  hours: 0,  since: "—",    affected: 3,  cause: "—" },
-  { name: "Chiquinquirá",                 zone: "Centro-Norte", status: "inter", hours: 2, since: "12:00", affected: 40, cause: "Fluctuación de voltaje" },
-  { name: "Santa Lucía",                  zone: "Centro",     status: "ok",    hours: 0,  since: "—",    affected: 5,  cause: "—" },
-  { name: "Cristo de Aranza",             zone: "Centro",     status: "inter", hours: 3,  since: "11:00", affected: 45, cause: "Mantenimiento preventivo" },
-  { name: "Cecilio Acosta",               zone: "Centro",     status: "cut",   hours: 6,  since: "08:00", affected: 70, cause: "Corte programado" },
-  { name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",  status: "cut",   hours: 9,  since: "05:30", affected: 85, cause: "Vandalismo en infraestructura" },
-  { name: "Juana de Ávila",               zone: "Centro-Sur", status: "ok",    hours: 0,  since: "—",    affected: 5,  cause: "—" },
-  { name: "Manuel Dagnino",               zone: "Centro-Sur", status: "inter", hours: 1,  since: "13:00", affected: 30, cause: "Pruebas de restauración" },
-  { name: "Antonio Borjas Romero",        zone: "Sur",        status: "cut",   hours: 7,  since: "07:00", affected: 60, cause: "Falla en subestación" },
-  { name: "Raúl Leoni",                   zone: "Sur",        status: "cut",   hours: 4,  since: "10:00", affected: 55, cause: "Sobrecarga" },
-  { name: "Luis Hurtado Higuera",         zone: "Sur",        status: "inter", hours: 2,  since: "12:30", affected: 35, cause: "Corte intermitente reportado" },
-  { name: "San Isidro",                   zone: "Sur-Este",   status: "ok",    hours: 0,  since: "—",    affected: 6,  cause: "—" },
-  { name: "Caracciolo Parra Pérez",       zone: "Sur-Este",   status: "cut",   hours: 11, since: "03:15", affected: 88, cause: "Daño en línea de transmisión" },
-  { name: "Venancio Pulgar",              zone: "Sur",        status: "ok",    hours: 0,  since: "—",    affected: 2,  cause: "—" },
-  { name: "El Cuji",                      zone: "Sur-Oeste",  status: "cut",   hours: 5,  since: "09:15", affected: 72, cause: "Subestación dañada" },
+  { name: "Coquivacoa",                   zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Urdaneta",                     zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Olegario Villalobos",          zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Bolívar",                      zone: "Centro-Norte", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Chiquinquirá",                 zone: "Centro-Norte", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Santa Lucía",                  zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Cristo de Aranza",             zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Cecilio Acosta",               zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",    status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Juana de Ávila",               zone: "Centro-Sur",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Manuel Dagnino",               zone: "Centro-Sur",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Antonio Borjas Romero",        zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Raúl Leoni",                   zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Luis Hurtado Higuera",         zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "San Isidro",                   zone: "Sur-Este",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Caracciolo Parra Pérez",       zone: "Sur-Este",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Venancio Pulgar",              zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "El Cuji",                      zone: "Sur-Oeste",    status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
 ];
+
+// Zone map for enriching API responses that may omit zone
+const ZONE_MAP = {
+  "Coquivacoa":"Norte","Urdaneta":"Norte","Olegario Villalobos":"Norte",
+  "Bolívar":"Centro-Norte","Chiquinquirá":"Centro-Norte",
+  "Santa Lucía":"Centro","Cristo de Aranza":"Centro","Cecilio Acosta":"Centro",
+  "Francisco Eugenio Bustamante":"Sur-Oeste","Juana de Ávila":"Centro-Sur",
+  "Manuel Dagnino":"Centro-Sur","Antonio Borjas Romero":"Sur","Raúl Leoni":"Sur",
+  "Luis Hurtado Higuera":"Sur","San Isidro":"Sur-Este",
+  "Caracciolo Parra Pérez":"Sur-Este","Venancio Pulgar":"Sur","El Cuji":"Sur-Oeste"
+};
+
+let dataSource = 'cargando...';
+
+async function loadLiveData() {
+  try {
+    const res = await fetch(`${API_BASE}/api/data`);
+    if (!res.ok) throw new Error('API error');
+    const payload = await res.json();
+    if (payload.sectors?.length) {
+      // Merge live data into sectors array in-place
+      payload.sectors.forEach(live => {
+        const idx = sectors.findIndex(s => s.name === live.name);
+        if (idx !== -1) {
+          sectors[idx] = { ...sectors[idx], ...live, zone: ZONE_MAP[live.name] || sectors[idx].zone };
+        }
+      });
+      dataSource = payload.source || 'api';
+    }
+  } catch {
+    // Keep default ok status — show UI without data
+    dataSource = 'sin conexión';
+  }
+}
+
+// Re-fetch live data every 5 minutes
+setInterval(async () => {
+  await loadLiveData();
+  renderStats();
+  filterSectors();
+  renderMapSectors();
+}, 5 * 60 * 1000);
 
 const incidents = [
   { text: "Caracciolo Parra Pérez: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
@@ -1563,15 +1605,23 @@ let currentFilter = "all";
 let verifyHistory = [];
 
 // ---- INIT ----
-function init() {
+async function init() {
+  // Show skeleton immediately
   renderStats();
   renderSectors(sectors);
   renderIncidents();
   renderMapSectors();
   syncOptInBtn();
+
+  // Load live data then re-render
+  await loadLiveData();
+  renderStats();
+  renderSectors(sectors);
+  renderMapSectors();
+
   runAnalysis();
 
-  // Auto-show tooltip after 1.5s, stay 7s; nudge again at 12s if still muted
+  // Auto-show tooltip after 1.5s if muted
   setTimeout(() => {
     const tip = document.getElementById('muteTip');
     if (tip && notifMuted) {
