@@ -972,8 +972,8 @@
 
     /* Footer social links */
     footer {
-      margin-top: 40px;
-      padding-top: 20px;
+      margin-top: 48px;
+      padding-top: 24px;
       border-top: 1px solid var(--border);
     }
     .footer-top {
@@ -981,51 +981,73 @@
       justify-content: space-between;
       align-items: flex-start;
       flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 16px;
+      gap: 24px;
+      margin-bottom: 20px;
     }
+    .footer-brand { display: flex; flex-direction: column; gap: 6px; }
     .footer-brand .footer-name {
       font-family: var(--mono);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 2px;
+      line-height: 1;
+      letter-spacing: -0.3px;
     }
     .footer-brand .footer-desc {
       font-size: 12px;
       color: var(--text-muted);
+      line-height: 1.4;
     }
     .footer-socials {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
+      flex-wrap: wrap;
     }
     .social-link {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 6px 12px;
+      padding: 7px 11px;
       font-size: 12px;
       font-family: var(--mono);
       color: var(--text-muted);
       text-decoration: none;
+      line-height: 1;
       transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+      height: 32px;
     }
     .social-link:hover { border-color: var(--border-bright); color: var(--text); }
-    .social-link svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+    .social-link svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; display: block; }
     .footer-bottom {
       font-size: 11px;
       color: var(--text-dim);
       font-family: var(--mono);
       display: flex;
       justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
-      gap: 6px;
-      padding-top: 12px;
+      gap: 12px;
+      padding-top: 16px;
       border-top: 1px solid var(--border);
+      line-height: 1;
+    }
+    .footer-bottom-left { color: var(--text-dim); font-size: 11px; }
+    .footer-bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .footer-copy {
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: var(--mono);
+      white-space: nowrap;
     }
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
@@ -1139,7 +1161,78 @@
     .btn-optin.granted { border-color: var(--green); color: var(--green); background: var(--green-dim); cursor: default; }
     .btn-optin.denied  { border-color: var(--red); color: var(--red); background: var(--red-dim); cursor: default; }
 
-    /* ── PayPal donation button ── */
+    /* ── Tooltip on mute button ── */
+    .tip-wrap { position: relative; display: inline-flex; }
+    .tip-bubble {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: var(--surface2);
+      border: 1px solid var(--amber);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      width: 230px;
+      font-family: var(--sans);
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      z-index: 9990;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: normal;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .tip-bubble::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      right: 11px;
+      width: 8px;
+      height: 8px;
+      background: var(--surface2);
+      border-left: 1px solid var(--amber);
+      border-top: 1px solid var(--amber);
+      transform: rotate(45deg);
+    }
+    .tip-bubble strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tip-bubble .tip-cta {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--amber);
+      border-bottom: 1px dashed var(--amber);
+      cursor: pointer;
+    }
+    .tip-bubble .tip-cta:hover { opacity: 0.8; }
+
+    /* Visible states */
+    .tip-wrap:hover .tip-bubble { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .tip-bubble.show-tip         { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    /* Nudge: pulsing amber ring on mute btn while muted */
+    .theme-btn.nudge::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: calc(var(--radius) + 3px);
+      border: 1.5px solid var(--amber);
+      animation: nudgePulse 2.2s ease-in-out 4;
+      opacity: 0;
+    }
+    @keyframes nudgePulse {
+      0%   { opacity: 0;   transform: scale(0.96); }
+      35%  { opacity: 0.9; transform: scale(1.07); }
+      100% { opacity: 0;   transform: scale(1.13); }
+    }
     .paypal-link {
       display: inline-flex;
       align-items: center;
@@ -1147,15 +1240,16 @@
       background: #0070ba;
       color: #fff;
       border-radius: var(--radius);
-      padding: 7px 14px;
+      padding: 7px 12px;
       font-size: 12px;
       font-family: var(--mono);
       text-decoration: none;
-      transition: background 0.15s, opacity 0.15s;
+      line-height: 1;
+      transition: background 0.15s;
       white-space: nowrap;
     }
     .paypal-link:hover { background: #005ea6; }
-    .paypal-link svg { width: 14px; height: 14px; fill: #fff; flex-shrink: 0; }
+    .paypal-link svg { width: 13px; height: 13px; fill: #fff; flex-shrink: 0; display: block; }
   </style>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -1191,13 +1285,22 @@
         <span class="city-select-arrow">▾</span>
       </div>
       <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
-      <button class="theme-btn" id="muteBtn" onclick="toggleMute()" title="Silenciar notificaciones de fluctuación">
-        <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
+      <!-- Divider -->
+      <div style="width:1px;height:22px;background:var(--border);flex-shrink:0;"></div>
+      <div class="tip-wrap">
+        <button class="theme-btn muted nudge" id="muteBtn" onclick="toggleMute()" title="">
+          <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="tip-bubble" id="muteTip">
+          <strong>Alertas desactivadas</strong>
+          Actívalas para recibir notificaciones de fluctuación de voltaje en tiempo real.
+          <span class="tip-cta" onclick="toggleMute()">Activar alertas →</span>
+        </div>
+      </div>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <!-- Alert panel — uses activity/signal icon instead of bell -->
+      <!-- Alert panel — activity/signal icon -->
       <button class="notif-btn" onclick="toggleDrawer()" title="Panel de alertas" id="notifBtn">
         <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -1205,7 +1308,7 @@
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
     </div>
-  </div>
+  </div><!-- /topbar -->
 
   <!-- Drawer overlay -->
   <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
@@ -1383,7 +1486,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-name">Hay Luz?</div>
-        <div class="footer-desc">Monitor eléctrico · Maracaibo, Zulia, Venezuela</div>
+        <div class="footer-desc">Monitor eléctrico de Venezuela · Maracaibo, Zulia</div>
       </div>
       <div class="footer-socials">
         <a href="#" class="social-link" title="Twitter / X">
@@ -1405,13 +1508,13 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>Datos referenciales · Verificar con fuentes oficiales</span>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar con una donación en PayPal">
+      <span class="footer-bottom-left">Datos referenciales · Verificar con fuentes oficiales</span>
+      <div class="footer-bottom-right">
+        <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
           <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.243-8.558 6.243H9.824l-1.175 7.409h3.338c.46 0 .85-.334.922-.787l.038-.196.733-4.649.047-.257a.932.932 0 0 1 .922-.787h.58c3.76 0 6.701-1.528 7.559-5.946.36-1.847.174-3.389-.566-4.743z"/></svg>
           Donar con PayPal
         </a>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">Powered by anko · © 2026 Hay Luz?</span>
+        <span class="footer-copy">Powered by anko · © 2026 Hay Luz?</span>
       </div>
     </div>
   </footer>
@@ -1468,6 +1571,22 @@ function init() {
   renderMapSectors();
   syncOptInBtn();
   runAnalysis();
+
+  // Auto-show tooltip after 1.5s, stay 7s; nudge again at 12s if still muted
+  setTimeout(() => {
+    const tip = document.getElementById('muteTip');
+    if (tip && notifMuted) {
+      tip.classList.add('show-tip');
+      setTimeout(() => tip.classList.remove('show-tip'), 7000);
+    }
+  }, 1500);
+  setTimeout(() => {
+    const tip = document.getElementById('muteTip');
+    if (tip && notifMuted && !tip.classList.contains('show-tip')) {
+      tip.classList.add('show-tip');
+      setTimeout(() => tip.classList.remove('show-tip'), 5000);
+    }
+  }, 14000);
 }
 
 // ---- VIEW SWITCH ----
@@ -1948,7 +2067,9 @@ function fireAlert({ color, icon, title, msg }) {
 }
 
 // ---- TOAST ----
-function showToast({ color, icon, title, msg, time }) {
+function showToast({ color, icon, title, msg, time, system = false }) {
+  // Only suppress fluctuation toasts (non-system) when muted
+  if (notifMuted && !system) return;
   const stack = document.getElementById('toastStack');
   // Remove oldest toast if already at 3
   const existing = stack.querySelectorAll('.toast:not(.leaving)');
@@ -2044,6 +2165,7 @@ function changeCity(val) {
       title: 'Ciudad no disponible aún',
       msg: 'Estamos trabajando para agregar más ciudades. ¡Pronto!',
       time: new Date().toLocaleTimeString('es-VE'),
+      system: true,
     });
     return;
   }
@@ -2066,7 +2188,7 @@ function requestBrowserNotif() {
     if (perm === 'granted') {
       btn.textContent = '✓ Notificaciones activadas';
       btn.classList.add('granted');
-      showToast({ color: 'green', icon: '✓', title: 'Notificaciones activadas', msg: 'Recibirás alertas incluso en segundo plano.', time: new Date().toLocaleTimeString('es-VE') });
+      showToast({ color: 'green', icon: '✓', title: 'Notificaciones activadas', msg: 'Recibirás alertas incluso en segundo plano.', time: new Date().toLocaleTimeString('es-VE'), system: true });
     } else {
       btn.textContent = '✗ Permiso denegado — actívalo en el navegador';
       btn.classList.add('denied');
@@ -2127,22 +2249,34 @@ function testAlert() {
   });
 }
 
-let notifMuted = false;
+let notifMuted = true;
 
 function toggleMute() {
   notifMuted = !notifMuted;
   const btn = document.getElementById('muteBtn');
   btn.classList.toggle('muted', notifMuted);
-  btn.title = notifMuted ? 'Reactivar notificaciones de fluctuación' : 'Silenciar notificaciones de fluctuación';
+  btn.classList.remove('nudge'); // remove nudge ring once user interacts
+  // Hide tooltip permanently when unmuted
+  const tip = document.getElementById('muteTip');
+  if (tip) {
+    tip.classList.remove('show-tip');
+    if (!notifMuted) {
+      // When unmuted, suppress hover tooltip via pointer-events override
+      tip.style.display = 'none';
+    } else {
+      tip.style.display = '';
+    }
+  }
   const BELL_ON  = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`;
   const BELL_OFF = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/>`;
   document.getElementById('muteIcon').innerHTML = notifMuted ? BELL_OFF : BELL_ON;
   showToast({
     color: notifMuted ? 'amber' : 'green',
     icon: notifMuted ? '×' : '✓',
-    title: notifMuted ? 'Notificaciones silenciadas' : 'Notificaciones reactivadas',
-    msg: notifMuted ? 'No recibirás alertas de fluctuación.' : 'Recibirás alertas de fluctuación nuevamente.',
+    title: notifMuted ? 'Alertas silenciadas' : 'Alertas activadas',
+    msg: notifMuted ? 'No recibirás notificaciones de fluctuación.' : 'Recibirás alertas de fluctuación en tiempo real.',
     time: new Date().toLocaleTimeString('es-VE'),
+    system: true,
   });
 }
 
