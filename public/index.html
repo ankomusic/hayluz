@@ -1772,15 +1772,16 @@
     <div class="ai-card">
       <div class="ai-header">
         <span class="ai-title">Análisis IA del sistema</span>
-        <span class="timestamp" id="analysisTime"></span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="timestamp" id="analysisTime"></span>
+          <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="runAnalysis()">Analizar ↗</button>
+        </div>
       </div>
       <div class="ai-body" id="aiOutput">Haz clic en "Analizar ↗" para obtener un diagnóstico del sistema eléctrico.</div>
     </div>
 
     <div class="controls-bar">
-      <input type="text" class="search" id="searchInput" placeholder="Buscar sector o zona..." oninput="filterSectors()" />
-      <button class="btn" onclick="refreshAll()">↻ Actualizar</button>
-      <button class="btn primary" onclick="runAnalysis()">Analizar ↗</button>
+      <input type="text" class="search" id="searchInput" placeholder="Buscar parroquia o zona..." oninput="filterSectors()" />
     </div>
     <div class="filter-pills" id="filterPills">
       <button class="pill active-pill" data-f="all" onclick="setFilter('all',this)">Todos</button>
@@ -1951,7 +1952,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-name">Hay Luz?</div>
-        <div class="footer-desc">Monitor de cortes eléctricos de Venezuela · Maracaibo, Zulia</div>
+        <div class="footer-desc">Monitor de cortes eléctricos de Venezuela</div>
       </div>
       <div class="footer-socials">
         <a href="#" class="social-link" title="Twitter / X">
@@ -1973,7 +1974,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 Hay Luz? · Hecho con <span class="heart">♥</span> en Maracaibo</span>
+      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel</span>
       <div class="footer-bottom-right">
         <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
@@ -3404,7 +3405,9 @@ if ('serviceWorker' in navigator) {
 }
 
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
+  // Intentionally NOT calling e.preventDefault() — avoids the console warning
+  // "Banner not shown: beforeinstallprompt event.preventDefault() called"
+  // Chrome will show its own mini-infobar; we also show our custom banner
   deferredInstallPrompt = e;
   const banner = document.getElementById('pwaBanner');
   if (banner) banner.style.display = 'flex';
@@ -3412,8 +3415,9 @@ window.addEventListener('beforeinstallprompt', e => {
 
 document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
   if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
+  // prompt() returns a promise in modern Chrome
+  const result = await deferredInstallPrompt.prompt();
+  const outcome = result?.outcome ?? (await deferredInstallPrompt.userChoice)?.outcome;
   if (outcome === 'accepted') {
     document.getElementById('pwaBanner').style.display = 'none';
     showToast({ color:'green', icon:'✓', title:'App instalada', msg:'Hay Luz? está en tu pantalla de inicio.', time: new Date().toLocaleTimeString('es-VE') });
