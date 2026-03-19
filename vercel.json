@@ -1,15 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "public/**", "use": "@vercel/static" },
-    { "src": "api/**/*.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/admin", "dest": "/public/admin.html" },
-    { "src": "/sw.js", "dest": "/public/sw.js" },
-    { "src": "/manifest.json", "dest": "/public/manifest.json" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin.html" }
   ],
   "headers": [
     {
@@ -20,10 +12,11 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
       ]
     }
   ]

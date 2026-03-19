@@ -1,10 +1,10 @@
 {
-  "name": "maracaibo-light-monitor",
-  "version": "1.0.0",
-  "description": "Monitor de cortes eléctricos en Maracaibo, Zulia",
+  "name": "hayluz-monitor",
+  "version": "2.0.0",
+  "description": "Monitor de cortes eléctricos en Venezuela",
+  "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Static site, no build needed'"
+    "dev": "vercel dev"
   },
   "engines": {
     "node": ">=18"
