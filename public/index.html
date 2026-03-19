@@ -32,6 +32,27 @@
       --radius-lg: 12px;
     }
 
+    :root.light {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface2: #eef0f3;
+      --border: rgba(0,0,0,0.08);
+      --border-bright: rgba(0,0,0,0.18);
+      --text: #141618;
+      --text-muted: #6b7280;
+      --text-dim: #adb5bd;
+      --accent: #c9a000;
+      --accent-dim: rgba(201,160,0,0.1);
+      --red: #d93636;
+      --red-dim: rgba(217,54,54,0.1);
+      --amber: #c47a0a;
+      --amber-dim: rgba(196,122,10,0.1);
+      --green: #1d9e5c;
+      --green-dim: rgba(29,158,92,0.1);
+      --blue: #1a6fc4;
+      --blue-dim: rgba(26,111,196,0.1);
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -41,6 +62,7 @@
       font-size: 14px;
       line-height: 1.6;
       min-height: 100vh;
+      transition: background 0.25s, color 0.25s;
     }
 
     /* Subtle grid background */
@@ -49,8 +71,8 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
@@ -832,6 +854,145 @@
     .waveform-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
     canvas#waveCanvas { width: 100%; height: 48px; display: block; }
 
+    /* Theme toggle button */
+    .theme-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.25s;
+      flex-shrink: 0;
+    }
+    .theme-btn:hover { border-color: var(--border-bright); }
+    .theme-btn svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+    .theme-btn:hover svg { stroke: var(--text); }
+
+    /* Map view */
+    .map-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .map-title { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .map-legend { display: flex; gap: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-dot.red   { background: var(--red); }
+    .legend-dot.amber { background: var(--amber); }
+    .legend-dot.green { background: var(--green); }
+
+    #mapSvg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .map-sector {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .map-sector:hover { opacity: 0.85; }
+    .map-sector rect, .map-sector polygon, .map-sector path {
+      transition: fill 0.5s, stroke 0.3s;
+    }
+    .map-tooltip {
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text);
+      pointer-events: none;
+      position: absolute;
+      z-index: 100;
+      min-width: 160px;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .map-tooltip .tt-name { font-weight: 500; margin-bottom: 3px; }
+    .map-tooltip .tt-volt { font-family: var(--mono); font-size: 11px; }
+
+    /* Pulse ring on alerted sectors */
+    .pulse-ring {
+      animation: mapPulse 1.2s ease-out infinite;
+      transform-origin: center;
+    }
+    @keyframes mapPulse {
+      0%   { opacity: 0.8; r: 0; }
+      100% { opacity: 0; r: 18; }
+    }
+
+    /* Footer social links */
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .footer-brand .footer-name {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .footer-brand .footer-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .footer-socials {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .social-link:hover { border-color: var(--border-bright); color: var(--text); }
+    .social-link svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+    .footer-bottom {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
   </style>
 </head>
@@ -849,6 +1010,9 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
+        <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <button class="notif-btn" onclick="toggleDrawer()" title="Notificaciones de fluctuación" id="notifBtn">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-badge" id="notifBadge">0</span>
@@ -918,9 +1082,13 @@
   <!-- Nav -->
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('monitor', this)">Monitor</button>
+    <button class="nav-tab" onclick="switchView('map', this)">Mapa</button>
     <button class="nav-tab" onclick="switchView('incidents', this)">Incidentes</button>
     <button class="nav-tab" onclick="switchView('verify', this)">Verificador</button>
   </div>
+
+  <!-- Map tooltip -->
+  <div class="map-tooltip" id="mapTooltip"></div>
 
   <!-- ===== MONITOR VIEW ===== -->
   <div id="view-monitor" class="view active">
@@ -944,6 +1112,37 @@
       <button class="pill" data-f="ok" onclick="setFilter('ok',this)">Estable</button>
     </div>
     <div class="sector-grid" id="sectorGrid"></div>
+  </div>
+
+  <!-- ===== MAP VIEW ===== -->
+  <div id="view-map" class="view">
+    <div class="map-wrap">
+      <div class="map-header">
+        <span class="map-title">Mapa de sectores — Maracaibo</span>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot red"></div>Corte</div>
+          <div class="legend-item"><div class="legend-dot amber"></div>Fluctuando</div>
+          <div class="legend-item"><div class="legend-dot green"></div>Estable</div>
+        </div>
+      </div>
+      <svg id="mapSvg" viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
+        <!-- Lake Maracaibo (left side) -->
+        <path d="M0,0 L180,0 L200,80 L185,160 L170,240 L160,320 L155,400 L150,520 L0,520 Z" fill="rgba(77,159,255,0.08)" stroke="rgba(77,159,255,0.2)" stroke-width="1"/>
+        <text x="60" y="260" font-size="11" fill="rgba(77,159,255,0.4)" font-family="monospace" text-anchor="middle" transform="rotate(-90,60,260)">Lago de Maracaibo</text>
+
+        <!-- Zone labels -->
+        <text x="400" y="55" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2">NORTE</text>
+        <text x="400" y="490" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2">SUR</text>
+        <text x="660" y="275" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2" transform="rotate(90,660,275)">ESTE</text>
+        <text x="225" y="275" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2" transform="rotate(-90,225,275)">OESTE</text>
+
+        <!-- Sectors rendered by JS -->
+        <g id="mapSectors"></g>
+      </svg>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);font-family:var(--mono);text-align:center;margin-top:-8px;margin-bottom:16px;">
+      Los sectores parpadean cuando hay una alerta de fluctuación activa · Pasa el cursor para ver el voltaje
+    </p>
   </div>
 
   <!-- ===== INCIDENTS VIEW ===== -->
@@ -1007,8 +1206,34 @@
   </div>
 
   <footer>
-    <span>Hay Luz? · Maracaibo, Zulia, Venezuela</span>
-    <span>Datos referenciales · Verificar con fuentes oficiales · Powered by Claude AI</span>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-name">Hay Luz?</div>
+        <div class="footer-desc">Monitor eléctrico · Maracaibo, Zulia, Venezuela</div>
+      </div>
+      <div class="footer-socials">
+        <a href="#" class="social-link" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          @hayluz_mbo
+        </a>
+        <a href="#" class="social-link" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="var(--bg)"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="var(--bg)" stroke-width="2"/></svg>
+          Instagram
+        </a>
+        <a href="#" class="social-link" title="Facebook">
+          <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Facebook
+        </a>
+        <a href="#" class="social-link" title="WhatsApp">
+          <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Canal
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Datos referenciales · Verificar con fuentes oficiales</span>
+      <span>Powered by Claude AI · © 2025 Hay Luz?</span>
+    </div>
   </footer>
 </div>
 
@@ -1058,6 +1283,7 @@ function init() {
   renderStats();
   renderSectors(sectors);
   renderIncidents();
+  renderMapSectors();
   runAnalysis();
 }
 
@@ -1067,6 +1293,7 @@ function switchView(name, el) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   el.classList.add('active');
+  if (name === 'map') renderMapSectors();
 }
 
 // ---- STATS ----
@@ -1684,8 +1911,199 @@ function testAlert() {
   });
 }
 
+// ======== THEME TOGGLE ========
+const SUN_ICON = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+const MOON_ICON = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+let isLight = false;
+
+function toggleTheme() {
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  document.getElementById('themeIcon').innerHTML = isLight ? SUN_ICON : MOON_ICON;
+  renderMapSectors();
+}
+
+// ======== MAP ========
+// Approximate grid positions for each sector on a 700x520 canvas
+// (real Maracaibo geography: lake on left, city spreads right/south)
+const sectorCoords = {
+  "Circunvalación 1": { x: 310, y: 90,  w: 130, h: 70 },
+  "Circunvalación 2": { x: 450, y: 90,  w: 130, h: 70 },
+  "El Milagro":       { x: 210, y: 90,  w:  90, h: 70 },
+  "Veritas":          { x: 590, y: 90,  w:  90, h: 70 },
+  "Juana de Ávila":   { x: 310, y: 175, w: 130, h: 70 },
+  "Santa Lucía":      { x: 450, y: 175, w: 130, h: 70 },
+  "La Lago":          { x: 590, y: 175, w:  90, h: 70 },
+  "Las Mercedes":     { x: 210, y: 175, w:  90, h: 70 },
+  "Bella Vista":      { x: 590, y: 260, w:  90, h: 70 },
+  "Los Olivos":       { x: 210, y: 260, w:  90, h: 70 },
+  "Pomona":           { x: 210, y: 345, w:  90, h: 70 },
+  "Cañada Honda":     { x: 210, y: 430, w:  90, h: 70 },
+  "Los Haticos":      { x: 310, y: 345, w: 130, h: 70 },
+  "La Victoria":      { x: 450, y: 345, w: 130, h: 70 },
+  "Sabaneta":         { x: 310, y: 430, w: 130, h: 70 },
+  "La Limpia":        { x: 450, y: 430, w: 190, h: 70 },
+};
+
+function sectorFillColor(name) {
+  const s = sectors.find(x => x.name === name);
+  const vs = voltageState[name];
+  if (!s) return '#444';
+  if (s.status === 'cut') return isLight ? 'rgba(217,54,54,0.18)' : 'rgba(255,77,77,0.18)';
+  const v = vs ? vs.v : 120;
+  const low  = parseFloat(document.getElementById('threshLow')?.value  || 90);
+  const high = parseFloat(document.getElementById('threshHigh')?.value || 130);
+  if (v < low || v > high) return isLight ? 'rgba(196,122,10,0.18)' : 'rgba(245,166,35,0.2)';
+  return isLight ? 'rgba(29,158,92,0.14)' : 'rgba(61,220,132,0.12)';
+}
+
+function sectorStrokeColor(name) {
+  const s = sectors.find(x => x.name === name);
+  const vs = voltageState[name];
+  if (!s) return '#555';
+  if (s.status === 'cut') return isLight ? '#d93636' : '#ff4d4d';
+  const v = vs ? vs.v : 120;
+  const low  = parseFloat(document.getElementById('threshLow')?.value  || 90);
+  const high = parseFloat(document.getElementById('threshHigh')?.value || 130);
+  if (v < low || v > high) return isLight ? '#c47a0a' : '#f5a623';
+  return isLight ? '#1d9e5c' : '#3ddc84';
+}
+
+function renderMapSectors() {
+  const g = document.getElementById('mapSectors');
+  if (!g) return;
+  g.innerHTML = '';
+
+  Object.entries(sectorCoords).forEach(([name, c]) => {
+    const s = sectors.find(x => x.name === name);
+    if (!s) return;
+    const vs = voltageState[name];
+    const fill   = sectorFillColor(name);
+    const stroke = sectorStrokeColor(name);
+    const v = vs ? Math.round(vs.v) : '—';
+    const cx = c.x + c.w / 2;
+    const cy = c.y + c.h / 2;
+    const alerted = vs && vs.alerted;
+
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    group.setAttribute('class', 'map-sector');
+    group.setAttribute('data-name', name);
+
+    // Pulse ring if alerted
+    if (alerted) {
+      const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pulse.setAttribute('cx', cx);
+      pulse.setAttribute('cy', cy);
+      pulse.setAttribute('r', '0');
+      pulse.setAttribute('fill', 'none');
+      pulse.setAttribute('stroke', stroke);
+      pulse.setAttribute('stroke-width', '2');
+      pulse.setAttribute('class', 'pulse-ring');
+      group.appendChild(pulse);
+    }
+
+    // Main rect
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', c.x);
+    rect.setAttribute('y', c.y);
+    rect.setAttribute('width', c.w);
+    rect.setAttribute('height', c.h);
+    rect.setAttribute('rx', '6');
+    rect.setAttribute('fill', fill);
+    rect.setAttribute('stroke', stroke);
+    rect.setAttribute('stroke-width', alerted ? '1.5' : '1');
+    group.appendChild(rect);
+
+    // Name label
+    const txtName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txtName.setAttribute('x', cx);
+    txtName.setAttribute('y', cy - 7);
+    txtName.setAttribute('text-anchor', 'middle');
+    txtName.setAttribute('font-size', name.length > 12 ? '9' : '10');
+    txtName.setAttribute('font-family', 'monospace');
+    txtName.setAttribute('fill', isLight ? '#141618' : '#e8ecf0');
+    txtName.setAttribute('font-weight', '500');
+    txtName.textContent = name;
+    group.appendChild(txtName);
+
+    // Voltage label
+    const txtVolt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txtVolt.setAttribute('x', cx);
+    txtVolt.setAttribute('y', cy + 10);
+    txtVolt.setAttribute('text-anchor', 'middle');
+    txtVolt.setAttribute('font-size', '11');
+    txtVolt.setAttribute('font-family', 'monospace');
+    txtVolt.setAttribute('fill', stroke);
+    txtVolt.setAttribute('font-weight', '700');
+    txtVolt.textContent = s.status === 'cut' ? '0V' : v + 'V';
+    group.appendChild(txtVolt);
+
+    // Status label
+    const statusMap = { cut: 'CORTE', inter: 'INTERMI.', ok: 'ESTABLE' };
+    const txtStatus = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txtStatus.setAttribute('x', cx);
+    txtStatus.setAttribute('y', cy + 24);
+    txtStatus.setAttribute('text-anchor', 'middle');
+    txtStatus.setAttribute('font-size', '8');
+    txtStatus.setAttribute('font-family', 'monospace');
+    txtStatus.setAttribute('fill', stroke);
+    txtStatus.setAttribute('opacity', '0.7');
+    txtStatus.textContent = statusMap[s.status] || '';
+    group.appendChild(txtStatus);
+
+    // Tooltip events
+    group.addEventListener('mouseenter', (e) => showMapTooltip(e, name, s, v, stroke));
+    group.addEventListener('mousemove',  (e) => moveMapTooltip(e));
+    group.addEventListener('mouseleave', () => hideMapTooltip());
+
+    g.appendChild(group);
+  });
+}
+
+function showMapTooltip(e, name, s, v, color) {
+  const tt = document.getElementById('mapTooltip');
+  const statusTxt = { cut: 'Corte activo', inter: 'Intermitente', ok: 'Estable' };
+  tt.innerHTML = `
+    <div class="tt-name">${name}</div>
+    <div class="tt-volt" style="color:${color}">
+      ${s.status === 'cut' ? '0V — Sin servicio' : v + 'V'}
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">
+      Zona ${s.zone} · ${statusTxt[s.status]}
+    </div>
+    ${s.cause !== '—' ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic;">${s.cause}</div>` : ''}
+  `;
+  tt.style.display = 'block';
+  moveMapTooltip(e);
+}
+
+function moveMapTooltip(e) {
+  const tt = document.getElementById('mapTooltip');
+  tt.style.left = (e.pageX + 14) + 'px';
+  tt.style.top  = (e.pageY - 10) + 'px';
+}
+
+function hideMapTooltip() {
+  document.getElementById('mapTooltip').style.display = 'none';
+}
+
+// Update map every time voltages are stepped
+const _origStep = stepVoltage;
+function stepAndUpdateMap(name) {
+  _origStep(name);
+}
+
+// Re-render map on each monitor tick if map view is active
+const _origStartMonitor = startMonitor;
+
 // ---- INIT MONITOR ----
 startMonitor();
+
+// patch: also update map on monitor ticks
+const _patchedInterval = setInterval(() => {
+  const mapView = document.getElementById('view-map');
+  if (mapView && mapView.classList.contains('active')) renderMapSectors();
+}, 800);
 
 init();
 </script>
