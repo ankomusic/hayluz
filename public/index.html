@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hay Luz? — Monitor eléctrico de Venezuela</title>
   <meta name="description" content="Hay Luz te muestra en tiempo real dónde hay electricidad y dónde no. Reporta apagones, detecta bajones de voltaje y consulta el estado de tu zona al instante." />
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Hay Luz?" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+  <!-- Leaflet + Fonts -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
@@ -1052,6 +1061,151 @@
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
 
+    /* ── Community report form ── */
+    .report-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 720px) { .report-layout { grid-template-columns: 1fr; } }
+
+    .report-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+    .report-card h3 {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 16px;
+    }
+    .rf-field { margin-bottom: 14px; }
+    .rf-label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 5px;
+    }
+    .rf-select, .rf-input, .rf-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .rf-select:focus, .rf-input:focus, .rf-textarea:focus { border-color: var(--border-bright); }
+    .rf-select option { background: var(--surface2); }
+    .rf-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+
+    .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .status-pill {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 8px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: all .15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-pill:hover { border-color: var(--border-bright); }
+    .status-pill.selected-ok    { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+    .status-pill.selected-inter { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
+    .status-pill.selected-cut   { border-color: var(--red);   background: var(--red-dim);   color: var(--red); }
+    .status-pill-icon { font-size: 18px; }
+
+    .report-result {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+    .report-result.success { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+    .report-result.error   { border-color: var(--red);   color: var(--red);   background: var(--red-dim); }
+
+    .report-recent { margin-top: 16px; }
+    .report-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      align-items: flex-start;
+    }
+    .report-item:last-child { border-bottom: none; }
+    .report-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .report-dot.cut   { background: var(--red); }
+    .report-dot.inter { background: var(--amber); }
+    .report-dot.ok    { background: var(--green); }
+
+    /* ── PWA install banner ── */
+    .pwa-banner {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+    .pwa-banner.show { display: flex; }
+    .pwa-banner-icon {
+      width: 40px; height: 40px;
+      background: var(--accent-dim);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .pwa-banner-bolt {
+      width: 14px; height: 18px;
+      background: var(--accent);
+      clip-path: polygon(60% 0%,20% 50%,50% 50%,40% 100%,80% 45%,52% 45%);
+    }
+    .pwa-banner-text { flex: 1; font-size: 13px; color: var(--text); }
+    .pwa-banner-text small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .btn-pwa {
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-pwa:hover { background: rgba(255,255,255,.1); }
+
     /* ── Top announcement banner ── */
     .top-banner {
       background: var(--amber-dim);
@@ -1364,6 +1518,17 @@
   <!-- Toast stack -->
   <div class="toast-stack" id="toastStack"></div>
 
+  <!-- PWA install banner (shown when installable) -->
+  <div class="pwa-banner" id="pwaBanner">
+    <div class="pwa-banner-icon"><div class="pwa-banner-bolt"></div></div>
+    <div class="pwa-banner-text">
+      Instala Hay Luz? en tu dispositivo
+      <small>Acceso rápido sin abrir el navegador · funciona sin conexión</small>
+    </div>
+    <button class="btn-pwa" id="pwaInstallBtn">Instalar</button>
+    <button class="btn" style="padding:7px 10px;font-size:11px;" onclick="document.getElementById('pwaBanner').classList.remove('show')">×</button>
+  </div>
+
   <!-- Stats -->
   <div class="stats-row">
     <div class="stat"><div class="stat-label">Con corte</div><div class="stat-val red" id="statCut">—</div></div>
@@ -1377,6 +1542,7 @@
     <button class="nav-tab active" onclick="switchView('monitor', this)">Monitor</button>
     <button class="nav-tab" onclick="switchView('map', this)">Mapa</button>
     <button class="nav-tab" onclick="switchView('incidents', this)">Incidentes</button>
+    <button class="nav-tab" onclick="switchView('report', this)">Reportar</button>
     <button class="nav-tab" onclick="switchView('verify', this)">Verificador</button>
   </div>
 
@@ -1422,7 +1588,74 @@
     </p>
   </div>
 
-  <!-- ===== INCIDENTS VIEW ===== -->
+  <!-- ===== REPORT VIEW ===== -->
+  <div id="view-report" class="view">
+    <div class="report-layout">
+      <div class="report-card">
+        <h3>Reportar corte o fluctuación</h3>
+
+        <div class="rf-field">
+          <label class="rf-label">¿En qué parroquia?</label>
+          <select class="rf-select" id="rpParroquia">
+            <option value="">Selecciona tu parroquia...</option>
+            <option>Coquivacoa</option><option>Urdaneta</option><option>Olegario Villalobos</option>
+            <option>Bolívar</option><option>Chiquinquirá</option><option>Santa Lucía</option>
+            <option>Cristo de Aranza</option><option>Cecilio Acosta</option>
+            <option>Francisco Eugenio Bustamante</option><option>Juana de Ávila</option>
+            <option>Manuel Dagnino</option><option>Antonio Borjas Romero</option>
+            <option>Raúl Leoni</option><option>Luis Hurtado Higuera</option>
+            <option>San Isidro</option><option>Caracciolo Parra Pérez</option>
+            <option>Venancio Pulgar</option><option>El Cuji</option>
+          </select>
+        </div>
+
+        <div class="rf-field">
+          <label class="rf-label">¿Qué está pasando?</label>
+          <div class="status-pills">
+            <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')">
+              <span class="status-pill-icon">✓</span>
+              <span>Hay luz</span>
+            </div>
+            <div class="status-pill" id="pill-inter" onclick="selectStatus('inter')">
+              <span class="status-pill-icon">⚡</span>
+              <span>Fluctuando</span>
+            </div>
+            <div class="status-pill" id="pill-cut" onclick="selectStatus('cut')">
+              <span class="status-pill-icon">✗</span>
+              <span>Sin luz</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rf-field">
+          <label class="rf-label">Causa (opcional)</label>
+          <input type="text" class="rf-input" id="rpCause" placeholder="ej. Falla en transformador, mantenimiento..." />
+        </div>
+
+        <div class="rf-field">
+          <label class="rf-label">Nota adicional (opcional)</label>
+          <textarea class="rf-textarea" id="rpNote" placeholder="Cualquier detalle que ayude a confirmar el reporte..."></textarea>
+        </div>
+
+        <button class="btn primary" style="width:100%;margin-top:4px;" id="rpSubmitBtn" onclick="submitCommunityReport()">
+          Enviar reporte ↗
+        </button>
+
+        <div class="report-result" id="rpResult" style="margin-top:12px;display:none;"></div>
+
+        <p style="font-size:11px;color:var(--text-dim);margin-top:12px;line-height:1.5;font-family:var(--mono);">
+          Los reportes son verificados por IA antes de publicarse. Información falsa o malintencionada será rechazada automáticamente.
+        </p>
+      </div>
+
+      <div class="report-card">
+        <h3>Reportes comunitarios recientes</h3>
+        <div id="communityFeed">
+          <div style="color:var(--text-dim);font-size:12px;font-family:var(--mono);">Cargando reportes...</div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="view-incidents" class="view">
     <div class="ai-card">
       <div class="ai-header">
@@ -2606,6 +2839,141 @@ const _patchedInterval = setInterval(() => {
 }, 800);
 
 init();
+
+// ======== COMMUNITY REPORT FORM ========
+let selectedStatus = '';
+
+function selectStatus(s) {
+  selectedStatus = s;
+  ['ok','inter','cut'].forEach(v => {
+    const el = document.getElementById('pill-' + v);
+    if (el) el.className = 'status-pill' + (v === s ? ' selected-' + v : '');
+  });
+}
+
+async function submitCommunityReport() {
+  const parroquia = document.getElementById('rpParroquia')?.value;
+  const cause     = document.getElementById('rpCause')?.value.trim();
+  const note      = document.getElementById('rpNote')?.value.trim();
+  const resultEl  = document.getElementById('rpResult');
+  const btn       = document.getElementById('rpSubmitBtn');
+
+  if (!parroquia) { showRpResult('Selecciona tu parroquia', 'error'); return; }
+  if (!selectedStatus) { showRpResult('Indica qué está pasando', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  resultEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      showRpResult('✓ Reporte enviado — gracias por contribuir', 'success');
+      // Add to local feed
+      addToFeed({ parroquia, status: selectedStatus, cause: cause || '—', time: 'ahora mismo' });
+      // Clear form
+      document.getElementById('rpParroquia').value = '';
+      document.getElementById('rpCause').value = '';
+      document.getElementById('rpNote').value = '';
+      selectedStatus = '';
+      ['ok','inter','cut'].forEach(v => { const e = document.getElementById('pill-'+v); if(e) e.className='status-pill'; });
+    } else {
+      showRpResult(data.error || 'No se pudo enviar el reporte', 'error');
+    }
+  } catch {
+    showRpResult('Error de conexión — verifica tu internet', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar reporte ↗';
+  }
+}
+
+function showRpResult(msg, type) {
+  const el = document.getElementById('rpResult');
+  el.textContent = msg;
+  el.className = 'report-result ' + type;
+  el.style.display = 'flex';
+}
+
+// Community feed — shows recent reports
+const communityReports = [];
+
+function addToFeed(report) {
+  communityReports.unshift(report);
+  renderFeed();
+}
+
+function renderFeed() {
+  const feed = document.getElementById('communityFeed');
+  if (!feed) return;
+  if (!communityReports.length) {
+    feed.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-family:var(--mono);">Aún no hay reportes — sé el primero.</div>';
+    return;
+  }
+  const labels = { cut: 'Sin luz', inter: 'Fluctuando', ok: 'Con luz' };
+  feed.innerHTML = communityReports.slice(0, 8).map(r => `
+    <div class="report-item">
+      <div class="report-dot ${r.status}"></div>
+      <div>
+        <strong style="color:var(--text);font-size:13px;">${r.parroquia}</strong>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:6px;">${labels[r.status]||r.status}</span>
+        ${r.cause && r.cause !== '—' ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${r.cause}</div>` : ''}
+        <div style="font-size:10px;color:var(--text-dim);font-family:var(--mono);margin-top:3px;">${r.time||'—'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Seed feed with current sector data on load
+function seedFeedFromSectors() {
+  const active = sectors.filter(s => s.status !== 'ok').slice(0, 5);
+  active.forEach(s => communityReports.push({
+    parroquia: s.name, status: s.status, cause: s.cause, time: 'hace ' + (s.hours||'?') + ' h'
+  }));
+  renderFeed();
+}
+
+// ======== PWA — SERVICE WORKER + INSTALL PROMPT ========
+let deferredInstallPrompt = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('pwaBanner')?.classList.add('show');
+});
+
+document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('pwaBanner')?.classList.remove('show');
+    showToast({ color:'green', icon:'✓', title:'App instalada', msg:'Hay Luz? está en tu pantalla de inicio.', time: new Date().toLocaleTimeString('es-VE') });
+  }
+  deferredInstallPrompt = null;
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwaBanner')?.classList.remove('show');
+  deferredInstallPrompt = null;
+});
+
+// Seed community feed once sectors are loaded
+setTimeout(seedFeedFromSectors, 3000);
 </script>
 </body>
 </html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hay Luz? — Panel de administración</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000; --surface: #111; --surface2: #1a1a1a; --border: #333; --border-bright: #444;
+      --text: #ededed; --text-muted: #888; --text-dim: #555;
+      --red: #ff6166; --red-dim: rgba(255,97,102,.12);
+      --amber: #f5a623; --amber-dim: rgba(245,166,35,.12);
+      --green: #50e3c2; --green-dim: rgba(80,227,194,.10);
+      --blue: #0070f3; --blue-dim: rgba(0,112,243,.12);
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+      --r: 5px; --rl: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+    .page { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+
+    /* Login */
+    .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 32px; width: 340px; }
+    .login-logo { font-family: var(--mono); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .login-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; font-family: var(--mono); }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 11px; color: var(--text-muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .field input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 9px 12px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; }
+    .field input:focus { border-color: var(--border-bright); }
+    .err { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+    .btn-full { width: 100%; background: var(--surface2); border: 1px solid var(--border-bright); border-radius: var(--r); padding: 10px; color: var(--text); font-family: var(--mono); font-size: 12px; cursor: pointer; transition: background .15s; }
+    .btn-full:hover { background: #222; }
+    .btn-full.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-full.primary:hover { background: #005fd0; }
+
+    /* Admin layout */
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .admin-logo { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+    .admin-logo span { color: var(--text-muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+    .btn { background: transparent; border: 1px solid var(--border); border-radius: var(--r); padding: 7px 14px; color: var(--text-muted); font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .btn:hover { border-color: var(--border-bright); color: var(--text); }
+    .btn.danger { color: var(--red); border-color: var(--red-dim); }
+    .btn.danger:hover { background: var(--red-dim); }
+    .btn.success { color: var(--green); border-color: var(--green); background: var(--green-dim); }
+
+    /* Stats row */
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+    @media (max-width:600px) { .stats { grid-template-columns: repeat(2,1fr); } }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 14px 16px; }
+    .stat-label { font-size: 11px; color: var(--text-muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .stat-val { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-val.red { color: var(--red); } .stat-val.amber { color: var(--amber); } .stat-val.green { color: var(--green); }
+
+    /* Update form */
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 20px; margin-bottom: 20px; }
+    .form-title { font-family: var(--mono); font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media (max-width:600px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    select, input[type=text], input[type=number] {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 8px 10px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; width: 100%;
+    }
+    select:focus, input:focus { border-color: var(--border-bright); }
+    select option { background: var(--surface2); }
+    label { display: block; font-size: 11px; color: var(--text-dim); font-family: var(--mono); margin-bottom: 4px; }
+
+    /* Table */
+    .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; margin-bottom: 20px; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .table-title { font-family: var(--mono); font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 16px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td:first-child { color: var(--text); font-weight: 500; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .badge { display: inline-block; font-size: 10px; font-family: var(--mono); font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+    .badge.cut   { background: var(--red-dim);   color: var(--red); }
+    .badge.inter { background: var(--amber-dim); color: var(--amber); }
+    .badge.ok    { background: var(--green-dim); color: var(--green); }
+
+    /* Toast */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column-reverse; gap: 8px; z-index: 9999; }
+    .toast { background: var(--surface2); border: 1px solid var(--border-bright); border-radius: var(--rl); padding: 12px 16px; font-size: 13px; color: var(--text); animation: fadeIn .2s ease; min-width: 260px; }
+    .toast.green { border-color: var(--green); color: var(--green); }
+    .toast.red   { border-color: var(--red);   color: var(--red); }
+    @keyframes fadeIn { from { opacity:0; transform:translateX(16px) } to { opacity:1; transform:none } }
+
+    .hidden { display: none !important; }
+    .loading { opacity: .5; pointer-events: none; }
+    .source-pill { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 20px; background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+    .ago { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+  </style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">Hay Luz?</div>
+      <div class="login-sub">Panel de administración</div>
+      <div class="field">
+        <label>Contraseña de acceso</label>
+        <input type="password" id="secretInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <div class="err" id="loginErr">Contraseña incorrecta</div>
+      <br/>
+      <button class="btn-full primary" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div id="adminPanel" class="hidden page">
+  <div class="admin-header">
+    <div>
+      <div class="admin-logo">Hay Luz? <span>Admin</span></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="source-pill" id="dataSourceBadge">cargando...</span>
+      <button class="btn" onclick="loadData()">↻ Actualizar</button>
+      <button class="btn danger" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Con corte</div><div class="stat-val red" id="aCut">—</div></div>
+    <div class="stat"><div class="stat-label">Intermitentes</div><div class="stat-val amber" id="aInter">—</div></div>
+    <div class="stat"><div class="stat-label">Estables</div><div class="stat-val green" id="aOk">—</div></div>
+    <div class="stat"><div class="stat-label">Total parroquias</div><div class="stat-val" id="aTotal">18</div></div>
+  </div>
+
+  <!-- Update form -->
+  <div class="form-card">
+    <div class="form-title">Actualizar estado de parroquia</div>
+    <div class="form-grid">
+      <div>
+        <label>Parroquia</label>
+        <select id="fParroquia">
+          <option value="">Seleccionar...</option>
+          <option>Coquivacoa</option><option>Urdaneta</option><option>Olegario Villalobos</option>
+          <option>Bolívar</option><option>Chiquinquirá</option><option>Santa Lucía</option>
+          <option>Cristo de Aranza</option><option>Cecilio Acosta</option>
+          <option>Francisco Eugenio Bustamante</option><option>Juana de Ávila</option>
+          <option>Manuel Dagnino</option><option>Antonio Borjas Romero</option>
+          <option>Raúl Leoni</option><option>Luis Hurtado Higuera</option>
+          <option>San Isidro</option><option>Caracciolo Parra Pérez</option>
+          <option>Venancio Pulgar</option><option>El Cuji</option>
+        </select>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select id="fStatus">
+          <option value="ok">✓ Estable</option>
+          <option value="inter">~ Intermitente</option>
+          <option value="cut">✗ Corte total</option>
+        </select>
+      </div>
+      <div>
+        <label>Causa</label>
+        <input type="text" id="fCause" placeholder="ej. Falla en transformador" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label>Horas de corte</label>
+        <input type="number" id="fHours" min="0" max="72" value="0" />
+      </div>
+      <div>
+        <label>Hora de inicio (HH:MM)</label>
+        <input type="text" id="fSince" placeholder="ej. 08:30" />
+      </div>
+      <div>
+        <label>% Afectación estimada</label>
+        <input type="number" id="fAffected" min="0" max="100" value="0" />
+      </div>
+    </div>
+    <div class="form-row">
+      <button class="btn success" onclick="submitUpdate()" style="flex:1;">Guardar cambio</button>
+    </div>
+  </div>
+
+  <!-- Data table -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-title">Estado actual por parroquia</span>
+      <span class="ago" id="fetchedAt"></span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Parroquia</th><th>Zona</th><th>Estado</th><th>Horas</th><th>Causa</th><th>Afect.</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="adminTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const ZONES = {
+  "Coquivacoa":"Norte","Urdaneta":"Norte","Olegario Villalobos":"Norte",
+  "Bolívar":"Centro-Norte","Chiquinquirá":"Centro-Norte",
+  "Santa Lucía":"Centro","Cristo de Aranza":"Centro","Cecilio Acosta":"Centro",
+  "Francisco Eugenio Bustamante":"Sur-Oeste","Juana de Ávila":"Centro-Sur",
+  "Manuel Dagnino":"Centro-Sur","Antonio Borjas Romero":"Sur","Raúl Leoni":"Sur",
+  "Luis Hurtado Higuera":"Sur","San Isidro":"Sur-Este",
+  "Caracciolo Parra Pérez":"Sur-Este","Venancio Pulgar":"Sur","El Cuji":"Sur-Oeste"
+};
+
+let adminSecret = '';
+let currentData = [];
+
+function doLogin() {
+  const val = document.getElementById('secretInput').value.trim();
+  if (!val) return;
+  adminSecret = val;
+  // Test with a real API call
+  fetch('/api/admin', { headers: { 'x-admin-secret': adminSecret } })
+    .then(r => {
+      if (r.status === 401) {
+        document.getElementById('loginErr').style.display = 'block';
+        adminSecret = '';
+      } else {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        r.json().then(data => processData(data));
+        loadData();
+      }
+    })
+    .catch(() => { document.getElementById('loginErr').style.display = 'block'; });
+}
+
+function doLogout() {
+  adminSecret = '';
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('adminPanel').classList.add('hidden');
+  document.getElementById('secretInput').value = '';
+}
+
+async function loadData() {
+  // Load from /api/data for display (public endpoint shows latest)
+  try {
+    const r = await fetch('/api/data');
+    const d = await r.json();
+    currentData = d.sectors || [];
+    document.getElementById('dataSourceBadge').textContent = d.source || '—';
+    document.getElementById('fetchedAt').textContent = d.fetchedAt ? 'Actualizado: ' + new Date(d.fetchedAt).toLocaleTimeString('es-VE') : '';
+    renderTable(currentData);
+    renderStats(currentData);
+  } catch(e) { toast('Error cargando datos', 'red'); }
+}
+
+function renderStats(data) {
+  document.getElementById('aCut').textContent   = data.filter(s => s.status === 'cut').length;
+  document.getElementById('aInter').textContent = data.filter(s => s.status === 'inter').length;
+  document.getElementById('aOk').textContent    = data.filter(s => s.status === 'ok').length;
+  document.getElementById('aTotal').textContent = data.length;
+}
+
+function renderTable(data) {
+  const labels = { cut: 'Corte', inter: 'Intermitente', ok: 'Estable' };
+  const tbody = document.getElementById('adminTable');
+  tbody.innerHTML = data.map(s => `
+    <tr>
+      <td>${s.name}</td>
+      <td style="color:var(--text-dim)">${ZONES[s.name]||'—'}</td>
+      <td><span class="badge ${s.status}">${labels[s.status]||s.status}</span></td>
+      <td>${s.hours > 0 ? s.hours + ' h' : '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.cause||'—'}</td>
+      <td>${s.affected||0}%</td>
+      <td>
+        <button class="btn" style="font-size:10px;padding:4px 8px;" onclick="quickEdit('${s.name}','${s.status}')">Editar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function quickEdit(name, status) {
+  document.getElementById('fParroquia').value = name;
+  document.getElementById('fStatus').value = status;
+  const s = currentData.find(x => x.name === name);
+  if (s) {
+    document.getElementById('fCause').value    = s.cause !== '—' ? s.cause : '';
+    document.getElementById('fHours').value    = s.hours || 0;
+    document.getElementById('fSince').value    = s.since !== '—' ? s.since : '';
+    document.getElementById('fAffected').value = s.affected || 0;
+  }
+  document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function submitUpdate() {
+  const parroquia = document.getElementById('fParroquia').value;
+  const status    = document.getElementById('fStatus').value;
+  if (!parroquia) { toast('Selecciona una parroquia', 'red'); return; }
+
+  const body = {
+    parroquia, status,
+    cause:    document.getElementById('fCause').value    || '—',
+    hours:    Number(document.getElementById('fHours').value)    || 0,
+    since:    document.getElementById('fSince').value    || '—',
+    affected: Number(document.getElementById('fAffected').value) || 0,
+  };
+
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-secret': adminSecret },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) { const e = await r.json(); toast('Error: ' + (e.error||'desconocido'), 'red'); return; }
+    toast(`${parroquia} → ${status}`, 'green');
+    setTimeout(loadData, 500);
+  } catch(e) { toast('Error de red', 'red'); }
+}
+
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// Auto-refresh every 60 seconds
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>

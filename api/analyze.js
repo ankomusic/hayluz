@@ -1,43 +1,43 @@
+/**
+ * /api/analyze — POST
+ * AI analysis via OpenRouter
+ * Env: OPENROUTER_API_KEY
+ */
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
   const { prompt, systemPrompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
 
-  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${key}`,
+        'HTTP-Referer': 'https://hayluz.app',
+        'X-Title': 'Hay Luz?'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'google/gemini-flash-1.5',
         max_tokens: 1024,
-        system: systemPrompt || 'Eres un experto en el sistema eléctrico de Maracaibo, Venezuela.',
-        messages: [{ role: 'user', content: prompt }]
+        messages: [
+          { role: 'system', content: systemPrompt || 'Eres un experto en el sistema eléctrico de Maracaibo, Venezuela. Responde en español.' },
+          { role: 'user',   content: prompt }
+        ]
       })
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      return res.status(response.status).json({ error: err.error?.message || 'Anthropic API error' });
-    }
-
-    const data = await response.json();
-    const text = data.content?.map(b => b.text || '').join('') || '';
-    return res.status(200).json({ result: text });
+    if (!r.ok) { const e = await r.json(); return res.status(r.status).json({ error: e.error?.message || 'OpenRouter error' }); }
+    const data = await r.json();
+    return res.status(200).json({ result: data.choices?.[0]?.message?.content || '' });
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error: ' + e.message });
+    return res.status(500).json({ error: e.message });
   }
 }
