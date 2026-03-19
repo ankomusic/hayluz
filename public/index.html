@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hay Luz? — Monitor eléctrico Maracaibo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -895,45 +895,58 @@
     .legend-dot.amber { background: var(--amber); }
     .legend-dot.green { background: var(--green); }
 
-    #mapSvg {
+    #leafletMap {
       width: 100%;
-      height: auto;
-      display: block;
-    }
-    .map-sector {
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .map-sector:hover { opacity: 0.85; }
-    .map-sector rect, .map-sector polygon, .map-sector path {
-      transition: fill 0.5s, stroke 0.3s;
-    }
-    .map-tooltip {
-      background: var(--surface2);
-      border: 1px solid var(--border-bright);
+      height: 480px;
       border-radius: var(--radius);
-      padding: 8px 12px;
-      font-size: 12px;
-      color: var(--text);
-      pointer-events: none;
-      position: absolute;
-      z-index: 100;
-      min-width: 160px;
-      display: none;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 1;
     }
-    .map-tooltip .tt-name { font-weight: 500; margin-bottom: 3px; }
-    .map-tooltip .tt-volt { font-family: var(--mono); font-size: 11px; }
 
-    /* Pulse ring on alerted sectors */
-    .pulse-ring {
-      animation: mapPulse 1.2s ease-out infinite;
-      transform-origin: center;
+    /* Leaflet dark/light tile adaptation */
+    .leaflet-container {
+      background: var(--bg);
+      font-family: var(--sans);
     }
-    @keyframes mapPulse {
-      0%   { opacity: 0.8; r: 0; }
-      100% { opacity: 0; r: 18; }
+    :root.light .leaflet-tile-pane { filter: none; }
+    :root:not(.light) .leaflet-tile-pane { filter: brightness(0.7) saturate(0.6); }
+
+    /* Custom Leaflet popup to match app theme */
+    .leaflet-popup-content-wrapper {
+      background: var(--surface2) !important;
+      border: 1px solid var(--border-bright) !important;
+      border-radius: var(--radius-lg) !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+      color: var(--text) !important;
     }
+    .leaflet-popup-tip { background: var(--surface2) !important; }
+    .leaflet-popup-content { margin: 12px 14px !important; font-size: 13px; }
+    .leaflet-popup-close-button { color: var(--text-muted) !important; font-size: 18px !important; top: 6px !important; right: 8px !important; }
+    .leaflet-popup-close-button:hover { color: var(--text) !important; }
+    .lf-popup-name { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+    .lf-popup-volt { font-family: var(--mono); font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .lf-popup-meta { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    .lf-popup-cause { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 3px; }
+
+    /* Leaflet controls theme */
+    .leaflet-control-zoom a {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-color: var(--border-bright) !important;
+    }
+    .leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+    .leaflet-control-attribution {
+      background: var(--surface) !important;
+      color: var(--text-dim) !important;
+      font-size: 10px !important;
+    }
+    .leaflet-control-attribution a { color: var(--text-muted) !important; }
+
+    /* Pulse animation for alerted sector labels */
+    @keyframes markerPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.6; transform: scale(1.15); }
+    }
+    .sector-label-alerted { animation: markerPulse 1s ease-in-out infinite; }
 
     /* Footer social links */
     footer {
@@ -995,6 +1008,7 @@
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
   </style>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div class="app">
@@ -1087,9 +1101,6 @@
     <button class="nav-tab" onclick="switchView('verify', this)">Verificador</button>
   </div>
 
-  <!-- Map tooltip -->
-  <div class="map-tooltip" id="mapTooltip"></div>
-
   <!-- ===== MONITOR VIEW ===== -->
   <div id="view-monitor" class="view active">
     <div class="ai-card">
@@ -1125,23 +1136,10 @@
           <div class="legend-item"><div class="legend-dot green"></div>Estable</div>
         </div>
       </div>
-      <svg id="mapSvg" viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
-        <!-- Lake Maracaibo (left side) -->
-        <path d="M0,0 L180,0 L200,80 L185,160 L170,240 L160,320 L155,400 L150,520 L0,520 Z" fill="rgba(77,159,255,0.08)" stroke="rgba(77,159,255,0.2)" stroke-width="1"/>
-        <text x="60" y="260" font-size="11" fill="rgba(77,159,255,0.4)" font-family="monospace" text-anchor="middle" transform="rotate(-90,60,260)">Lago de Maracaibo</text>
-
-        <!-- Zone labels -->
-        <text x="400" y="55" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2">NORTE</text>
-        <text x="400" y="490" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2">SUR</text>
-        <text x="660" y="275" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2" transform="rotate(90,660,275)">ESTE</text>
-        <text x="225" y="275" font-size="10" fill="var(--text-dim, #3d4651)" font-family="monospace" text-anchor="middle" letter-spacing="2" transform="rotate(-90,225,275)">OESTE</text>
-
-        <!-- Sectors rendered by JS -->
-        <g id="mapSectors"></g>
-      </svg>
+      <div id="leafletMap"></div>
     </div>
     <p style="font-size:12px;color:var(--text-dim);font-family:var(--mono);text-align:center;margin-top:-8px;margin-bottom:16px;">
-      Los sectores parpadean cuando hay una alerta de fluctuación activa · Pasa el cursor para ver el voltaje
+      Haz clic en un sector para ver voltaje y estado · Los sectores pulsan cuando hay alerta activa
     </p>
   </div>
 
@@ -1920,181 +1918,255 @@ function toggleTheme() {
   isLight = !isLight;
   document.documentElement.classList.toggle('light', isLight);
   document.getElementById('themeIcon').innerHTML = isLight ? SUN_ICON : MOON_ICON;
-  renderMapSectors();
+  updateLeafletLayers();
 }
 
-// ======== MAP ========
-// Approximate grid positions for each sector on a 700x520 canvas
-// (real Maracaibo geography: lake on left, city spreads right/south)
-const sectorCoords = {
-  "Circunvalación 1": { x: 310, y: 90,  w: 130, h: 70 },
-  "Circunvalación 2": { x: 450, y: 90,  w: 130, h: 70 },
-  "El Milagro":       { x: 210, y: 90,  w:  90, h: 70 },
-  "Veritas":          { x: 590, y: 90,  w:  90, h: 70 },
-  "Juana de Ávila":   { x: 310, y: 175, w: 130, h: 70 },
-  "Santa Lucía":      { x: 450, y: 175, w: 130, h: 70 },
-  "La Lago":          { x: 590, y: 175, w:  90, h: 70 },
-  "Las Mercedes":     { x: 210, y: 175, w:  90, h: 70 },
-  "Bella Vista":      { x: 590, y: 260, w:  90, h: 70 },
-  "Los Olivos":       { x: 210, y: 260, w:  90, h: 70 },
-  "Pomona":           { x: 210, y: 345, w:  90, h: 70 },
-  "Cañada Honda":     { x: 210, y: 430, w:  90, h: 70 },
-  "Los Haticos":      { x: 310, y: 345, w: 130, h: 70 },
-  "La Victoria":      { x: 450, y: 345, w: 130, h: 70 },
-  "Sabaneta":         { x: 310, y: 430, w: 130, h: 70 },
-  "La Limpia":        { x: 450, y: 430, w: 190, h: 70 },
-};
+// ======== LEAFLET MAP ========
+// Real approximate polygon coordinates for Maracaibo sectors (lat/lng)
+// Maracaibo city center: ~10.65N, -71.61W
+const sectorGeoData = [
+  {
+    name: "El Milagro",       zone: "Norte",
+    coords: [[10.695,-71.655],[10.695,-71.635],[10.680,-71.635],[10.680,-71.655]]
+  },
+  {
+    name: "Circunvalación 1", zone: "Norte",
+    coords: [[10.695,-71.635],[10.695,-71.615],[10.680,-71.615],[10.680,-71.635]]
+  },
+  {
+    name: "Circunvalación 2", zone: "Norte",
+    coords: [[10.695,-71.615],[10.695,-71.595],[10.680,-71.595],[10.680,-71.615]]
+  },
+  {
+    name: "Veritas",          zone: "Norte",
+    coords: [[10.695,-71.595],[10.695,-71.575],[10.680,-71.575],[10.680,-71.595]]
+  },
+  {
+    name: "Las Mercedes",     zone: "Este",
+    coords: [[10.680,-71.655],[10.680,-71.635],[10.665,-71.635],[10.665,-71.655]]
+  },
+  {
+    name: "Juana de Ávila",   zone: "Centro",
+    coords: [[10.680,-71.635],[10.680,-71.615],[10.665,-71.615],[10.665,-71.635]]
+  },
+  {
+    name: "Santa Lucía",      zone: "Centro",
+    coords: [[10.680,-71.615],[10.680,-71.595],[10.665,-71.595],[10.665,-71.615]]
+  },
+  {
+    name: "La Lago",          zone: "Este",
+    coords: [[10.680,-71.595],[10.680,-71.575],[10.665,-71.575],[10.665,-71.595]]
+  },
+  {
+    name: "Los Olivos",       zone: "Oeste",
+    coords: [[10.665,-71.655],[10.665,-71.635],[10.650,-71.635],[10.650,-71.655]]
+  },
+  {
+    name: "Bella Vista",      zone: "Este",
+    coords: [[10.665,-71.595],[10.665,-71.575],[10.650,-71.575],[10.650,-71.595]]
+  },
+  {
+    name: "Pomona",           zone: "Oeste",
+    coords: [[10.650,-71.655],[10.650,-71.635],[10.635,-71.635],[10.635,-71.655]]
+  },
+  {
+    name: "Los Haticos",      zone: "Sur",
+    coords: [[10.650,-71.635],[10.650,-71.615],[10.635,-71.615],[10.635,-71.635]]
+  },
+  {
+    name: "La Victoria",      zone: "Sur",
+    coords: [[10.650,-71.615],[10.650,-71.595],[10.635,-71.595],[10.635,-71.615]]
+  },
+  {
+    name: "Cañada Honda",     zone: "Oeste",
+    coords: [[10.635,-71.655],[10.635,-71.635],[10.620,-71.635],[10.620,-71.655]]
+  },
+  {
+    name: "Sabaneta",         zone: "Sur",
+    coords: [[10.635,-71.635],[10.635,-71.615],[10.620,-71.615],[10.620,-71.635]]
+  },
+  {
+    name: "La Limpia",        zone: "Sur",
+    coords: [[10.635,-71.615],[10.635,-71.575],[10.620,-71.575],[10.620,-71.615]]
+  },
+];
 
-function sectorFillColor(name) {
+let leafletMap = null;
+let leafletLayers = {}; // name -> { polygon, marker }
+let leafletInitialized = false;
+
+function getSectorColors(name) {
   const s = sectors.find(x => x.name === name);
   const vs = voltageState[name];
-  if (!s) return '#444';
-  if (s.status === 'cut') return isLight ? 'rgba(217,54,54,0.18)' : 'rgba(255,77,77,0.18)';
-  const v = vs ? vs.v : 120;
+  if (!s) return { fill: '#444', stroke: '#666', opacity: 0.4 };
+
   const low  = parseFloat(document.getElementById('threshLow')?.value  || 90);
   const high = parseFloat(document.getElementById('threshHigh')?.value || 130);
-  if (v < low || v > high) return isLight ? 'rgba(196,122,10,0.18)' : 'rgba(245,166,35,0.2)';
-  return isLight ? 'rgba(29,158,92,0.14)' : 'rgba(61,220,132,0.12)';
+
+  if (s.status === 'cut') {
+    return { fill: '#ff4d4d', stroke: '#ff4d4d', opacity: 0.25, textColor: '#ff4d4d' };
+  }
+  const v = vs ? vs.v : 120;
+  if (v < low || v > high) {
+    return { fill: '#f5a623', stroke: '#f5a623', opacity: 0.28, textColor: '#f5a623' };
+  }
+  return { fill: '#3ddc84', stroke: '#3ddc84', opacity: 0.2, textColor: '#3ddc84' };
 }
 
-function sectorStrokeColor(name) {
+function buildPopupContent(name) {
   const s = sectors.find(x => x.name === name);
   const vs = voltageState[name];
-  if (!s) return '#555';
-  if (s.status === 'cut') return isLight ? '#d93636' : '#ff4d4d';
-  const v = vs ? vs.v : 120;
-  const low  = parseFloat(document.getElementById('threshLow')?.value  || 90);
-  const high = parseFloat(document.getElementById('threshHigh')?.value || 130);
-  if (v < low || v > high) return isLight ? '#c47a0a' : '#f5a623';
-  return isLight ? '#1d9e5c' : '#3ddc84';
+  if (!s) return '';
+  const v = vs ? Math.round(vs.v) : '—';
+  const colors = getSectorColors(name);
+  const statusTxt = { cut: 'Corte activo', inter: 'Intermitente', ok: 'Estable' };
+  const voltTxt = s.status === 'cut' ? '0V — Sin servicio' : v + 'V';
+  return `
+    <div class="lf-popup-name">${name}</div>
+    <div class="lf-popup-volt" style="color:${colors.textColor}">${voltTxt}</div>
+    <div class="lf-popup-meta">
+      Zona ${s.zone} · ${statusTxt[s.status] || s.status}<br>
+      ${s.hours > 0 ? 'Corte desde hace ' + s.hours + ' h · Inicio ' + s.since : 'Servicio activo'}
+    </div>
+    ${s.cause && s.cause !== '—' ? `<div class="lf-popup-cause">${s.cause}</div>` : ''}
+  `;
 }
 
-function renderMapSectors() {
-  const g = document.getElementById('mapSectors');
-  if (!g) return;
-  g.innerHTML = '';
+function initLeafletMap() {
+  if (leafletInitialized) return;
+  leafletInitialized = true;
 
-  Object.entries(sectorCoords).forEach(([name, c]) => {
-    const s = sectors.find(x => x.name === name);
-    if (!s) return;
-    const vs = voltageState[name];
-    const fill   = sectorFillColor(name);
-    const stroke = sectorStrokeColor(name);
-    const v = vs ? Math.round(vs.v) : '—';
-    const cx = c.x + c.w / 2;
-    const cy = c.y + c.h / 2;
+  leafletMap = L.map('leafletMap', {
+    center: [10.657, -71.615],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: true,
+  });
+
+  // OpenStreetMap tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(leafletMap);
+
+  // Draw all sector polygons
+  sectorGeoData.forEach(geo => {
+    const s = sectors.find(x => x.name === geo.name);
+    const colors = getSectorColors(geo.name);
+    const vs = voltageState[geo.name];
     const alerted = vs && vs.alerted;
 
-    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    group.setAttribute('class', 'map-sector');
-    group.setAttribute('data-name', name);
+    // Polygon
+    const poly = L.polygon(geo.coords, {
+      color: colors.stroke,
+      fillColor: colors.fill,
+      fillOpacity: colors.opacity,
+      weight: alerted ? 2.5 : 1.5,
+      dashArray: alerted ? '6,4' : null,
+    }).addTo(leafletMap);
 
-    // Pulse ring if alerted
-    if (alerted) {
-      const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      pulse.setAttribute('cx', cx);
-      pulse.setAttribute('cy', cy);
-      pulse.setAttribute('r', '0');
-      pulse.setAttribute('fill', 'none');
-      pulse.setAttribute('stroke', stroke);
-      pulse.setAttribute('stroke-width', '2');
-      pulse.setAttribute('class', 'pulse-ring');
-      group.appendChild(pulse);
-    }
+    poly.bindPopup(buildPopupContent(geo.name), { maxWidth: 220 });
 
-    // Main rect
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', c.x);
-    rect.setAttribute('y', c.y);
-    rect.setAttribute('width', c.w);
-    rect.setAttribute('height', c.h);
-    rect.setAttribute('rx', '6');
-    rect.setAttribute('fill', fill);
-    rect.setAttribute('stroke', stroke);
-    rect.setAttribute('stroke-width', alerted ? '1.5' : '1');
-    group.appendChild(rect);
+    poly.on('mouseover', function() { this.setStyle({ weight: 2.5, fillOpacity: colors.opacity + 0.1 }); });
+    poly.on('mouseout',  function() {
+      const c = getSectorColors(geo.name);
+      this.setStyle({ weight: c.alerted ? 2.5 : 1.5, fillOpacity: c.opacity });
+    });
+    poly.on('click', function() {
+      this.setPopupContent(buildPopupContent(geo.name));
+      this.openPopup();
+    });
 
-    // Name label
-    const txtName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txtName.setAttribute('x', cx);
-    txtName.setAttribute('y', cy - 7);
-    txtName.setAttribute('text-anchor', 'middle');
-    txtName.setAttribute('font-size', name.length > 12 ? '9' : '10');
-    txtName.setAttribute('font-family', 'monospace');
-    txtName.setAttribute('fill', isLight ? '#141618' : '#e8ecf0');
-    txtName.setAttribute('font-weight', '500');
-    txtName.textContent = name;
-    group.appendChild(txtName);
+    // Div icon label
+    const center = poly.getBounds().getCenter();
+    const v = vs ? Math.round(vs.v) : '—';
+    const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
+    const statusShort = s ? { cut: 'CORTE', inter: 'FLUCT.', ok: 'OK' }[s.status] : '';
 
-    // Voltage label
-    const txtVolt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txtVolt.setAttribute('x', cx);
-    txtVolt.setAttribute('y', cy + 10);
-    txtVolt.setAttribute('text-anchor', 'middle');
-    txtVolt.setAttribute('font-size', '11');
-    txtVolt.setAttribute('font-family', 'monospace');
-    txtVolt.setAttribute('fill', stroke);
-    txtVolt.setAttribute('font-weight', '700');
-    txtVolt.textContent = s.status === 'cut' ? '0V' : v + 'V';
-    group.appendChild(txtVolt);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        background: rgba(10,12,15,0.82);
+        border: 1px solid ${colors.stroke};
+        border-radius: 5px;
+        padding: 3px 7px;
+        font-family: 'Space Mono', monospace;
+        font-size: 10px;
+        color: ${colors.textColor || colors.stroke};
+        white-space: nowrap;
+        text-align: center;
+        line-height: 1.4;
+        backdrop-filter: blur(2px);
+        ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
+      ">
+        <div style="font-size:9px;color:#aaa;margin-bottom:1px;">${geo.name}</div>
+        <div style="font-weight:700;">${voltLabel}</div>
+      </div>`,
+      iconAnchor: [0, 0],
+    });
 
-    // Status label
-    const statusMap = { cut: 'CORTE', inter: 'INTERMI.', ok: 'ESTABLE' };
-    const txtStatus = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txtStatus.setAttribute('x', cx);
-    txtStatus.setAttribute('y', cy + 24);
-    txtStatus.setAttribute('text-anchor', 'middle');
-    txtStatus.setAttribute('font-size', '8');
-    txtStatus.setAttribute('font-family', 'monospace');
-    txtStatus.setAttribute('fill', stroke);
-    txtStatus.setAttribute('opacity', '0.7');
-    txtStatus.textContent = statusMap[s.status] || '';
-    group.appendChild(txtStatus);
+    const marker = L.marker(center, { icon, interactive: false }).addTo(leafletMap);
 
-    // Tooltip events
-    group.addEventListener('mouseenter', (e) => showMapTooltip(e, name, s, v, stroke));
-    group.addEventListener('mousemove',  (e) => moveMapTooltip(e));
-    group.addEventListener('mouseleave', () => hideMapTooltip());
-
-    g.appendChild(group);
+    leafletLayers[geo.name] = { polygon: poly, marker, center };
   });
 }
 
-function showMapTooltip(e, name, s, v, color) {
-  const tt = document.getElementById('mapTooltip');
-  const statusTxt = { cut: 'Corte activo', inter: 'Intermitente', ok: 'Estable' };
-  tt.innerHTML = `
-    <div class="tt-name">${name}</div>
-    <div class="tt-volt" style="color:${color}">
-      ${s.status === 'cut' ? '0V — Sin servicio' : v + 'V'}
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">
-      Zona ${s.zone} · ${statusTxt[s.status]}
-    </div>
-    ${s.cause !== '—' ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic;">${s.cause}</div>` : ''}
-  `;
-  tt.style.display = 'block';
-  moveMapTooltip(e);
+function updateLeafletLayers() {
+  if (!leafletInitialized || !leafletMap) return;
+
+  sectorGeoData.forEach(geo => {
+    const layer = leafletLayers[geo.name];
+    if (!layer) return;
+    const s = sectors.find(x => x.name === geo.name);
+    const vs = voltageState[geo.name];
+    const colors = getSectorColors(geo.name);
+    const alerted = vs && vs.alerted;
+    const v = vs ? Math.round(vs.v) : '—';
+    const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
+
+    // Update polygon style
+    layer.polygon.setStyle({
+      color: colors.stroke,
+      fillColor: colors.fill,
+      fillOpacity: colors.opacity,
+      weight: alerted ? 2.5 : 1.5,
+      dashArray: alerted ? '6,4' : null,
+    });
+
+    // Update label icon
+    const newIcon = L.divIcon({
+      className: '',
+      html: `<div style="
+        background: ${isLight ? 'rgba(255,255,255,0.88)' : 'rgba(10,12,15,0.82)'};
+        border: 1px solid ${colors.stroke};
+        border-radius: 5px;
+        padding: 3px 7px;
+        font-family: 'Space Mono', monospace;
+        font-size: 10px;
+        color: ${colors.stroke};
+        white-space: nowrap;
+        text-align: center;
+        line-height: 1.4;
+        backdrop-filter: blur(2px);
+        ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
+      ">
+        <div style="font-size:9px;color:${isLight ? '#666' : '#aaa'};margin-bottom:1px;">${geo.name}</div>
+        <div style="font-weight:700;">${voltLabel}</div>
+      </div>`,
+      iconAnchor: [0, 0],
+    });
+    layer.marker.setIcon(newIcon);
+  });
 }
 
-function moveMapTooltip(e) {
-  const tt = document.getElementById('mapTooltip');
-  tt.style.left = (e.pageX + 14) + 'px';
-  tt.style.top  = (e.pageY - 10) + 'px';
+function renderMapSectors() {
+  if (!leafletInitialized) {
+    initLeafletMap();
+  } else {
+    updateLeafletLayers();
+    leafletMap.invalidateSize();
+  }
 }
-
-function hideMapTooltip() {
-  document.getElementById('mapTooltip').style.display = 'none';
-}
-
-// Update map every time voltages are stepped
-const _origStep = stepVoltage;
-function stepAndUpdateMap(name) {
-  _origStep(name);
-}
-
-// Re-render map on each monitor tick if map view is active
-const _origStartMonitor = startMonitor;
 
 // ---- INIT MONITOR ----
 startMonitor();
