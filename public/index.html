@@ -1029,10 +1029,144 @@
     }
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
+
+    /* ── Top announcement banner ── */
+    .top-banner {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 20px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+    }
+    .top-banner strong { color: var(--text); }
+    .banner-dot {
+      width: 6px; height: 6px;
+      background: var(--amber);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .banner-close {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+    }
+    .banner-close:hover { color: var(--text); }
+
+    /* ── City selector dropdown ── */
+    .city-select-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .city-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 7px 28px 7px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+      min-width: 160px;
+    }
+    .city-select:hover { border-color: var(--border-bright); }
+    .city-select:focus { border-color: var(--border-bright); }
+    .city-select option { background: var(--surface2); color: var(--text); }
+    .city-select-arrow {
+      position: absolute;
+      right: 9px;
+      pointer-events: none;
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+
+    /* ── Notif panel icon (activity / signal bars) ── */
+    .notif-btn svg.panel-icon { stroke: var(--text-muted); }
+
+    /* ── Notification opt-in prompt inside drawer ── */
+    .notif-optin {
+      margin: 0 18px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .notif-optin-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .notif-optin-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .btn-optin {
+      width: 100%;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-align: center;
+    }
+    .btn-optin:hover { background: rgba(255,255,255,0.1); }
+    .btn-optin.granted { border-color: var(--green); color: var(--green); background: var(--green-dim); cursor: default; }
+    .btn-optin.denied  { border-color: var(--red); color: var(--red); background: var(--red-dim); cursor: default; }
+
+    /* ── PayPal donation button ── */
+    .paypal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #0070ba;
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      font-size: 12px;
+      font-family: var(--mono);
+      text-decoration: none;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+    .paypal-link:hover { background: #005ea6; }
+    .paypal-link svg { width: 14px; height: 14px; fill: #fff; flex-shrink: 0; }
   </style>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+<!-- Announcement banner -->
+<div class="top-banner" id="topBanner">
+  <div class="banner-dot"></div>
+  <span><strong>Estamos añadiendo más ciudades</strong> — lo sentimos si no se encuentra la tuya disponible aún.</span>
+  <button class="banner-close" onclick="document.getElementById('topBanner').style.display='none'" title="Cerrar">×</button>
+</div>
+
 <div class="app">
 
   <!-- Header -->
@@ -1041,10 +1175,21 @@
       <div class="logo-icon"><div class="logo-bolt"></div></div>
       <div>
         <div class="logo-text">Hay Luz?</div>
-        <div class="logo-sub">Maracaibo · Zulia · Venezuela</div>
+        <div class="logo-sub" id="logoSub">Maracaibo · Zulia · Venezuela</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <!-- City selector -->
+      <div class="city-select-wrap">
+        <select class="city-select" id="citySelect" onchange="changeCity(this.value)">
+          <option value="maracaibo">Maracaibo</option>
+          <option value="caracas" disabled>Caracas (próximamente)</option>
+          <option value="valencia" disabled>Valencia (próximamente)</option>
+          <option value="barquisimeto" disabled>Barquisimeto (próximamente)</option>
+          <option value="merida" disabled>Mérida (próximamente)</option>
+        </select>
+        <span class="city-select-arrow">▾</span>
+      </div>
       <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
       <button class="theme-btn" id="muteBtn" onclick="toggleMute()" title="Silenciar notificaciones de fluctuación">
         <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -1052,8 +1197,11 @@
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
+      <!-- Alert panel — uses activity/signal icon instead of bell -->
       <button class="notif-btn" onclick="toggleDrawer()" title="Panel de alertas" id="notifBtn">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
     </div>
@@ -1087,13 +1235,16 @@
         <input type="number" class="threshold-input" id="threshHigh" value="130" min="110" max="150"> <span>V</span>
       </div>
       <div class="setting-row">
-        <span class="setting-label">Notificaciones del navegador</span>
-        <button class="toggle" id="toggleBrowser" onclick="toggleBrowserNotif(this)"></button>
-      </div>
-      <div class="setting-row">
         <span class="setting-label">Monitoreo activo</span>
         <button class="toggle on" id="toggleMonitor" onclick="toggleMonitor(this)"></button>
       </div>
+    </div>
+
+    <!-- Notification opt-in prompt -->
+    <div class="notif-optin" id="notifOptIn">
+      <div class="notif-optin-title">Notificaciones del navegador</div>
+      <div class="notif-optin-desc">Activa las notificaciones para recibir alertas de fluctuación incluso cuando la app está en segundo plano.</div>
+      <button class="btn-optin" id="optInBtn" onclick="requestBrowserNotif()">Activar notificaciones del navegador</button>
     </div>
     <div class="notif-log" id="notifLog">
       <div class="log-empty" id="logEmpty">
@@ -1255,7 +1406,13 @@
     </div>
     <div class="footer-bottom">
       <span>Datos referenciales · Verificar con fuentes oficiales</span>
-      <span>Powered by anko · © 2026 Hay Luz?</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar con una donación en PayPal">
+          <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.243-8.558 6.243H9.824l-1.175 7.409h3.338c.46 0 .85-.334.922-.787l.038-.196.733-4.649.047-.257a.932.932 0 0 1 .922-.787h.58c3.76 0 6.701-1.528 7.559-5.946.36-1.847.174-3.389-.566-4.743z"/></svg>
+          Donar con PayPal
+        </a>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">Powered by anko · © 2026 Hay Luz?</span>
+      </div>
     </div>
   </footer>
 </div>
@@ -1309,6 +1466,7 @@ function init() {
   renderSectors(sectors);
   renderIncidents();
   renderMapSectors();
+  syncOptInBtn();
   runAnalysis();
 }
 
@@ -1773,8 +1931,7 @@ function fireAlert({ color, icon, title, msg }) {
   showToast({ color, icon, title, msg, time });
 
   // Browser notification
-  const browserToggle = document.getElementById('toggleBrowser');
-  if (browserToggle?.classList.contains('on') && Notification.permission === 'granted') {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     new Notification(`Hay Luz? — ${title}`, { body: msg, icon: '/favicon.ico' });
   }
 
@@ -1873,24 +2030,57 @@ function playBeep(color) {
   } catch {}
 }
 
-// ---- BROWSER NOTIF PERMISSION ----
-function toggleBrowserNotif(btn) {
-  if (btn.classList.contains('on')) {
-    btn.classList.remove('on');
-  } else {
-    if (!('Notification' in window)) {
-      showToast({ color: 'amber', icon: '!', title: 'No disponible', msg: 'Tu navegador no soporta notificaciones.', time: new Date().toLocaleTimeString('es-VE') });
-      return;
-    }
-    Notification.requestPermission().then(perm => {
-      if (perm === 'granted') {
-        btn.classList.add('on');
-        showToast({ color: 'green', icon: '✓', title: 'Notificaciones activadas', msg: 'Recibirás alertas cuando haya fluctuaciones.', time: new Date().toLocaleTimeString('es-VE') });
-      } else {
-        showToast({ color: 'amber', icon: '!', title: 'Permiso denegado', msg: 'Activa los permisos en la configuración del navegador.', time: new Date().toLocaleTimeString('es-VE') });
-      }
+// ---- CITY SWITCHER ----
+const cityMeta = {
+  maracaibo: { label: 'Maracaibo · Zulia · Venezuela', center: [10.674, -71.634], zoom: 12 },
+};
+
+function changeCity(val) {
+  if (val !== 'maracaibo') {
+    // Reset selector to maracaibo, show toast
+    document.getElementById('citySelect').value = 'maracaibo';
+    showToast({
+      color: 'amber', icon: '!',
+      title: 'Ciudad no disponible aún',
+      msg: 'Estamos trabajando para agregar más ciudades. ¡Pronto!',
+      time: new Date().toLocaleTimeString('es-VE'),
     });
+    return;
   }
+}
+
+// ---- BROWSER NOTIF OPT-IN ----
+function requestBrowserNotif() {
+  const btn = document.getElementById('optInBtn');
+  if (!('Notification' in window)) {
+    btn.textContent = 'No soportado en este navegador';
+    btn.classList.add('denied');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    btn.textContent = '✓ Notificaciones ya activadas';
+    btn.classList.add('granted');
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      btn.textContent = '✓ Notificaciones activadas';
+      btn.classList.add('granted');
+      showToast({ color: 'green', icon: '✓', title: 'Notificaciones activadas', msg: 'Recibirás alertas incluso en segundo plano.', time: new Date().toLocaleTimeString('es-VE') });
+    } else {
+      btn.textContent = '✗ Permiso denegado — actívalo en el navegador';
+      btn.classList.add('denied');
+    }
+  });
+}
+
+// Check permission state on load and update button
+function syncOptInBtn() {
+  const btn = document.getElementById('optInBtn');
+  if (!btn) return;
+  if (!('Notification' in window)) { btn.textContent = 'No soportado'; btn.classList.add('denied'); return; }
+  if (Notification.permission === 'granted') { btn.textContent = '✓ Notificaciones activadas'; btn.classList.add('granted'); }
+  if (Notification.permission === 'denied')  { btn.textContent = '✗ Permiso denegado — actívalo en el navegador'; btn.classList.add('denied'); }
 }
 
 // ---- TOGGLE MONITOR ----
