@@ -706,10 +706,12 @@
       top: 0; right: 0;
       width: 360px;
       height: 100vh;
+      height: 100dvh;
       background: var(--surface);
       border-left: 1px solid var(--border-bright);
       z-index: 8888;
       flex-direction: column;
+      overflow: hidden;
       animation: drawerIn 0.2s ease forwards;
     }
     .notif-drawer.open { display: flex; }
@@ -824,10 +826,11 @@
     .threshold-input:focus { border-color: var(--border-bright); }
 
     /* Notification log */
-    .notif-log { flex: 1; overflow-y: auto; padding: 10px 18px; }
-    .notif-log::-webkit-scrollbar { width: 4px; }
-    .notif-log::-webkit-scrollbar-track { background: transparent; }
-    .notif-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .notif-log { flex: 1; overflow-y: scroll; padding: 10px 18px; min-height: 0; }
+    .notif-log::-webkit-scrollbar { width: 5px; }
+    .notif-log::-webkit-scrollbar-track { background: var(--surface2); }
+    .notif-log::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+    .notif-log::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
     .log-empty {
       display: flex;
@@ -2042,35 +2045,38 @@
 const API_BASE = window.location.origin;
 
 const sectors = [
-  { name: "Coquivacoa",                   zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Urdaneta",                     zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Olegario Villalobos",          zone: "Norte",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Bolívar",                      zone: "Centro-Norte", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Chiquinquirá",                 zone: "Centro-Norte", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Santa Lucía",                  zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Cristo de Aranza",             zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Cecilio Acosta",               zone: "Centro",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",    status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Juana de Ávila",               zone: "Centro-Sur",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Manuel Dagnino",               zone: "Centro-Sur",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Antonio Borjas Romero",        zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Raúl Leoni",                   zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Luis Hurtado Higuera",         zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "San Isidro",                   zone: "Sur-Este",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Caracciolo Parra Pérez",       zone: "Sur-Este",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Venancio Pulgar",              zone: "Sur",          status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "El Cuji",                      zone: "Sur-Oeste",    status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Coquivacoa",                   zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Urdaneta",                     zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Idelfonso Vásquez",            zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Venancio Pulgar",              zone: "Norte-Oeste", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Juana de Ávila",               zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Olegario Villalobos",          zone: "Este",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Bolívar",                      zone: "Este",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Santa Lucía",                  zone: "Este",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Chiquinquirá",                 zone: "Centro-Este", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Caracciolo Parra Pérez",       zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Raúl Leoni",                   zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Cacique Mara",                 zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Cecilio Acosta",               zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Antonio Borjas Romero",        zone: "Oeste",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "San Isidro",                   zone: "Oeste",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",  status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Manuel Dagnino",               zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Cristo de Aranza",             zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Luis Hurtado Higuera",         zone: "Sur",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
 ];
 
 // Zone map for enriching API responses that may omit zone
 const ZONE_MAP = {
-  "Coquivacoa":"Norte","Urdaneta":"Norte","Olegario Villalobos":"Norte",
-  "Bolívar":"Centro-Norte","Chiquinquirá":"Centro-Norte",
-  "Santa Lucía":"Centro","Cristo de Aranza":"Centro","Cecilio Acosta":"Centro",
-  "Francisco Eugenio Bustamante":"Sur-Oeste","Juana de Ávila":"Centro-Sur",
-  "Manuel Dagnino":"Centro-Sur","Antonio Borjas Romero":"Sur","Raúl Leoni":"Sur",
-  "Luis Hurtado Higuera":"Sur","San Isidro":"Sur-Este",
-  "Caracciolo Parra Pérez":"Sur-Este","Venancio Pulgar":"Sur","El Cuji":"Sur-Oeste"
+  "Coquivacoa":"Norte","Urdaneta":"Norte","Idelfonso Vásquez":"Norte",
+  "Venancio Pulgar":"Norte-Oeste","Juana de Ávila":"Norte",
+  "Olegario Villalobos":"Este","Bolívar":"Este","Santa Lucía":"Este",
+  "Chiquinquirá":"Centro-Este","Caracciolo Parra Pérez":"Centro",
+  "Raúl Leoni":"Centro","Cacique Mara":"Centro","Cecilio Acosta":"Centro",
+  "Antonio Borjas Romero":"Oeste","San Isidro":"Oeste",
+  "Francisco Eugenio Bustamante":"Sur-Oeste",
+  "Manuel Dagnino":"Sur-Este","Cristo de Aranza":"Sur-Este",
+  "Luis Hurtado Higuera":"Sur"
 };
 
 let dataSource = 'cargando...';
@@ -2446,6 +2452,8 @@ function toggleDrawer() {
   const isOpen = drawer.classList.contains('open');
   drawer.classList.toggle('open', !isOpen);
   overlay.classList.toggle('open', !isOpen);
+  // Lock page scroll while drawer is open
+  document.body.style.overflow = isOpen ? '' : 'hidden';
   if (!isOpen) {
     unreadCount = 0;
     updateBadge();
@@ -2863,78 +2871,197 @@ function toggleTheme() {
 // ======== LEAFLET MAP ========
 // Las 18 parroquias urbanas del Municipio Maracaibo
 // Coordenadas aproximadas a sus límites reales geográficos
+// Parroquias del Municipio Maracaibo
+// Coordenadas ajustadas al mapa oficial (imagen de referencia)
+// Lago de Maracaibo en el borde ESTE (~-71.595)
+// Norte ~10.740, Sur ~10.620, Oeste ~-71.700
 const sectorGeoData = [
   {
+    // Noreste, frente al lago, arriba de Juana de Ávila
     name: "Coquivacoa", zone: "Norte",
-    coords: [[10.7320,-71.6580],[10.7320,-71.6340],[10.7130,-71.6340],[10.7130,-71.6580]]
+    coords: [
+      [10.740,-71.638],[10.740,-71.610],
+      [10.718,-71.610],[10.718,-71.625],
+      [10.725,-71.638]
+    ]
   },
   {
+    // Norte, interior, encima de Idelfonso Vásquez / Venancio Pulgar
     name: "Urdaneta", zone: "Norte",
-    coords: [[10.7320,-71.6340],[10.7320,-71.6080],[10.7130,-71.6080],[10.7130,-71.6340]]
+    coords: [
+      [10.740,-71.665],[10.740,-71.638],
+      [10.725,-71.638],[10.718,-71.625],
+      [10.718,-71.645],[10.725,-71.665]
+    ]
   },
   {
-    name: "Olegario Villalobos", zone: "Norte",
-    coords: [[10.7130,-71.6580],[10.7130,-71.6340],[10.6950,-71.6340],[10.6950,-71.6580]]
+    // Noreste pegado al lago, debajo de Coquivacoa
+    name: "Olegario Villalobos", zone: "Este",
+    coords: [
+      [10.718,-71.625],[10.718,-71.610],
+      [10.700,-71.610],[10.700,-71.618],
+      [10.705,-71.625]
+    ]
   },
   {
-    name: "Bolívar", zone: "Centro-Norte",
-    coords: [[10.7130,-71.6340],[10.7130,-71.6120],[10.6950,-71.6120],[10.6950,-71.6340]]
+    // Este, costa, centro-norte
+    name: "Bolívar", zone: "Este",
+    coords: [
+      [10.700,-71.618],[10.700,-71.610],
+      [10.684,-71.610],[10.684,-71.618],
+      [10.692,-71.622]
+    ]
   },
   {
-    name: "Chiquinquirá", zone: "Centro-Norte",
-    coords: [[10.7130,-71.6120],[10.7130,-71.5870],[10.6950,-71.5870],[10.6950,-71.6120]]
+    // Centro-este, interior
+    name: "Chiquinquirá", zone: "Centro-Este",
+    coords: [
+      [10.705,-71.625],[10.700,-71.618],
+      [10.692,-71.622],[10.684,-71.618],
+      [10.684,-71.632],[10.698,-71.638],
+      [10.705,-71.638]
+    ]
   },
   {
-    name: "Santa Lucía", zone: "Centro",
-    coords: [[10.6950,-71.6580],[10.6950,-71.6340],[10.6760,-71.6340],[10.6760,-71.6580]]
+    // Este, al sur de Bolívar, pegado al lago
+    name: "Santa Lucía", zone: "Este",
+    coords: [
+      [10.684,-71.618],[10.684,-71.610],
+      [10.668,-71.610],[10.668,-71.618],
+      [10.676,-71.622]
+    ]
   },
   {
-    name: "Cristo de Aranza", zone: "Centro",
-    coords: [[10.6950,-71.6340],[10.6950,-71.6120],[10.6760,-71.6120],[10.6760,-71.6340]]
+    // Noreste interior, al norte de Juana de Ávila
+    name: "Juana de Ávila", zone: "Norte",
+    coords: [
+      [10.718,-71.645],[10.718,-71.625],
+      [10.705,-71.625],[10.705,-71.638],
+      [10.710,-71.648]
+    ]
   },
   {
+    // Centro, entre Chiquinquirá y Cacique Mara
+    name: "Raúl Leoni", zone: "Centro",
+    coords: [
+      [10.698,-71.638],[10.684,-71.632],
+      [10.684,-71.645],[10.690,-71.652],
+      [10.698,-71.650]
+    ]
+  },
+  {
+    // Centro, debajo de Raúl Leoni
+    name: "Cacique Mara", zone: "Centro",
+    coords: [
+      [10.684,-71.645],[10.684,-71.632],
+      [10.676,-71.635],[10.668,-71.640],
+      [10.668,-71.652],[10.678,-71.655]
+    ]
+  },
+  {
+    // Centro-oeste, grande
+    name: "Caracciolo Parra Pérez", zone: "Centro-Oeste",
+    coords: [
+      [10.710,-71.648],[10.705,-71.638],
+      [10.698,-71.638],[10.698,-71.650],
+      [10.698,-71.660],[10.705,-71.665],
+      [10.710,-71.660]
+    ]
+  },
+  {
+    // Noreste interior, al norte de Caracciolo
+    name: "Idelfonso Vásquez", zone: "Norte",
+    coords: [
+      [10.725,-71.665],[10.718,-71.645],
+      [10.710,-71.648],[10.710,-71.660],
+      [10.718,-71.668],[10.725,-71.668]
+    ]
+  },
+  {
+    // Centro, al sur de Cacique Mara, pegado al lago
     name: "Cecilio Acosta", zone: "Centro",
-    coords: [[10.6950,-71.6120],[10.6950,-71.5870],[10.6760,-71.5870],[10.6760,-71.6120]]
+    coords: [
+      [10.676,-71.635],[10.684,-71.632],
+      [10.684,-71.618],[10.676,-71.622],
+      [10.668,-71.618],[10.668,-71.628],
+      [10.668,-71.640]
+    ]
   },
   {
-    name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
-    coords: [[10.6760,-71.6800],[10.6760,-71.6520],[10.6560,-71.6520],[10.6560,-71.6800]]
+    // Sur-este pegado al lago
+    name: "Manuel Dagnino", zone: "Sur-Este",
+    coords: [
+      [10.668,-71.618],[10.668,-71.610],
+      [10.652,-71.610],[10.652,-71.622],
+      [10.660,-71.628],[10.668,-71.628]
+    ]
   },
   {
+    // Sur-este al sur de Manuel Dagnino
+    name: "Cristo de Aranza", zone: "Sur-Este",
+    coords: [
+      [10.652,-71.622],[10.652,-71.610],
+      [10.636,-71.610],[10.636,-71.622],
+      [10.644,-71.628],[10.652,-71.628]
+    ]
+  },
+  {
+    // Centro-sur, entre Cacique Mara y Francisco Bustamante
     name: "Juana de Ávila", zone: "Centro-Sur",
-    coords: [[10.6760,-71.6520],[10.6760,-71.6260],[10.6560,-71.6260],[10.6560,-71.6520]]
+    coords: [
+      [10.668,-71.652],[10.668,-71.640],
+      [10.660,-71.645],[10.652,-71.648],
+      [10.652,-71.658],[10.660,-71.658]
+    ]
   },
   {
-    name: "Manuel Dagnino", zone: "Centro-Sur",
-    coords: [[10.6760,-71.6260],[10.6760,-71.5980],[10.6560,-71.5980],[10.6560,-71.6260]]
+    // Sur-oeste grande
+    name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
+    coords: [
+      [10.660,-71.678],[10.668,-71.670],
+      [10.668,-71.658],[10.660,-71.658],
+      [10.652,-71.660],[10.644,-71.665],
+      [10.640,-71.678],[10.650,-71.682]
+    ]
   },
   {
-    name: "Antonio Borjas Romero", zone: "Sur",
-    coords: [[10.6560,-71.6800],[10.6560,-71.6500],[10.6360,-71.6500],[10.6360,-71.6800]]
+    // Oeste grande, limita con municipio Jesús E. Lossada
+    name: "Antonio Borjas Romero", zone: "Oeste",
+    coords: [
+      [10.700,-71.690],[10.705,-71.665],
+      [10.698,-71.660],[10.690,-71.665],
+      [10.680,-71.672],[10.675,-71.685],
+      [10.682,-71.695]
+    ]
   },
   {
-    name: "Raúl Leoni", zone: "Sur",
-    coords: [[10.6560,-71.6500],[10.6560,-71.6200],[10.6360,-71.6200],[10.6360,-71.6500]]
+    // Norte-oeste, arriba de Antonio Borjas Romero
+    name: "Venancio Pulgar", zone: "Norte-Oeste",
+    coords: [
+      [10.725,-71.700],[10.740,-71.695],
+      [10.740,-71.665],[10.725,-71.665],
+      [10.718,-71.668],[10.715,-71.680],
+      [10.718,-71.695]
+    ]
   },
   {
+    // Extremo oeste, zona rural
+    name: "San Isidro", zone: "Oeste",
+    coords: [
+      [10.680,-71.700],[10.700,-71.695],
+      [10.700,-71.690],[10.682,-71.695],
+      [10.675,-71.695],[10.668,-71.700]
+    ]
+  },
+  {
+    // Sur, abajo de Francisco Bustamante
     name: "Luis Hurtado Higuera", zone: "Sur",
-    coords: [[10.6560,-71.6200],[10.6560,-71.5900],[10.6360,-71.5900],[10.6360,-71.6200]]
-  },
-  {
-    name: "San Isidro", zone: "Sur-Este",
-    coords: [[10.6760,-71.5980],[10.6760,-71.5720],[10.6560,-71.5720],[10.6560,-71.5980]]
-  },
-  {
-    name: "Caracciolo Parra Pérez", zone: "Sur-Este",
-    coords: [[10.6360,-71.6500],[10.6360,-71.6180],[10.6160,-71.6180],[10.6160,-71.6500]]
-  },
-  {
-    name: "Venancio Pulgar", zone: "Sur",
-    coords: [[10.6360,-71.6180],[10.6360,-71.5880],[10.6160,-71.5880],[10.6160,-71.6180]]
-  },
-  {
-    name: "El Cuji", zone: "Sur-Oeste",
-    coords: [[10.6360,-71.6800],[10.6360,-71.6500],[10.6160,-71.6500],[10.6160,-71.6800]]
+    coords: [
+      [10.640,-71.678],[10.644,-71.665],
+      [10.636,-71.662],[10.625,-71.662],
+      [10.620,-71.672],[10.625,-71.682],
+      [10.634,-71.685]
+    ]
   },
 ];
 
@@ -2984,7 +3111,7 @@ function initLeafletMap() {
   leafletInitialized = true;
 
   leafletMap = L.map('leafletMap', {
-    center: [10.674, -71.634],
+    center: [10.680, -71.655],
     zoom: 12,
     zoomControl: true,
     attributionControl: true,
