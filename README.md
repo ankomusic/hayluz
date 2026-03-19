@@ -1,4 +1,4 @@
-# LuzZulia — Monitor de cortes eléctricos · Maracaibo, Zulia
+# Hay Luz? — Monitor de cortes eléctricos · Maracaibo, Zulia
 
 Aplicación web para monitorear caídas del sistema eléctrico en Maracaibo por sector, con verificador de autenticidad de reportes basado en IA.
 
