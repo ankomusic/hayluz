@@ -7,50 +7,62 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
+    /* ── Geist Design System ── */
     :root {
-      --bg: #0a0c0f;
-      --surface: #111418;
-      --surface2: #181c22;
-      --border: rgba(255,255,255,0.07);
-      --border-bright: rgba(255,255,255,0.15);
-      --text: #e8ecf0;
-      --text-muted: #6b7685;
-      --text-dim: #3d4651;
-      --accent: #f5c842;
-      --accent-dim: rgba(245,200,66,0.12);
-      --red: #ff4d4d;
-      --red-dim: rgba(255,77,77,0.12);
-      --amber: #f5a623;
-      --amber-dim: rgba(245,166,35,0.12);
-      --green: #3ddc84;
-      --green-dim: rgba(61,220,132,0.12);
-      --blue: #4d9fff;
-      --blue-dim: rgba(77,159,255,0.1);
+      /* Backgrounds */
+      --bg:           #000000;
+      --surface:      #111111;
+      --surface2:     #1a1a1a;
+      --surface3:     #222222;
+      /* Borders */
+      --border:       #333333;
+      --border-bright:#444444;
+      /* Text */
+      --text:         #ededed;
+      --text-muted:   #888888;
+      --text-dim:     #555555;
+      /* Accent — Geist uses pure white accents on black */
+      --accent:       #ffffff;
+      --accent-dim:   rgba(255,255,255,0.06);
+      /* Semantic — Geist uses desaturated but still readable tones */
+      --red:          #ff6166;
+      --red-dim:      rgba(255,97,102,0.12);
+      --amber:        #f5a623;
+      --amber-dim:    rgba(245,166,35,0.12);
+      --green:        #50e3c2;
+      --green-dim:    rgba(80,227,194,0.10);
+      --blue:         #0070f3;
+      --blue-dim:     rgba(0,112,243,0.12);
+      --purple:       #7928ca;
+      --purple-dim:   rgba(121,40,202,0.12);
+      /* Typography */
       --mono: 'Space Mono', monospace;
       --sans: 'DM Sans', sans-serif;
-      --radius: 6px;
-      --radius-lg: 12px;
+      /* Shape */
+      --radius:    5px;
+      --radius-lg: 8px;
     }
 
     :root.light {
-      --bg: #f4f5f7;
-      --surface: #ffffff;
-      --surface2: #eef0f3;
-      --border: rgba(0,0,0,0.08);
-      --border-bright: rgba(0,0,0,0.18);
-      --text: #141618;
-      --text-muted: #6b7280;
-      --text-dim: #adb5bd;
-      --accent: #c9a000;
-      --accent-dim: rgba(201,160,0,0.1);
-      --red: #d93636;
-      --red-dim: rgba(217,54,54,0.1);
-      --amber: #c47a0a;
-      --amber-dim: rgba(196,122,10,0.1);
-      --green: #1d9e5c;
-      --green-dim: rgba(29,158,92,0.1);
-      --blue: #1a6fc4;
-      --blue-dim: rgba(26,111,196,0.1);
+      --bg:           #ffffff;
+      --surface:      #fafafa;
+      --surface2:     #f4f4f4;
+      --surface3:     #ebebeb;
+      --border:       #eaeaea;
+      --border-bright:#d1d1d1;
+      --text:         #000000;
+      --text-muted:   #666666;
+      --text-dim:     #999999;
+      --accent:       #000000;
+      --accent-dim:   rgba(0,0,0,0.04);
+      --red:          #e00;
+      --red-dim:      rgba(238,0,0,0.07);
+      --amber:        #f5a623;
+      --amber-dim:    rgba(245,166,35,0.09);
+      --green:        #0d9373;
+      --green-dim:    rgba(13,147,115,0.08);
+      --blue:         #0070f3;
+      --blue-dim:     rgba(0,112,243,0.08);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,15 +77,13 @@
       transition: background 0.25s, color 0.25s;
     }
 
-    /* Subtle grid background */
+    /* Geist-style dot grid */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
       pointer-events: none;
       z-index: 0;
     }
@@ -854,8 +864,19 @@
     .waveform-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
     canvas#waveCanvas { width: 100%; height: 48px; display: block; }
 
-    /* Theme toggle button */
-    .theme-btn {
+    /* Mute state — red tint when muted */
+    .theme-btn.muted { border-color: var(--red-dim); }
+    .theme-btn.muted svg { stroke: var(--red); }
+    .theme-btn.muted::after {
+      content: '';
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1.5px solid var(--bg);
+    }
+    .theme-btn { position: relative; }
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -908,24 +929,24 @@
       font-family: var(--sans);
     }
     :root.light .leaflet-tile-pane { filter: none; }
-    :root:not(.light) .leaflet-tile-pane { filter: brightness(0.7) saturate(0.6); }
+    :root:not(.light) .leaflet-tile-pane { filter: brightness(0.55) saturate(0.4) invert(0.05); }
 
     /* Custom Leaflet popup to match app theme */
     .leaflet-popup-content-wrapper {
       background: var(--surface2) !important;
       border: 1px solid var(--border-bright) !important;
-      border-radius: var(--radius-lg) !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5) !important;
       color: var(--text) !important;
     }
     .leaflet-popup-tip { background: var(--surface2) !important; }
     .leaflet-popup-content { margin: 12px 14px !important; font-size: 13px; }
     .leaflet-popup-close-button { color: var(--text-muted) !important; font-size: 18px !important; top: 6px !important; right: 8px !important; }
     .leaflet-popup-close-button:hover { color: var(--text) !important; }
-    .lf-popup-name { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
-    .lf-popup-volt { font-family: var(--mono); font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-    .lf-popup-meta { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-    .lf-popup-cause { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 3px; }
+    .lf-popup-name { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-bottom: 5px; color: var(--text); }
+    .lf-popup-volt { font-family: var(--mono); font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+    .lf-popup-meta { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+    .lf-popup-cause { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
 
     /* Leaflet controls theme */
     .leaflet-control-zoom a {
@@ -1022,12 +1043,15 @@
         <div class="logo-sub">Maracaibo · Zulia · Venezuela</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:8px;">
       <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
+      <button class="theme-btn" id="muteBtn" onclick="toggleMute()" title="Silenciar notificaciones de fluctuación">
+        <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <button class="notif-btn" onclick="toggleDrawer()" title="Notificaciones de fluctuación" id="notifBtn">
+      <button class="notif-btn" onclick="toggleDrawer()" title="Panel de alertas" id="notifBtn">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
@@ -1239,38 +1263,40 @@
 const API_BASE = window.location.origin;
 
 const sectors = [
-  { name: "Circunvalación 1", zone: "Norte", status: "cut", hours: 8, since: "06:30", affected: 92, cause: "Sobrecarga en subestación" },
-  { name: "Circunvalación 2", zone: "Norte", status: "cut", hours: 5, since: "09:00", affected: 78, cause: "Falla en transformador" },
-  { name: "Los Haticos", zone: "Sur", status: "inter", hours: 3, since: "11:00", affected: 45, cause: "Mantenimiento preventivo" },
-  { name: "Juana de Ávila", zone: "Centro", status: "ok", hours: 0, since: "—", affected: 5, cause: "—" },
-  { name: "Sabaneta", zone: "Sur", status: "cut", hours: 11, since: "03:15", affected: 88, cause: "Daño en línea de transmisión" },
-  { name: "La Lago", zone: "Este", status: "ok", hours: 0, since: "—", affected: 3, cause: "—" },
-  { name: "Las Mercedes", zone: "Este", status: "inter", hours: 2, since: "12:00", affected: 40, cause: "Fluctuación de voltaje" },
-  { name: "El Milagro", zone: "Norte", status: "cut", hours: 6, since: "08:00", affected: 70, cause: "Corte programado" },
-  { name: "Cañada Honda", zone: "Oeste", status: "cut", hours: 9, since: "05:30", affected: 85, cause: "Vandalismo en infraestructura" },
-  { name: "Los Olivos", zone: "Oeste", status: "inter", hours: 1, since: "13:00", affected: 30, cause: "Pruebas de restauración" },
-  { name: "Santa Lucía", zone: "Centro", status: "ok", hours: 0, since: "—", affected: 8, cause: "—" },
-  { name: "La Victoria", zone: "Sur", status: "cut", hours: 7, since: "07:00", affected: 60, cause: "Falla en subestación" },
-  { name: "Veritas", zone: "Norte", status: "ok", hours: 0, since: "—", affected: 2, cause: "—" },
-  { name: "Pomona", zone: "Oeste", status: "cut", hours: 4, since: "10:00", affected: 55, cause: "Sobrecarga" },
-  { name: "La Limpia", zone: "Sur", status: "inter", hours: 2, since: "12:30", affected: 35, cause: "Corte intermitente reportado" },
-  { name: "Bella Vista", zone: "Este", status: "ok", hours: 0, since: "—", affected: 6, cause: "—" },
+  { name: "Coquivacoa",                   zone: "Norte",      status: "cut",   hours: 8,  since: "06:30", affected: 90, cause: "Sobrecarga en subestación" },
+  { name: "Urdaneta",                     zone: "Norte",      status: "cut",   hours: 5,  since: "09:00", affected: 75, cause: "Falla en transformador" },
+  { name: "Olegario Villalobos",          zone: "Norte",      status: "ok",    hours: 0,  since: "—",    affected: 4,  cause: "—" },
+  { name: "Bolívar",                      zone: "Centro-Norte", status: "ok",  hours: 0,  since: "—",    affected: 3,  cause: "—" },
+  { name: "Chiquinquirá",                 zone: "Centro-Norte", status: "inter", hours: 2, since: "12:00", affected: 40, cause: "Fluctuación de voltaje" },
+  { name: "Santa Lucía",                  zone: "Centro",     status: "ok",    hours: 0,  since: "—",    affected: 5,  cause: "—" },
+  { name: "Cristo de Aranza",             zone: "Centro",     status: "inter", hours: 3,  since: "11:00", affected: 45, cause: "Mantenimiento preventivo" },
+  { name: "Cecilio Acosta",               zone: "Centro",     status: "cut",   hours: 6,  since: "08:00", affected: 70, cause: "Corte programado" },
+  { name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",  status: "cut",   hours: 9,  since: "05:30", affected: 85, cause: "Vandalismo en infraestructura" },
+  { name: "Juana de Ávila",               zone: "Centro-Sur", status: "ok",    hours: 0,  since: "—",    affected: 5,  cause: "—" },
+  { name: "Manuel Dagnino",               zone: "Centro-Sur", status: "inter", hours: 1,  since: "13:00", affected: 30, cause: "Pruebas de restauración" },
+  { name: "Antonio Borjas Romero",        zone: "Sur",        status: "cut",   hours: 7,  since: "07:00", affected: 60, cause: "Falla en subestación" },
+  { name: "Raúl Leoni",                   zone: "Sur",        status: "cut",   hours: 4,  since: "10:00", affected: 55, cause: "Sobrecarga" },
+  { name: "Luis Hurtado Higuera",         zone: "Sur",        status: "inter", hours: 2,  since: "12:30", affected: 35, cause: "Corte intermitente reportado" },
+  { name: "San Isidro",                   zone: "Sur-Este",   status: "ok",    hours: 0,  since: "—",    affected: 6,  cause: "—" },
+  { name: "Caracciolo Parra Pérez",       zone: "Sur-Este",   status: "cut",   hours: 11, since: "03:15", affected: 88, cause: "Daño en línea de transmisión" },
+  { name: "Venancio Pulgar",              zone: "Sur",        status: "ok",    hours: 0,  since: "—",    affected: 2,  cause: "—" },
+  { name: "El Cuji",                      zone: "Sur-Oeste",  status: "cut",   hours: 5,  since: "09:15", affected: 72, cause: "Subestación dañada" },
 ];
 
 const incidents = [
-  { text: "Sabaneta: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
-  { text: "Cañada Honda: vandalismo reportado en subestación Norte-Oeste", color: "red", time: "hace 9 h" },
-  { text: "Circunvalación 1: sobrecarga crítica, subestación al 97% de capacidad", color: "red", time: "hace 8 h" },
-  { text: "La Victoria: brigadas de Corpoelec en el sitio, ETA restauración 2 h", color: "amber", time: "hace 3 h" },
-  { text: "Los Olivos: servicio en proceso de restauración progresiva", color: "amber", time: "hace 45 min" },
+  { text: "Caracciolo Parra Pérez: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
+  { text: "Francisco E. Bustamante: vandalismo reportado en subestación Sur-Oeste", color: "red", time: "hace 9 h" },
+  { text: "Coquivacoa: sobrecarga crítica, subestación al 97% de capacidad", color: "red", time: "hace 8 h" },
+  { text: "Antonio Borjas Romero: brigadas de Corpoelec en sitio, ETA restauración 2 h", color: "amber", time: "hace 3 h" },
+  { text: "Manuel Dagnino: servicio en proceso de restauración progresiva", color: "amber", time: "hace 45 min" },
   { text: "Juana de Ávila: sistema estabilizado tras incidente menor", color: "green", time: "hace 2 h" },
 ];
 
 const examples = [
-  "Sin luz en Sabaneta desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Sector afectado completo.",
+  "Sin luz en Caracciolo Parra Pérez desde las 3am, ya van 10 horas y Corpoelec no da respuesta. Parroquia afectada completa.",
   "TODO MARACAIBO SIN LUZ DESDE AYER, EL GOBIERNO NOS TIENE ABANDONADOS, 48 HORAS SIN ELECTRICIDAD EN TODA LA CIUDAD",
-  "Fluctuaciones de voltaje en Las Mercedes desde mediodía, algunos negocios con planta eléctrica funcionando normal.",
-  "Corpoelec informa corte programado en Circunvalación 1 para mantenimiento preventivo, duración estimada 4 horas, inicio 9am.",
+  "Fluctuaciones de voltaje en Chiquinquirá desde mediodía, algunos negocios con planta eléctrica funcionando normal.",
+  "Corpoelec informa corte programado en Cecilio Acosta para mantenimiento preventivo, duración estimada 4 horas, inicio 9am.",
 ];
 
 let currentFilter = "all";
@@ -1739,6 +1765,7 @@ function checkThresholds() {
 
 // ---- FIRE ALERT ----
 function fireAlert({ color, icon, title, msg }) {
+  if (notifMuted) return;
   const time = new Date().toLocaleTimeString('es-VE');
 
   // Toast
@@ -1909,6 +1936,25 @@ function testAlert() {
   });
 }
 
+let notifMuted = false;
+
+function toggleMute() {
+  notifMuted = !notifMuted;
+  const btn = document.getElementById('muteBtn');
+  btn.classList.toggle('muted', notifMuted);
+  btn.title = notifMuted ? 'Reactivar notificaciones de fluctuación' : 'Silenciar notificaciones de fluctuación';
+  const BELL_ON  = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`;
+  const BELL_OFF = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  document.getElementById('muteIcon').innerHTML = notifMuted ? BELL_OFF : BELL_ON;
+  showToast({
+    color: notifMuted ? 'amber' : 'green',
+    icon: notifMuted ? '×' : '✓',
+    title: notifMuted ? 'Notificaciones silenciadas' : 'Notificaciones reactivadas',
+    msg: notifMuted ? 'No recibirás alertas de fluctuación.' : 'Recibirás alertas de fluctuación nuevamente.',
+    time: new Date().toLocaleTimeString('es-VE'),
+  });
+}
+
 // ======== THEME TOGGLE ========
 const SUN_ICON = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
 const MOON_ICON = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
@@ -1922,72 +1968,80 @@ function toggleTheme() {
 }
 
 // ======== LEAFLET MAP ========
-// Real approximate polygon coordinates for Maracaibo sectors (lat/lng)
-// Maracaibo city center: ~10.65N, -71.61W
+// Las 18 parroquias urbanas del Municipio Maracaibo
+// Coordenadas aproximadas a sus límites reales geográficos
 const sectorGeoData = [
   {
-    name: "El Milagro",       zone: "Norte",
-    coords: [[10.695,-71.655],[10.695,-71.635],[10.680,-71.635],[10.680,-71.655]]
+    name: "Coquivacoa", zone: "Norte",
+    coords: [[10.7320,-71.6580],[10.7320,-71.6340],[10.7130,-71.6340],[10.7130,-71.6580]]
   },
   {
-    name: "Circunvalación 1", zone: "Norte",
-    coords: [[10.695,-71.635],[10.695,-71.615],[10.680,-71.615],[10.680,-71.635]]
+    name: "Urdaneta", zone: "Norte",
+    coords: [[10.7320,-71.6340],[10.7320,-71.6080],[10.7130,-71.6080],[10.7130,-71.6340]]
   },
   {
-    name: "Circunvalación 2", zone: "Norte",
-    coords: [[10.695,-71.615],[10.695,-71.595],[10.680,-71.595],[10.680,-71.615]]
+    name: "Olegario Villalobos", zone: "Norte",
+    coords: [[10.7130,-71.6580],[10.7130,-71.6340],[10.6950,-71.6340],[10.6950,-71.6580]]
   },
   {
-    name: "Veritas",          zone: "Norte",
-    coords: [[10.695,-71.595],[10.695,-71.575],[10.680,-71.575],[10.680,-71.595]]
+    name: "Bolívar", zone: "Centro-Norte",
+    coords: [[10.7130,-71.6340],[10.7130,-71.6120],[10.6950,-71.6120],[10.6950,-71.6340]]
   },
   {
-    name: "Las Mercedes",     zone: "Este",
-    coords: [[10.680,-71.655],[10.680,-71.635],[10.665,-71.635],[10.665,-71.655]]
+    name: "Chiquinquirá", zone: "Centro-Norte",
+    coords: [[10.7130,-71.6120],[10.7130,-71.5870],[10.6950,-71.5870],[10.6950,-71.6120]]
   },
   {
-    name: "Juana de Ávila",   zone: "Centro",
-    coords: [[10.680,-71.635],[10.680,-71.615],[10.665,-71.615],[10.665,-71.635]]
+    name: "Santa Lucía", zone: "Centro",
+    coords: [[10.6950,-71.6580],[10.6950,-71.6340],[10.6760,-71.6340],[10.6760,-71.6580]]
   },
   {
-    name: "Santa Lucía",      zone: "Centro",
-    coords: [[10.680,-71.615],[10.680,-71.595],[10.665,-71.595],[10.665,-71.615]]
+    name: "Cristo de Aranza", zone: "Centro",
+    coords: [[10.6950,-71.6340],[10.6950,-71.6120],[10.6760,-71.6120],[10.6760,-71.6340]]
   },
   {
-    name: "La Lago",          zone: "Este",
-    coords: [[10.680,-71.595],[10.680,-71.575],[10.665,-71.575],[10.665,-71.595]]
+    name: "Cecilio Acosta", zone: "Centro",
+    coords: [[10.6950,-71.6120],[10.6950,-71.5870],[10.6760,-71.5870],[10.6760,-71.6120]]
   },
   {
-    name: "Los Olivos",       zone: "Oeste",
-    coords: [[10.665,-71.655],[10.665,-71.635],[10.650,-71.635],[10.650,-71.655]]
+    name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
+    coords: [[10.6760,-71.6800],[10.6760,-71.6520],[10.6560,-71.6520],[10.6560,-71.6800]]
   },
   {
-    name: "Bella Vista",      zone: "Este",
-    coords: [[10.665,-71.595],[10.665,-71.575],[10.650,-71.575],[10.650,-71.595]]
+    name: "Juana de Ávila", zone: "Centro-Sur",
+    coords: [[10.6760,-71.6520],[10.6760,-71.6260],[10.6560,-71.6260],[10.6560,-71.6520]]
   },
   {
-    name: "Pomona",           zone: "Oeste",
-    coords: [[10.650,-71.655],[10.650,-71.635],[10.635,-71.635],[10.635,-71.655]]
+    name: "Manuel Dagnino", zone: "Centro-Sur",
+    coords: [[10.6760,-71.6260],[10.6760,-71.5980],[10.6560,-71.5980],[10.6560,-71.6260]]
   },
   {
-    name: "Los Haticos",      zone: "Sur",
-    coords: [[10.650,-71.635],[10.650,-71.615],[10.635,-71.615],[10.635,-71.635]]
+    name: "Antonio Borjas Romero", zone: "Sur",
+    coords: [[10.6560,-71.6800],[10.6560,-71.6500],[10.6360,-71.6500],[10.6360,-71.6800]]
   },
   {
-    name: "La Victoria",      zone: "Sur",
-    coords: [[10.650,-71.615],[10.650,-71.595],[10.635,-71.595],[10.635,-71.615]]
+    name: "Raúl Leoni", zone: "Sur",
+    coords: [[10.6560,-71.6500],[10.6560,-71.6200],[10.6360,-71.6200],[10.6360,-71.6500]]
   },
   {
-    name: "Cañada Honda",     zone: "Oeste",
-    coords: [[10.635,-71.655],[10.635,-71.635],[10.620,-71.635],[10.620,-71.655]]
+    name: "Luis Hurtado Higuera", zone: "Sur",
+    coords: [[10.6560,-71.6200],[10.6560,-71.5900],[10.6360,-71.5900],[10.6360,-71.6200]]
   },
   {
-    name: "Sabaneta",         zone: "Sur",
-    coords: [[10.635,-71.635],[10.635,-71.615],[10.620,-71.615],[10.620,-71.635]]
+    name: "San Isidro", zone: "Sur-Este",
+    coords: [[10.6760,-71.5980],[10.6760,-71.5720],[10.6560,-71.5720],[10.6560,-71.5980]]
   },
   {
-    name: "La Limpia",        zone: "Sur",
-    coords: [[10.635,-71.615],[10.635,-71.575],[10.620,-71.575],[10.620,-71.615]]
+    name: "Caracciolo Parra Pérez", zone: "Sur-Este",
+    coords: [[10.6360,-71.6500],[10.6360,-71.6180],[10.6160,-71.6180],[10.6160,-71.6500]]
+  },
+  {
+    name: "Venancio Pulgar", zone: "Sur",
+    coords: [[10.6360,-71.6180],[10.6360,-71.5880],[10.6160,-71.5880],[10.6160,-71.6180]]
+  },
+  {
+    name: "El Cuji", zone: "Sur-Oeste",
+    coords: [[10.6360,-71.6800],[10.6360,-71.6500],[10.6160,-71.6500],[10.6160,-71.6800]]
   },
 ];
 
@@ -2037,8 +2091,8 @@ function initLeafletMap() {
   leafletInitialized = true;
 
   leafletMap = L.map('leafletMap', {
-    center: [10.657, -71.615],
-    zoom: 13,
+    center: [10.674, -71.634],
+    zoom: 12,
     zoomControl: true,
     attributionControl: true,
   });
