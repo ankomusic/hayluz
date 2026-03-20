@@ -1,5 +1,5 @@
 {
-  "name": "Hay Luz? — Monitor eléctrico",
+  "name": "Hay Luz? v0.0.1-beta",
   "short_name": "Hay Luz?",
   "description": "Monitor de cortes eléctricos en Venezuela por parroquia en tiempo real",
   "start_url": "/",
@@ -9,7 +9,10 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "lang": "es",
-  "categories": ["utilities", "news"],
+  "categories": [
+    "utilities",
+    "news"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.svg",
@@ -37,5 +40,6 @@
       "url": "/?tab=report",
       "description": "Enviar reporte de corte"
     }
-  ]
+  ],
+  "version": "0.0.1-beta"
 }

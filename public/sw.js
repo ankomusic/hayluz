@@ -1,5 +1,5 @@
-// Hay Luz? Service Worker — v1.3
-const CACHE = 'hayluz-v2';
+// Hay Luz? Service Worker — v1.4
+const CACHE = 'hayluz-v3';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
@@ -22,11 +22,11 @@ self.addEventListener('fetch', e => {
   const { request } = e;
   const url = new URL(request.url);
 
-  // ── Only handle http/https — skip chrome-extension, data:, etc.
+  // Skip non-http schemes (chrome-extension, data:, blob:, etc.)
   if (!url.protocol.startsWith('http')) return;
   if (request.method !== 'GET') return;
 
-  // API: network only, offline fallback JSON
+  // API routes: network-only, never cache
   if (url.pathname.startsWith('/api/')) {
     e.respondWith(
       fetch(request).catch(() =>
@@ -37,31 +37,44 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Static assets (css/js/svg/png/woff): cache-first
+  // Static assets: cache-first
   if (/\.(js|css|png|jpg|svg|ico|woff2?)(\?.*)?$/.test(url.pathname)) {
     e.respondWith(
-      caches.match(request).then(hit => {
-        if (hit) return hit;
-        return fetch(request).then(res => {
-          // Only cache same-origin or known CDNs
-          if (res.ok && (url.origin === self.location.origin || url.hostname.endsWith('unpkg.com') || url.hostname.endsWith('fonts.googleapis.com'))) {
-            caches.open(CACHE).then(c => c.put(request, res.clone()));
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(response => {
+          // Only cache successful, non-opaque responses from known origins
+          const cacheable = response.ok &&
+            response.type !== 'opaque' &&
+            (url.origin === self.location.origin ||
+             url.hostname.endsWith('unpkg.com') ||
+             url.hostname.endsWith('fonts.googleapis.com') ||
+             url.hostname.endsWith('fonts.gstatic.com'));
+          if (cacheable) {
+            // Clone FIRST before the body is consumed by respondWith
+            const toCache = response.clone();
+            caches.open(CACHE).then(c => c.put(request, toCache)).catch(() => {});
           }
-          return res;
-        });
+          return response;
+        }).catch(() => new Response('', { status: 408 }));
       })
     );
     return;
   }
 
-  // HTML pages: network-first, fallback to shell
+  // HTML navigation: network-first, fallback to cached shell
   e.respondWith(
-    fetch(request)
-      .then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(request, res.clone()));
-        return res;
-      })
-      .catch(() => caches.match('/index.html'))
+    fetch(request).then(response => {
+      if (response.ok && response.type !== 'opaque') {
+        const toCache = response.clone();
+        caches.open(CACHE).then(c => c.put(request, toCache)).catch(() => {});
+      }
+      return response;
+    }).catch(() =>
+      caches.match('/index.html').then(cached => cached ||
+        new Response('<h1>Sin conexión</h1>', { headers: { 'Content-Type': 'text/html' } })
+      )
+    )
   );
 });
 
