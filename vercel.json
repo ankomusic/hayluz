@@ -1,6 +1,14 @@
 {
+  "outputDirectory": "public",
+  "functions": {
+    "api/analyze.js": { "runtime": "nodejs20.x" },
+    "api/data.js":    { "runtime": "nodejs20.x" },
+    "api/verify.js":  { "runtime": "nodejs20.x" },
+    "api/report.js":  { "runtime": "nodejs20.x" },
+    "api/admin.js":   { "runtime": "nodejs20.x" }
+  },
   "rewrites": [
-    { "source": "/admin", "destination": "/public/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" }
   ],
   "headers": [
     {
@@ -14,7 +22,7 @@
       "source": "/manifest.json",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" },
-        { "key": "Content-Type", "value": "application/manifest+json" },
+        { "key": "Content-Type",  "value": "application/manifest+json" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     },
@@ -28,7 +36,7 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
       ]

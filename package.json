@@ -1,11 +1,11 @@
 {
   "name": "hayluz-monitor",
   "version": "0.0.1-beta",
-  "description": "Monitor de cortes el\u00e9ctricos en Venezuela",
+  "description": "Monitor de cortes eléctricos en Venezuela",
   "scripts": {
     "dev": "vercel dev"
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   }
 }
