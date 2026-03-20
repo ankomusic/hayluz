@@ -1,7 +1,6 @@
 {
-  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/public/admin.html" }
   ],
   "headers": [
     {
@@ -31,8 +30,7 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" },
-        { "key": "x-vercel-protection-bypass", "value": "true" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
       ]
     }
   ]
