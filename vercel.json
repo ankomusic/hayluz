@@ -1,11 +1,11 @@
 {
   "outputDirectory": "public",
   "functions": {
-    "api/analyze.js": { "runtime": "nodejs20.x" },
-    "api/data.js":    { "runtime": "nodejs20.x" },
-    "api/verify.js":  { "runtime": "nodejs20.x" },
-    "api/report.js":  { "runtime": "nodejs20.x" },
-    "api/admin.js":   { "runtime": "nodejs20.x" }
+    "api/analyze.js": { "maxDuration": 15 },
+    "api/data.js":    { "maxDuration": 15 },
+    "api/verify.js":  { "maxDuration": 15 },
+    "api/report.js":  { "maxDuration": 15 },
+    "api/admin.js":   { "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" }
