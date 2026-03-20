@@ -1,16 +1,13 @@
-/**
- * /api/verify — POST
- * Report authenticity check via OpenRouter
- * Env: OPENROUTER_API_KEY
- */
-export default async function handler(req, res) {
+// /api/verify — POST — Report authenticity check via OpenRouter
+// Env: OPENROUTER_API_KEY
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { report } = req.body;
+  const { report } = req.body || {};
   if (!report) return res.status(400).json({ error: 'Report required' });
 
   const key = process.env.OPENROUTER_API_KEY;
@@ -27,7 +24,7 @@ Score: 80-100=Verificado, 60-79=Probable, 40-59=Dudoso, 0-39=Falso`;
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${key}`,
-        'HTTP-Referer': 'https://hayluz.app',
+        'HTTP-Referer': 'https://hayluz.vercel.app',
         'X-Title': 'Hay Luz?'
       },
       body: JSON.stringify({
@@ -35,25 +32,19 @@ Score: 80-100=Verificado, 60-79=Probable, 40-59=Dudoso, 0-39=Falso`;
         max_tokens: 512,
         messages: [
           { role: 'system', content: system },
-          { role: 'user',   content: `Verifica: "${report}"` }
+          { role: 'user', content: `Verifica: "${report}"` }
         ]
       })
     });
-
-    if (!r.ok) {
-      const text = await r.text();
-      console.error("OpenRouter ERROR:", text);
-      return res.status(r.status).json({ error: text });
-    }
-
+    if (!r.ok) return res.status(r.status).json({ error: 'OpenRouter error' });
     const data = await r.json();
     const text = data.choices?.[0]?.message?.content || '{}';
     try {
-      return res.status(200).json(JSON.parse(text.replace(/```json|```/g,'').trim()));
+      return res.status(200).json(JSON.parse(text.replace(/```json|```/g, '').trim()));
     } catch {
       return res.status(200).json({ error: 'Could not parse AI response', raw: text });
     }
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
-}
+};

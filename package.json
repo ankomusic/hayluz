@@ -1,8 +1,7 @@
 {
   "name": "hayluz-monitor",
   "version": "0.0.1-beta",
-  "description": "Monitor de cortes eléctricos en Venezuela",
-  "type": "module",
+  "description": "Monitor de cortes el\u00e9ctricos en Venezuela",
   "scripts": {
     "dev": "vercel dev"
   },
