@@ -104,7 +104,7 @@
       <div class="login-logo">Hay Luz?</div>
       <div class="login-sub">Panel de administración</div>
       <div class="field">
-        <label>Contraseña de acceso</label>
+        <label for="secretInput">Contraseña de acceso</label>
         <input type="password" id="secretInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
       </div>
       <div class="err" id="loginErr">Contraseña incorrecta</div>
@@ -139,7 +139,7 @@
     <div class="form-title">Actualizar estado de parroquia</div>
     <div class="form-grid">
       <div>
-        <label>Parroquia</label>
+        <label for="fParroquia">Parroquia</label>
         <select id="fParroquia">
           <option value="">Seleccionar...</option>
           <option>Coquivacoa</option><option>Urdaneta</option><option>Idelfonso Vásquez</option>
@@ -152,7 +152,7 @@
         </select>
       </div>
       <div>
-        <label>Estado</label>
+        <label for="fStatus">Estado</label>
         <select id="fStatus">
           <option value="ok">✓ Estable</option>
           <option value="inter">~ Intermitente</option>
@@ -160,21 +160,21 @@
         </select>
       </div>
       <div>
-        <label>Causa</label>
+        <label for="fCause">Causa</label>
         <input type="text" id="fCause" placeholder="ej. Falla en transformador" />
       </div>
     </div>
     <div class="form-grid">
       <div>
-        <label>Horas de corte</label>
+        <label for="fHours">Horas de corte</label>
         <input type="number" id="fHours" min="0" max="72" value="0" />
       </div>
       <div>
-        <label>Hora de inicio (HH:MM)</label>
+        <label for="fSince">Hora de inicio (HH:MM)</label>
         <input type="text" id="fSince" placeholder="ej. 08:30" />
       </div>
       <div>
-        <label>% Afectación estimada</label>
+        <label for="fAffected">% Afectación estimada</label>
         <input type="number" id="fAffected" min="0" max="100" value="0" />
       </div>
     </div>

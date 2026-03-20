@@ -9,32 +9,31 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "lang": "es",
-  "categories": [
-    "utilities",
-    "news"
-  ],
+  "categories": ["utilities", "news"],
   "icons": [
     {
       "src": "/icons/icon-192.svg",
-      "sizes": "192x192",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
       "src": "/icons/icon-512.svg",
-      "sizes": "512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
       "name": "Ver mapa",
+      "short_name": "Mapa",
       "url": "/?tab=map",
       "description": "Mapa de parroquias en tiempo real"
     },
     {
       "name": "Reportar corte",
+      "short_name": "Reportar",
       "url": "/?tab=report",
       "description": "Enviar reporte de corte"
     }

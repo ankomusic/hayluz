@@ -1817,7 +1817,7 @@
         <h3>Reportar corte o fluctuación</h3>
 
         <div class="rf-field">
-          <label class="rf-label">¿En qué parroquia?</label>
+          <label class="rf-label" for="rpParroquia">¿En qué parroquia?</label>
           <select class="rf-select" id="rpParroquia">
             <option value="">Selecciona tu parroquia...</option>
             <option>Coquivacoa</option>
@@ -1843,17 +1843,17 @@
         </div>
 
         <div class="rf-field">
-          <label class="rf-label">¿Qué está pasando?</label>
-          <div class="status-pills">
-            <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')">
+          <label class="rf-label" for="pill-ok">¿Qué está pasando?</label>
+          <div class="status-pills" role="group" aria-labelledby="statusGroupLabel">
+            <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')" role="button" tabindex="0">
               <span class="status-pill-icon">✓</span>
               <span>Hay luz</span>
             </div>
-            <div class="status-pill" id="pill-inter" onclick="selectStatus('inter')">
+            <div class="status-pill" id="pill-inter" onclick="selectStatus('inter')" role="button" tabindex="0">
               <span class="status-pill-icon">⚡</span>
               <span>Fluctuando</span>
             </div>
-            <div class="status-pill" id="pill-cut" onclick="selectStatus('cut')">
+            <div class="status-pill" id="pill-cut" onclick="selectStatus('cut')" role="button" tabindex="0">
               <span class="status-pill-icon">✗</span>
               <span>Sin luz</span>
             </div>
@@ -1861,12 +1861,12 @@
         </div>
 
         <div class="rf-field">
-          <label class="rf-label">Causa (opcional)</label>
+          <label class="rf-label" for="rpCause">Causa (opcional)</label>
           <input type="text" class="rf-input" id="rpCause" placeholder="ej. Falla en transformador, mantenimiento..." />
         </div>
 
         <div class="rf-field">
-          <label class="rf-label">Nota adicional (opcional)</label>
+          <label class="rf-label" for="rpNote">Nota adicional (opcional)</label>
           <textarea class="rf-textarea" id="rpNote" placeholder="Cualquier detalle que ayude a confirmar el reporte..."></textarea>
         </div>
 
