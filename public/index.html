@@ -1843,7 +1843,7 @@
         </div>
 
         <div class="rf-field">
-          <label class="rf-label" id="statusGroupLabel">¿Qué está pasando?</label>
+          <span class="rf-label" id="statusGroupLabel">¿Qué está pasando?</span>
           <div class="status-pills" role="group" aria-labelledby="statusGroupLabel">
             <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')" role="button" tabindex="0">
               <span class="status-pill-icon">✓</span>
@@ -2054,7 +2054,12 @@
 </div>
 
 <script>
-const API_BASE = window.location.origin;
+// On Vercel preview deployments (*.vercel.app hash URLs), Deployment Protection
+// blocks /api/* routes. Fall back to the canonical production URL.
+const PROD_URL = 'https://hayluz.vercel.app';
+const isPreview = /\.vercel\.app$/.test(location.hostname) &&
+                  location.hostname !== 'hayluz.vercel.app';
+const API_BASE = isPreview ? PROD_URL : window.location.origin;
 
 const sectors = [
   { name: "Coquivacoa",                   zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
