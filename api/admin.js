@@ -16,8 +16,11 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-secret');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Auth — fail closed if ADMIN_SECRET not configured
+  const expectedSecret = process.env.ADMIN_SECRET;
+  if (!expectedSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured' });
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+  if (!secret || secret !== expectedSecret) return res.status(401).json({ error: 'Unauthorized' });
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;

@@ -222,20 +222,25 @@ let currentData = [];
 function doLogin() {
   const val = document.getElementById('secretInput').value.trim();
   if (!val) return;
-  adminSecret = val;
-  // Test with a real API call
-  fetch('/api/admin', { headers: { 'x-admin-secret': adminSecret } })
+  const loginErr = document.getElementById('loginErr');
+  loginErr.style.display = 'none';
+  fetch('/api/admin', { headers: { 'x-admin-secret': val } })
     .then(r => {
-      if (r.status === 401) {
-        document.getElementById('loginErr').style.display = 'block';
-        adminSecret = '';
-      } else {
+      if (r.status === 200) {
+        adminSecret = val;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadData();
+      } else {
+        loginErr.textContent = r.status === 401 ? 'Contraseña incorrecta' : `Error del servidor (${r.status})`;
+        loginErr.style.display = 'block';
+        adminSecret = '';
       }
     })
-    .catch(() => { document.getElementById('loginErr').style.display = 'block'; });
+    .catch(() => {
+      loginErr.textContent = 'Error de conexión';
+      loginErr.style.display = 'block';
+    });
 }
 
 function doLogout() {
