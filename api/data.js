@@ -121,6 +121,23 @@ async function handleGet(res) {
   return res.status(200).json({ sectors, source, fetchedAt: new Date().toISOString(), city: 'Maracaibo' });
 }
 
+async function handleGetReports() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) return { status: 200, body: { reports: [] } };
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/outages?select=parroquia,status,cause,reporter_note,updated_at&order=updated_at.desc&limit=20`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' } }
+    );
+    if (!r.ok) return { status: 200, body: { reports: [] } };
+    const rows = await r.json();
+    return { status: 200, body: { reports: Array.isArray(rows) ? rows : [] } };
+  } catch {
+    return { status: 200, body: { reports: [] } };
+  }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -137,6 +154,7 @@ module.exports = async function handler(req, res) {
       if (action === 'analyze') result = await handleAnalyze(body);
       else if (action === 'verify') result = await handleVerify(body);
       else if (action === 'report') result = await handleReport(body);
+      else if (action === 'reports') result = await handleGetReports();
       else result = { status: 400, body: { error: 'action required: analyze|verify|report' } };
       return res.status(result.status).json(result.body);
     } catch(e) {
