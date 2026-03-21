@@ -1,5 +1,7 @@
-// /api/data — GET — Sector status from Supabase → Twitter+AI → fallback
+// /api/data — GET: sector data | POST: AI analysis & verify
+// All AI calls go through this single proven endpoint
 // Env: OPENROUTER_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, TWITTER_BEARER_TOKEN
+
 const PARROQUIAS = [
   "Coquivacoa","Urdaneta","Idelfonso Vásquez","Venancio Pulgar","Juana de Ávila",
   "Olegario Villalobos","Bolívar","Santa Lucía","Chiquinquirá",
@@ -8,76 +10,139 @@ const PARROQUIAS = [
   "Manuel Dagnino","Cristo de Aranza","Luis Hurtado Higuera"
 ];
 
-async function callOpenRouter(system, user) {
+async function callOpenRouter(system, user, maxTokens = 1024) {
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) return null;
+  if (!key) throw new Error('OPENROUTER_API_KEY not configured');
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}`, 'HTTP-Referer': 'https://hayluz.vercel.app', 'X-Title': 'Hay Luz?' },
-    body: JSON.stringify({ model: 'google/gemini-flash-1.5', max_tokens: 1500, temperature: 0.1, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${key}`,
+      'HTTP-Referer': 'https://hayluz.vercel.app',
+      'X-Title': 'Hay Luz?'
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-flash-1.5',
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user }
+      ]
+    })
   });
-  if (!r.ok) return null;
-  return ((await r.json()).choices?.[0]?.message?.content) || null;
+  if (!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || '';
 }
 
-async function fetchFromSupabase() {
+async function handleAnalyze(body) {
+  const { prompt, systemPrompt } = body;
+  if (!prompt) return { status: 400, body: { error: 'Prompt required' } };
+  const result = await callOpenRouter(
+    systemPrompt || 'Eres un experto en el sistema eléctrico de Maracaibo, Venezuela. Responde en español.',
+    prompt
+  );
+  return { status: 200, body: { result } };
+}
+
+async function handleVerify(body) {
+  const { report } = body;
+  if (!report) return { status: 400, body: { error: 'Report required' } };
+  const system = `Verificas reportes de cortes eléctricos en Maracaibo, Venezuela.
+Devuelve SOLO JSON válido sin markdown:
+{"score":0-100,"verdict":"Verificado|Probable|Dudoso|Falso","confidence":"Alta|Media|Baja","indicators":{"hasLocation":bool,"hasTime":bool,"hasSource":bool,"hasDetails":bool,"consistentWithGrid":bool},"flags":["..."],"summary":"..."}`;
+  const text = await callOpenRouter(system, `Verifica: "${report}"`, 512);
+  try {
+    return { status: 200, body: JSON.parse(text.replace(/```json|```/g, '').trim()) };
+  } catch {
+    return { status: 200, body: { error: 'Parse error', raw: text } };
+  }
+}
+
+async function handleReport(body) {
+  const { parroquia, status, cause, reporterNote } = body;
+  if (!parroquia || !status) return { status: 400, body: { error: 'parroquia and status required' } };
+  if (!['ok','inter','cut'].includes(status)) return { status: 400, body: { error: 'invalid status' } };
+
+  let confidence = 'high';
+  if (process.env.OPENROUTER_API_KEY && reporterNote) {
+    try {
+      const t = await callOpenRouter(
+        'Responde SOLO JSON: {"confidence":"high"|"medium"|"low"}',
+        `¿Reporte creíble? Parroquia:${parroquia} Estado:${status} Nota:${reporterNote}`, 80
+      );
+      confidence = JSON.parse(t.replace(/```json|```/g,'')).confidence || 'medium';
+    } catch { confidence = 'medium'; }
+  }
+  if (confidence === 'low') return { status: 422, body: { error: 'Reporte no pasó validación', confidence } };
+
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (url && key) {
+    const since = status === 'ok' ? '—' : new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
+    const ins = await fetch(`${url}/rest/v1/outages`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', apikey: key, Authorization:`Bearer ${key}`, Prefer:'return=minimal' },
+      body: JSON.stringify({ parroquia, status, cause: cause||'—', hours: status==='ok'?0:1, since, affected:0, reporter_note: reporterNote||null, confidence, updated_at: new Date().toISOString() })
+    });
+    if (!ins.ok) return { status: 500, body: { error: 'DB write failed' } };
+  }
+  return { status: 200, body: { ok: true, confidence } };
+}
+
+async function handleGet(res) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  try {
-    const r = await fetch(`${url}/rest/v1/outages?select=parroquia,status,hours,since,cause,affected,updated_at&order=updated_at.desc&limit=200`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' } });
-    if (!r.ok) { console.error('Supabase', r.status, await r.text()); return null; }
-    const rows = await r.json();
-    if (!Array.isArray(rows) || !rows.length) return null;
-    const seen = new Map();
-    for (const row of rows) if (row.parroquia && !seen.has(row.parroquia)) seen.set(row.parroquia, row);
-    return PARROQUIAS.map(name => {
-      const row = seen.get(name);
-      if (!row) return { name, status: 'ok', hours: 0, since: '—', cause: '—', affected: 0 };
-      return { name, status: ['ok','inter','cut'].includes(row.status) ? row.status : 'ok', hours: Number(row.hours)||0, since: row.since||'—', cause: row.cause||'—', affected: Number(row.affected)||0, updatedAt: row.updated_at };
-    });
-  } catch (e) { console.error('Supabase exception:', e.message); return null; }
-}
+  let sectors = null, source = 'fallback';
 
-async function fetchTwitter() {
-  const token = process.env.TWITTER_BEARER_TOKEN;
-  if (!token) return [];
-  const q = encodeURIComponent('(corpoelec OR "sin luz" OR "corte electrico") (maracaibo OR zulia) lang:es -is:retweet');
-  try {
-    const r = await fetch(`https://api.twitter.com/2/tweets/search/recent?query=${q}&max_results=20&tweet.fields=text`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!r.ok) return [];
-    return ((await r.json()).data || []).map(t => t.text).slice(0, 10);
-  } catch { return []; }
-}
+  if (url && key) {
+    try {
+      const r = await fetch(`${url}/rest/v1/outages?select=parroquia,status,hours,since,cause,affected,updated_at&order=updated_at.desc&limit=200`,
+        { headers: { apikey: key, Authorization:`Bearer ${key}`, Accept:'application/json' } });
+      if (r.ok) {
+        const rows = await r.json();
+        if (Array.isArray(rows) && rows.length) {
+          const seen = new Map();
+          for (const row of rows) if (row.parroquia && !seen.has(row.parroquia)) seen.set(row.parroquia, row);
+          sectors = PARROQUIAS.map(name => {
+            const row = seen.get(name);
+            if (!row) return { name, status:'ok', hours:0, since:'—', cause:'—', affected:0 };
+            return { name, status:['ok','inter','cut'].includes(row.status)?row.status:'ok', hours:Number(row.hours)||0, since:row.since||'—', cause:row.cause||'—', affected:Number(row.affected)||0 };
+          });
+          source = 'supabase';
+        }
+      }
+    } catch(e) { console.error('Supabase:', e.message); }
+  }
 
-async function parseWithAI(tweets) {
-  if (!tweets.length) return null;
-  const text = await callOpenRouter(
-    'Eres analista eléctrico. Responde SOLO JSON sin markdown.',
-    `Tweets sobre cortes en Maracaibo:\n${tweets.map((t,i)=>`${i+1}. ${t}`).join('\n')}\n\nParroquias: ${PARROQUIAS.join(', ')}\n\nDevuelve: [{"name":"...","status":"cut|inter|ok","hours":0,"since":"HH:MM o —","cause":"...","affected":0}]`
-  );
-  if (!text) return null;
-  try { return JSON.parse(text.replace(/```json|```/g, '').trim()); } catch { return null; }
+  if (!sectors) sectors = PARROQUIAS.map(n => ({ name:n, status:'ok', hours:0, since:'—', cause:'—', affected:0 }));
+
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=60');
+  return res.status(200).json({ sectors, source, fetchedAt: new Date().toISOString(), city: 'Maracaibo' });
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=60');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  let sectors = await fetchFromSupabase();
-  let source = sectors ? 'supabase' : 'fallback';
+  if (req.method === 'GET') return handleGet(res);
 
-  if (!sectors) {
-    const tweets = await fetchTwitter();
-    const parsed = await parseWithAI(tweets);
-    if (parsed?.length) { sectors = parsed; source = 'twitter+ai'; }
+  if (req.method === 'POST') {
+    const body = req.body || {};
+    const { action } = body;
+    try {
+      let result;
+      if (action === 'analyze') result = await handleAnalyze(body);
+      else if (action === 'verify') result = await handleVerify(body);
+      else if (action === 'report') result = await handleReport(body);
+      else result = { status: 400, body: { error: 'action required: analyze|verify|report' } };
+      return res.status(result.status).json(result.body);
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
-  if (!sectors) sectors = PARROQUIAS.map(n => ({ name: n, status: 'ok', hours: 0, since: '—', cause: '—', affected: 0 }));
-  return res.status(200).json({ sectors, source, fetchedAt: new Date().toISOString(), city: 'Maracaibo' });
+  return res.status(405).json({ error: 'Method not allowed' });
 };

@@ -2296,12 +2296,14 @@ function renderIncidents() {
 }
 
 // ---- AI ANALYSIS ----
-async function callAPI(endpoint, body) {
-  const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+async function callAPI(action, body) {
+  // All AI calls go to /api/data (the single proven endpoint) with an action field
+  const res = await fetch(`${API_BASE}/api/data`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ action, ...body })
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
@@ -3325,7 +3327,7 @@ async function submitCommunityReport() {
   resultEl.style.display = 'none';
 
   try {
-    const res = await fetch(`${API_BASE}/api/report`, {
+    const res = await fetch(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
