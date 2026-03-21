@@ -79,7 +79,7 @@ async function handleReport(body) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (url && key) {
-    const since = status === 'ok' ? '—' : new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
+    const since = status === 'ok' ? '—' : new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit', timeZone: 'America/Caracas' });
     const ins = await fetch(`${url}/rest/v1/outages`, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', apikey: key, Authorization:`Bearer ${key}`, Prefer:'return=minimal' },
