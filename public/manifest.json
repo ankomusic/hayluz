@@ -1,5 +1,5 @@
 {
-  "name": "Hay Luz? v0.0.1-beta",
+  "name": "Hay Luz? v0.0.26-beta",
   "short_name": "Hay Luz?",
   "description": "Monitor de cortes eléctricos en Venezuela por parroquia en tiempo real",
   "start_url": "/",
@@ -41,5 +41,5 @@
       "description": "Enviar reporte de corte"
     }
   ],
-  "version": "0.0.1-beta"
+  "version": "0.0.26-beta"
 }
