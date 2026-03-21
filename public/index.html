@@ -2151,7 +2151,7 @@ let verifyHistory = [];
 async function init() {
   // Show skeleton immediately
   renderStats();
-  renderSectors(sectors);
+  filterSectors();
   renderIncidents();
   renderMapSectors();
   syncOptInBtn();
@@ -2159,7 +2159,7 @@ async function init() {
   // Load live data then re-render
   await loadLiveData();
   renderStats();
-  renderSectors(sectors);
+  filterSectors();
   renderMapSectors();
 
   // Auto-show tooltip after 1.5s if muted
