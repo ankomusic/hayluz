@@ -1,3 +1,13 @@
+// Simple in-memory rate limit (resets con cada cold start)
+const attempts = new Map();
+const ip = req.headers['x-forwarded-for'] || 'unknown';
+const now = Date.now();
+const record = attempts.get(ip) || { count: 0, first: now };
+if (now - record.first > 60000) { record.count = 0; record.first = now; }
+if (record.count > 10) return res.status(429).json({ error: 'Too many attempts' });
+record.count++;
+attempts.set(ip, record);
+
 // /api/admin — GET/POST/DELETE — Protected admin operations
 // Env: SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_SECRET
 module.exports = async function handler(req, res) {
