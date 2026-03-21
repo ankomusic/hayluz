@@ -82,7 +82,7 @@ async function handleReport(body) {
     const since = status === 'ok' ? '—' : new Date().toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit', timeZone: 'America/Caracas' });
     const ins = await fetch(`${url}/rest/v1/outages`, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', apikey: key, Authorization:`Bearer ${key}`, Prefer:'return=minimal' },
+      headers: { 'Content-Type':'application/json', apikey: key, Authorization:`Bearer ${key}`, Prefer:'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({ parroquia, status, cause: cause||'—', hours: status==='ok'?0:1, since, affected:0, reporter_note: reporterNote||null, confidence, updated_at: new Date().toISOString() })
     });
     if (!ins.ok) return { status: 500, body: { error: 'DB write failed' } };
