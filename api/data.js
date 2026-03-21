@@ -1,6 +1,6 @@
 // /api/data — GET: sector data | POST: AI analysis & verify
 // All AI calls go through this single proven endpoint
-// Env: OPENROUTER_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, TWITTER_BEARER_TOKEN
+// Env: OPENROUTER_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY, TWITTER_BEARER_TOKEN
 
 const PARROQUIAS = [
   "Coquivacoa","Urdaneta","Idelfonso Vásquez","Venancio Pulgar","Juana de Ávila",
@@ -117,7 +117,7 @@ async function handleGet(res) {
 
   if (!sectors) sectors = PARROQUIAS.map(n => ({ name:n, status:'ok', hours:0, since:'—', cause:'—', affected:0 }));
 
-  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 's-maxage=25, stale-while-revalidate=5');
   return res.status(200).json({ sectors, source, fetchedAt: new Date().toISOString(), city: 'Maracaibo' });
 }
 

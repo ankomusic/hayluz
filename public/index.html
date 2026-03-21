@@ -312,6 +312,7 @@
     .badge.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,77,0.2); }
     .badge.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
     .badge.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+    .badge.dim { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
 
     .card-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted); }
     .meta-row { display: flex; justify-content: space-between; }
@@ -1644,7 +1645,7 @@
       <div class="logo-icon"><div class="logo-bolt"></div></div>
       <div>
         <div class="logo-text">Hay Luz?</div>
-        <div class="logo-sub" id="logoSub">Muestra en tiempo real dónde hay electricidad y dónde no. <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin-left:4px;letter-spacing:.02em;">v0.0.1-beta</span></div>
+        <div class="logo-sub" id="logoSub">Muestra en tiempo real dónde hay electricidad y dónde no.</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -2125,7 +2126,7 @@ setInterval(async () => {
   renderStats();
   filterSectors();
   renderMapSectors();
-}, 5 * 60 * 1000);
+}, 30 * 1000);
 
 const incidents = [
   { text: "Caracciolo Parra Pérez: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
@@ -2189,22 +2190,24 @@ function switchView(name, el) {
 
 // ---- STATS ----
 function renderStats() {
-  const cut = sectors.filter(s => s.status === 'cut').length;
+  const cut   = sectors.filter(s => s.status === 'cut').length;
   const inter = sectors.filter(s => s.status === 'inter').length;
-  const ok = sectors.filter(s => s.status === 'ok').length;
-  const hrs = sectors.filter(s => s.hours > 0).map(s => s.hours);
-  const avg = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
-  document.getElementById('statCut').textContent = cut;
-  document.getElementById('statInter').textContent = inter;
-  document.getElementById('statOk').textContent = ok;
-  document.getElementById('statAvg').textContent = avg + 'h';
+  const ok    = sectors.filter(s => s.status === 'ok').length;
+  const hrs   = sectors.filter(s => s.hours > 0).map(s => s.hours);
+  const avg   = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
+  const noData = dataSource === 'fallback';
+  document.getElementById('statCut').textContent  = cut || '—';
+  document.getElementById('statInter').textContent = inter || '—';
+  document.getElementById('statOk').textContent   = noData ? '—' : ok;
+  document.getElementById('statAvg').textContent  = noData ? '—' : avg + 'h';
 }
 
 // ---- SECTORS ----
-function statusInfo(s) {
-  if (s === 'cut') return { label: 'Corte activo', cls: 'red', barCls: 'red', cardCls: 'status-cut' };
+function statusInfo(s, isFallback) {
+  if (s === 'cut')  return { label: 'Corte activo',  cls: 'red',   barCls: 'red',   cardCls: 'status-cut'  };
   if (s === 'inter') return { label: 'Intermitente', cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
-  return { label: 'Estable', cls: 'green', barCls: 'green', cardCls: 'status-ok' };
+  if (isFallback)   return { label: 'Sin info',      cls: 'dim',   barCls: '',      cardCls: ''             };
+  return              { label: 'Estable',             cls: 'green', barCls: 'green', cardCls: 'status-ok'   };
 }
 
 function renderSectors(list) {
@@ -2239,8 +2242,9 @@ function renderSectors(list) {
     return;
   }
 
+  const isFallback = dataSource === 'fallback';
   list.forEach(s => {
-    const si = statusInfo(s.status);
+    const si = statusInfo(s.status, isFallback && s.status === 'ok');
     const div = document.createElement('div');
     div.className = `sector-card ${si.cardCls}`;
     div.innerHTML = `
@@ -3336,14 +3340,19 @@ async function submitCommunityReport() {
 
     if (res.ok && data.ok) {
       showRpResult('✓ Reporte enviado — gracias por contribuir', 'success');
-      // Add to local feed
       addToFeed({ parroquia, status: selectedStatus, cause: cause || '—', time: 'ahora mismo' });
-      // Clear form
       document.getElementById('rpParroquia').value = '';
       document.getElementById('rpCause').value = '';
       document.getElementById('rpNote').value = '';
       selectedStatus = '';
       ['ok','inter','cut'].forEach(v => { const e = document.getElementById('pill-'+v); if(e) e.className='status-pill'; });
+      // Reload data immediately so the new report shows up
+      setTimeout(async () => {
+        await loadLiveData();
+        renderStats();
+        filterSectors();
+        renderMapSectors();
+      }, 1500);
     } else {
       showRpResult(data.error || 'No se pudo enviar el reporte', 'error');
     }
