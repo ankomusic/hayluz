@@ -22,7 +22,7 @@ async function callOpenRouter(system, user, maxTokens = 1024) {
       'X-Title': 'Hay Luz?'
     },
     body: JSON.stringify({
-      model: 'google/gemini-1.5-flash',
+      model: 'google/gemini-2.0-flash-001',
       max_tokens: maxTokens,
       messages: [
         { role: 'system', content: system },
