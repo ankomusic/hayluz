@@ -2314,7 +2314,7 @@ async function runAnalysis() {
   const summary = `Parroquias con corte activo (${cut.length}): ${cut.map(s => s.name + ' (' + s.hours + 'h, ' + s.cause + ')').join('; ')}. Intermitentes (${inter.length}): ${inter.map(s => s.name).join(', ')}. Estables: ${sectors.filter(s=>s.status==='ok').length}.`;
 
   try {
-    const data = await callAPI('ai', {
+    const data = await callAPI('analyze', {
       systemPrompt: 'Eres un analista experto del sistema eléctrico de Maracaibo, Venezuela. Responde siempre en español venezolano. Sé conciso, máximo 100 palabras. Usa viñetas si es útil.',
       prompt: `Diagnostica brevemente esta situación eléctrica y da 2 recomendaciones ciudadanas: ${summary}`
     });
@@ -2334,7 +2334,7 @@ async function runIncidentSummary() {
   out.textContent = 'Resumiendo incidentes...';
   const txt = incidents.map(i => i.text).join(' | ');
   try {
-    const data = await callAPI('ai', {
+    const data = await callAPI('analyze', {
       systemPrompt: 'Eres analista eléctrico de Maracaibo, Venezuela. Responde en español, máximo 80 palabras.',
       prompt: `Resume y prioriza estos incidentes eléctricos activos: ${txt}`
     });
@@ -2366,7 +2366,7 @@ async function runVerify() {
   rc.innerHTML = `<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--mono);font-size:12px;gap:8px;"><span class="spinner-inline"></span> Analizando autenticidad...</div>`;
 
   try {
-    const data = await callAPI('check', { report });
+    const data = await callAPI('verify', { report });
     renderVerifyResult(data, report);
     addToHistory(report, data);
   } catch (e) {

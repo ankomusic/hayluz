@@ -13,6 +13,6 @@
       "headers": { "Content-Type": "application/manifest+json", "Access-Control-Allow-Origin": "*" }
     },
     { "src": "/icons/(.*)",    "dest": "/public/icons/$1" },
-    { "src": "/(.*)",          "dest": "/public/$1" }
+    { "src": "^(?!/api/)(.*)$", "dest": "/public/$1" }
   ]
 }
