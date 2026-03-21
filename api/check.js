@@ -1,5 +1,3 @@
-// /api/verify — POST — Report authenticity check via OpenRouter
-// Env: OPENROUTER_API_KEY
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -15,8 +13,7 @@ module.exports = async function handler(req, res) {
 
   const system = `Verificas reportes de cortes eléctricos en Maracaibo, Venezuela.
 Devuelve SOLO JSON válido sin markdown:
-{"score":0-100,"verdict":"Verificado|Probable|Dudoso|Falso","confidence":"Alta|Media|Baja","indicators":{"hasLocation":bool,"hasTime":bool,"hasSource":bool,"hasDetails":bool,"consistentWithGrid":bool},"flags":["..."],"summary":"..."}
-Score: 80-100=Verificado, 60-79=Probable, 40-59=Dudoso, 0-39=Falso`;
+{"score":0-100,"verdict":"Verificado|Probable|Dudoso|Falso","confidence":"Alta|Media|Baja","indicators":{"hasLocation":bool,"hasTime":bool,"hasSource":bool,"hasDetails":bool,"consistentWithGrid":bool},"flags":["..."],"summary":"..."}`;
 
   try {
     const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -42,7 +39,7 @@ Score: 80-100=Verificado, 60-79=Probable, 40-59=Dudoso, 0-39=Falso`;
     try {
       return res.status(200).json(JSON.parse(text.replace(/```json|```/g, '').trim()));
     } catch {
-      return res.status(200).json({ error: 'Could not parse AI response', raw: text });
+      return res.status(200).json({ error: 'Parse error', raw: text });
     }
   } catch (e) {
     return res.status(500).json({ error: e.message });
