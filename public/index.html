@@ -3330,7 +3330,7 @@ async function submitCommunityReport() {
     const res = await fetch(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
+      body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
     });
     const data = await res.json();
 
