@@ -1,45 +1,18 @@
 {
-  "outputDirectory": "public",
-  "functions": {
-    "api/analyze.js": { "maxDuration": 15 },
-    "api/data.js":    { "maxDuration": 15 },
-    "api/verify.js":  { "maxDuration": 15 },
-    "api/report.js":  { "maxDuration": 15 },
-    "api/admin.js":   { "maxDuration": 15 }
-  },
-  "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "public/**",   "use": "@vercel/static" }
   ],
-  "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
-      ]
+  "routes": [
+    { "src": "/api/(.*)",      "dest": "/api/$1" },
+    { "src": "/admin",         "dest": "/public/admin.html" },
+    { "src": "/sw.js",         "dest": "/public/sw.js",
+      "headers": { "Cache-Control": "no-cache, no-store, must-revalidate", "Service-Worker-Allowed": "/" }
     },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" },
-        { "key": "Content-Type",  "value": "application/manifest+json" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
+    { "src": "/manifest.json", "dest": "/public/manifest.json",
+      "headers": { "Content-Type": "application/manifest+json", "Access-Control-Allow-Origin": "*" }
     },
-    {
-      "source": "/icons/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
-      ]
-    }
+    { "src": "/icons/(.*)",    "dest": "/public/icons/$1" },
+    { "src": "/(.*)",          "dest": "/public/$1" }
   ]
 }
