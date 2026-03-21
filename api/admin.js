@@ -1,8 +1,13 @@
 // /api/admin — GET/POST/DELETE — Protected admin operations
 // Env: SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_SECRET
 
-// Rate limiter — max 10 intentos por IP por minuto
+// Rate limiter — max 10 requests por IP por minuto
 const attempts = new Map();
+
+// Login lockout — max 5 intentos fallidos → bloqueo 15 minutos
+const loginFails = new Map();
+const MAX_FAILS    = 5;
+const LOCKOUT_MS   = 15 * 60 * 1000;
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,20 +15,58 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-secret');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Rate limiting
+  // Rate limiting general
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();
   const record = attempts.get(ip) || { count: 0, first: now };
   if (now - record.first > 60000) { record.count = 0; record.first = now; }
   record.count++;
   attempts.set(ip, record);
-  if (record.count > 10) return res.status(429).json({ error: 'Too many attempts — wait a minute' });
+  if (record.count > 10) return res.status(429).json({ error: 'Too many requests — wait a minute' });
 
   // Auth — fail closed if ADMIN_SECRET not configured
   const expectedSecret = process.env.ADMIN_SECRET;
   if (!expectedSecret) return res.status(500).json({ error: 'ADMIN_SECRET not configured' });
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== expectedSecret) return res.status(401).json({ error: 'Unauthorized' });
+
+  // Check lockout before validating password
+  const failRecord = loginFails.get(ip);
+  if (failRecord) {
+    const lockedUntil = failRecord.lockedUntil || 0;
+    if (now < lockedUntil) {
+      const minutesLeft = Math.ceil((lockedUntil - now) / 60000);
+      return res.status(429).json({
+        error: `Demasiados intentos fallidos. Bloqueado por ${minutesLeft} min más.`,
+        lockedUntil,
+        minutesLeft
+      });
+    }
+    // Lockout expired — reset
+    if (now >= lockedUntil && failRecord.lockedUntil) loginFails.delete(ip);
+  }
+
+  if (!secret || secret !== expectedSecret) {
+    // Register failed attempt
+    const fails = loginFails.get(ip) || { count: 0 };
+    fails.count++;
+    fails.lastFail = now;
+    if (fails.count >= MAX_FAILS) {
+      fails.lockedUntil = now + LOCKOUT_MS;
+      loginFails.set(ip, fails);
+      return res.status(429).json({
+        error: `Demasiados intentos fallidos. Bloqueado por ${LOCKOUT_MS / 60000} minutos.`,
+        lockedUntil: fails.lockedUntil
+      });
+    }
+    loginFails.set(ip, fails);
+    return res.status(401).json({
+      error: 'Contraseña incorrecta',
+      attemptsLeft: MAX_FAILS - fails.count
+    });
+  }
+
+  // Successful login — clear fail record
+  loginFails.delete(ip);
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;

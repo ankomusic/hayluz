@@ -219,28 +219,73 @@ const ZONES = {
 let adminSecret = '';
 let currentData = [];
 
+let lockoutInterval = null;
+
 function doLogin() {
   const val = document.getElementById('secretInput').value.trim();
   if (!val) return;
   const loginErr = document.getElementById('loginErr');
+  const btn = document.querySelector('.btn-full.primary');
   loginErr.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
   fetch('/api/admin', { headers: { 'x-admin-secret': val } })
-    .then(r => {
+    .then(async r => {
+      const data = await r.json();
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
       if (r.status === 200) {
         adminSecret = val;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadData();
-      } else {
-        loginErr.textContent = r.status === 401 ? 'Contraseña incorrecta' : `Error del servidor (${r.status})`;
+      } else if (r.status === 429 && data.lockedUntil) {
+        // Locked out — show countdown
+        startLockoutCountdown(data.lockedUntil, loginErr, btn);
+      } else if (r.status === 401) {
+        const left = data.attemptsLeft;
+        loginErr.textContent = left !== undefined
+          ? `Contraseña incorrecta — ${left} intento${left !== 1 ? 's' : ''} restante${left !== 1 ? 's' : ''}`
+          : 'Contraseña incorrecta';
         loginErr.style.display = 'block';
         adminSecret = '';
+      } else {
+        loginErr.textContent = `Error del servidor (${r.status})`;
+        loginErr.style.display = 'block';
       }
     })
     .catch(() => {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
       loginErr.textContent = 'Error de conexión';
       loginErr.style.display = 'block';
     });
+}
+
+function startLockoutCountdown(lockedUntil, loginErr, btn) {
+  if (lockoutInterval) clearInterval(lockoutInterval);
+  const secretInput = document.getElementById('secretInput');
+  btn.disabled = true;
+  secretInput.disabled = true;
+
+  function update() {
+    const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    loginErr.textContent = `Bloqueado — ${mins}:${String(secs).padStart(2,'0')} restantes`;
+    loginErr.style.display = 'block';
+    if (remaining <= 0) {
+      clearInterval(lockoutInterval);
+      lockoutInterval = null;
+      btn.disabled = false;
+      secretInput.disabled = false;
+      btn.textContent = 'Entrar';
+      loginErr.textContent = 'Puedes intentar de nuevo';
+    }
+  }
+  update();
+  lockoutInterval = setInterval(update, 1000);
 }
 
 function doLogout() {
