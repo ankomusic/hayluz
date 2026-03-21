@@ -2278,6 +2278,8 @@ function filterSectors() {
   let list = sectors;
   if (currentFilter !== 'all') list = list.filter(s => s.status === currentFilter);
   if (q) list = list.filter(s => s.name.toLowerCase().includes(q) || s.zone.toLowerCase().includes(q));
+  const order = { cut: 0, inter: 1, ok: 2, nodata: 3 };
+  list = [...list].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
   renderSectors(list);
 }
 
