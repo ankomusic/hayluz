@@ -1,4 +1,21 @@
 // /api/data — GET: sector data | POST: AI analysis & verify
+// Rate limiting — max 5 reportes por IP cada 10 minutos
+const rateMap = new Map();
+function checkRate(ip) {
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const max = 5;
+  const entry = rateMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > windowMs) {
+    rateMap.set(ip, { count: 1, start: now });
+    return true;
+  }
+  if (entry.count >= max) return false;
+  entry.count++;
+  rateMap.set(ip, entry);
+  return true;
+}
+
 // All AI calls go through this single proven endpoint
 // Env: OPENROUTER_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY, TWITTER_BEARER_TOKEN
 
@@ -61,6 +78,11 @@ Devuelve SOLO JSON válido sin markdown:
 
 async function handleReport(body) {
   const { parroquia, status, cause, reporterNote } = body;
+
+  // rate limiting botnets
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+  if (!checkRate(ip)) return { status: 429, body: { error: 'Demasiados reportes. Espera 10 minutos.' } };
+
   if (!parroquia || !status) return { status: 400, body: { error: 'parroquia and status required' } };
   if (!['ok','inter','cut'].includes(status)) return { status: 400, body: { error: 'invalid status' } };
 
