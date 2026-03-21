@@ -232,7 +232,6 @@ function doLogin() {
       } else {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
-        r.json().then(data => processData(data));
         loadData();
       }
     })
