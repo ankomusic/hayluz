@@ -1,18 +1,36 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "public/**",   "use": "@vercel/static" }
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin.html" }
   ],
-  "routes": [
-    { "src": "/admin",         "dest": "/public/admin.html" },
-    { "src": "/sw.js",         "dest": "/public/sw.js",
-      "headers": { "Cache-Control": "no-cache, no-store, must-revalidate", "Service-Worker-Allowed": "/" }
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
     },
-    { "src": "/manifest.json", "dest": "/public/manifest.json",
-      "headers": { "Content-Type": "application/manifest+json", "Access-Control-Allow-Origin": "*" }
+    {
+      "source": "/manifest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Content-Type", "value": "application/manifest+json" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
     },
-    { "src": "/icons/(.*)",    "dest": "/public/icons/$1" },
-    { "src": "^(?!/api/)(.*)$","dest": "/public/$1" }
+    {
+      "source": "/icons/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
+      ]
+    }
   ]
 }
