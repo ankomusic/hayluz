@@ -2190,24 +2190,24 @@ function switchView(name, el) {
 
 // ---- STATS ----
 function renderStats() {
-  const cut   = sectors.filter(s => s.status === 'cut').length;
-  const inter = sectors.filter(s => s.status === 'inter').length;
-  const ok    = sectors.filter(s => s.status === 'ok').length;
-  const hrs   = sectors.filter(s => s.hours > 0).map(s => s.hours);
-  const avg   = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
-  const noData = dataSource === 'fallback';
-  document.getElementById('statCut').textContent  = cut || '—';
+  const cut    = sectors.filter(s => s.status === 'cut').length;
+  const inter  = sectors.filter(s => s.status === 'inter').length;
+  const ok     = sectors.filter(s => s.status === 'ok').length;
+  const nodata = sectors.filter(s => s.status === 'nodata').length;
+  const hrs    = sectors.filter(s => s.hours > 0).map(s => s.hours);
+  const avg    = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
+  document.getElementById('statCut').textContent   = cut   || '—';
   document.getElementById('statInter').textContent = inter || '—';
-  document.getElementById('statOk').textContent   = noData ? '—' : ok;
-  document.getElementById('statAvg').textContent  = noData ? '—' : avg + 'h';
+  document.getElementById('statOk').textContent    = nodata === sectors.length ? '—' : ok;
+  document.getElementById('statAvg').textContent   = nodata === sectors.length ? '—' : avg + 'h';
 }
 
 // ---- SECTORS ----
-function statusInfo(s, isFallback) {
-  if (s === 'cut')  return { label: 'Corte activo',  cls: 'red',   barCls: 'red',   cardCls: 'status-cut'  };
-  if (s === 'inter') return { label: 'Intermitente', cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
-  if (isFallback)   return { label: 'Sin info',      cls: 'dim',   barCls: '',      cardCls: ''             };
-  return              { label: 'Estable',             cls: 'green', barCls: 'green', cardCls: 'status-ok'   };
+function statusInfo(s) {
+  if (s === 'cut')    return { label: 'Corte activo',  cls: 'red',   barCls: 'red',   cardCls: 'status-cut'  };
+  if (s === 'inter')  return { label: 'Intermitente',  cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
+  if (s === 'nodata') return { label: 'Sin info',       cls: 'dim',   barCls: '',      cardCls: ''             };
+  return                     { label: 'Estable',        cls: 'green', barCls: 'green', cardCls: 'status-ok'   };
 }
 
 function renderSectors(list) {
@@ -2242,9 +2242,8 @@ function renderSectors(list) {
     return;
   }
 
-  const isFallback = dataSource === 'fallback';
   list.forEach(s => {
-    const si = statusInfo(s.status, isFallback && s.status === 'ok');
+    const si = statusInfo(s.status);
     const div = document.createElement('div');
     div.className = `sector-card ${si.cardCls}`;
     div.innerHTML = `

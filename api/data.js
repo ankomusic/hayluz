@@ -106,7 +106,7 @@ async function handleGet(res) {
           for (const row of rows) if (row.parroquia && !seen.has(row.parroquia)) seen.set(row.parroquia, row);
           sectors = PARROQUIAS.map(name => {
             const row = seen.get(name);
-            if (!row) return { name, status:'ok', hours:0, since:'—', cause:'—', affected:0 };
+            if (!row) return { name, status:'nodata', hours:0, since:'—', cause:'—', affected:0 };
             return { name, status:['ok','inter','cut'].includes(row.status)?row.status:'ok', hours:Number(row.hours)||0, since:row.since||'—', cause:row.cause||'—', affected:Number(row.affected)||0 };
           });
           source = 'supabase';
@@ -115,7 +115,7 @@ async function handleGet(res) {
     } catch(e) { console.error('Supabase:', e.message); }
   }
 
-  if (!sectors) sectors = PARROQUIAS.map(n => ({ name:n, status:'ok', hours:0, since:'—', cause:'—', affected:0 }));
+  if (!sectors) sectors = PARROQUIAS.map(n => ({ name:n, status:'nodata', hours:0, since:'—', cause:'—', affected:0 }));
 
   res.setHeader('Cache-Control', 's-maxage=25, stale-while-revalidate=5');
   return res.status(200).json({ sectors, source, fetchedAt: new Date().toISOString(), city: 'Maracaibo' });
