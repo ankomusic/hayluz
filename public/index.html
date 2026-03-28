@@ -325,9 +325,20 @@
     .sector-card.status-ok { border-left: 4px solid var(--green); }
 
     .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
-    .card-head > div { text-align: center; }
+    .card-head > div { flex: 1; }
     .card-name { font-size: 18px; font-weight: 600; color: var(--text); }
-    .card-zone { font-size: 13px; color: var(--text-muted); font-family: var(--mono); margin-top: 4px; text-align: center; }
+    .card-zone { font-size: 13px; color: var(--text-muted); font-family: var(--mono); margin-top: 4px; }
+    .badge {
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+      white-space: nowrap;
+    }
     .badge {
       font-size: 12px;
       font-family: var(--mono);
