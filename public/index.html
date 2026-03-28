@@ -3018,32 +3018,6 @@ function initOptimizationSystems() {
   console.log('🚀 Sistemas de optimización iniciados');
 }
 
-// Reemplazar función loadLiveData para usar el nuevo sistema
-async function loadLiveData() {
-  try {
-    const res = await fetch(`${API_BASE}/api/data`);
-    if (!res.ok) {
-      // API no disponible - mostrar estado sin conexión
-      dataSource = 'sin conexión';
-      return;
-    }
-    const payload = await res.json();
-    if (payload.sectors?.length) {
-      // Merge live data into sectors array in-place
-      payload.sectors.forEach(live => {
-        const idx = sectors.findIndex(s => s.name === live.name);
-        if (idx !== -1) {
-          sectors[idx] = { ...sectors[idx], ...live, zone: ZONE_MAP[live.name] || sectors[idx].zone };
-        }
-      });
-      dataSource = payload.source || 'api';
-    }
-  } catch {
-    // Keep default ok status — show UI without data
-    dataSource = 'sin conexión';
-  }
-}
-
 // Función para forzar actualización manual
 async function forceUpdate() {
   if (smartUpdater) {
