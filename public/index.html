@@ -1667,7 +1667,7 @@
         </select>
         <span class="city-select-arrow">▾</span>
       </div>
-      <div class="live-pill"><div class="live-dot"></div> EN VIVO</div>
+      <div class="live-pill" id="livePill"><div class="live-dot" id="liveDot"></div> <span id="liveLabel">EN VIVO</span></div>
       <!-- Divider -->
       <div style="width:1px;height:22px;background:var(--border);flex-shrink:0;"></div>
       <div class="tip-wrap">
@@ -1782,7 +1782,7 @@
         <span class="ai-title">Análisis IA del sistema</span>
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="timestamp" id="analysisTime"></span>
-          <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="runAnalysis()">Analizar ↗</button>
+          <button class="btn primary" id="runAnalysisBtn" style="font-size:11px;padding:5px 12px;" onclick="runAnalysis()">Analizar ↗</button>
         </div>
       </div>
       <div class="ai-body" id="aiOutput">Haz clic en "Analizar ↗" para obtener un diagnóstico del sistema eléctrico.</div>
@@ -1982,7 +1982,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.27-beta</span></span>
+      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.27-beta</span> · <span id="dataSourceIndicator" style="color:var(--green);">supabase</span></span>
       <div class="footer-bottom-right">
         <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
@@ -2105,6 +2105,8 @@ const ZONE_MAP = {
 };
 
 let dataSource = 'cargando...';
+let isUpdating = false;
+let lastUpdateTime = null;
 
 // ======== SISTEMAS DE OPTIMIZACIÓN DE RENDIMIENTO ========
 
@@ -2860,20 +2862,51 @@ window.updateSectorsFromData = function(data) {
 };
 
 async function loadLiveData() {
+  if (isUpdating) return;
+  isUpdating = true;
+  updateLivePill('loading');
+  
   try {
     const res = await fetch(`${API_BASE}/api/data`);
     if (!res.ok) {
-      dataSource = 'sin conexión';
+      dataSource = 'offline';
+      updateLivePill('error');
       return;
     }
     const payload = await res.json();
-    // Handle both legacy and v1 API response formats
     const sectorsData = payload.sectors || payload.data?.sectors;
     if (sectorsData?.length) {
       updateSectorsFromData(payload);
+      dataSource = payload.source || 'api';
+      lastUpdateTime = new Date();
+      updateLivePill('success');
     }
   } catch {
-    dataSource = 'sin conexión';
+    dataSource = 'offline';
+    updateLivePill('error');
+  } finally {
+    isUpdating = false;
+  }
+}
+
+function updateLivePill(status) {
+  const dot = document.getElementById('liveDot');
+  const label = document.getElementById('liveLabel');
+  if (!dot || !label) return;
+  
+  if (status === 'loading') {
+    dot.style.animation = 'none';
+    dot.style.background = 'var(--amber)';
+    label.textContent = 'ACTUALIZANDO...';
+  } else if (status === 'error') {
+    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
+    dot.style.background = 'var(--red)';
+    label.textContent = 'OFFLINE';
+  } else {
+    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
+    dot.style.background = 'var(--red)';
+    const time = lastUpdateTime ? lastUpdateTime.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' }) : 'EN VIVO';
+    label.textContent = time;
   }
 }
 
@@ -3029,10 +3062,26 @@ function renderStats() {
   const nodata = sectors.filter(s => s.status === 'nodata').length;
   const hrs    = sectors.filter(s => s.hours > 0).map(s => s.hours);
   const avg    = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
-  document.getElementById('statCut').textContent   = cut   || '—';
-  document.getElementById('statInter').textContent = inter || '—';
+  
+  document.getElementById('statCut').textContent   = dataSource === 'offline' ? '?' : (cut || '—');
+  document.getElementById('statInter').textContent = dataSource === 'offline' ? '?' : (inter || '—');
   document.getElementById('statOk').textContent    = nodata === sectors.length ? '—' : ok;
   document.getElementById('statAvg').textContent   = nodata === sectors.length ? '—' : avg + 'h';
+  
+  // Update source indicator
+  const sourceEl = document.getElementById('dataSourceIndicator');
+  if (sourceEl) {
+    if (dataSource === 'offline') {
+      sourceEl.textContent = 'Sin conexión';
+      sourceEl.style.color = 'var(--red)';
+    } else if (dataSource === 'cargando...') {
+      sourceEl.textContent = 'Cargando...';
+      sourceEl.style.color = 'var(--amber)';
+    } else {
+      sourceEl.textContent = dataSource;
+      sourceEl.style.color = 'var(--green)';
+    }
+  }
 }
 
 // ---- SECTORS ----
@@ -3152,8 +3201,11 @@ async function callAPI(action, body) {
 
 async function runAnalysis() {
   const out = document.getElementById('aiOutput');
+  const btn = document.getElementById('runAnalysisBtn');
   out.className = 'ai-body loading';
-  out.textContent = 'Analizando...';
+  out.textContent = '🤖 Analizando situación eléctrica...';
+  if (btn) { btn.disabled = true; btn.textContent = 'Analizando...'; }
+  
   const cut   = sectors.filter(s => s.status === 'cut');
   const inter = sectors.filter(s => s.status === 'inter');
   const summary = `Parroquias con corte activo (${cut.length}): ${cut.map(s => s.name + ' (' + s.hours + 'h, ' + s.cause + ')').join('; ')}. Intermitentes (${inter.length}): ${inter.map(s => s.name).join(', ')}. Estables: ${sectors.filter(s=>s.status==='ok').length}.`;
@@ -3167,9 +3219,15 @@ async function runAnalysis() {
     out.className = 'ai-body';
     out.innerHTML = (data.result || 'Sin respuesta.').replace(/\n/g, '<br>');
     document.getElementById('analysisTime').textContent = new Date().toLocaleTimeString('es-VE');
-  } catch {
+  } catch (e) {
     out.className = 'ai-body';
-    out.textContent = 'Análisis IA no disponible. Verifica que OPENROUTER_API_KEY esté configurada en Vercel.';
+    if (e.message.includes('circuit breaker')) {
+      out.textContent = '⏳ El servicio de IA está temporalmente no disponible. Intenta de nuevo en unos minutos.';
+    } else {
+      out.textContent = '⚠️ No se pudo obtener el análisis. Verifica tu conexión e intenta de nuevo.';
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↗ Analizar'; }
   }
 }
 
@@ -4196,11 +4254,18 @@ async function submitCommunityReport() {
         await loadCommunityReports();
       }, 1500);
     } else {
-      const errorMsg = data.error?.message || data.error || 'No se pudo enviar el reporte';
-      showRpResult(errorMsg, 'error');
+      // Check for specific error types
+      if (data.error?.status === 429) {
+        showRpResult('⏳ Demasiados reportes. Espera unos minutos antes de intentar de nuevo.', 'error');
+      } else if (data.error?.message?.includes('validación')) {
+        showRpResult('⚠️ ' + (data.error.message || 'Reporte no pasó validación'), 'error');
+      } else {
+        const errorMsg = data.error?.message || data.error || 'No se pudo enviar el reporte';
+        showRpResult('⚠️ ' + errorMsg, 'error');
+      }
     }
   } catch {
-    showRpResult('Error de conexión — verifica tu internet', 'error');
+    showRpResult('❌ Error de conexión. Verifica tu internet e intenta de nuevo.', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Enviar reporte ↗';
