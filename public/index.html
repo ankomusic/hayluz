@@ -2234,6 +2234,7 @@ const PROD_URL = 'https://hayluz.vercel.app';
 const isPreview = /\.vercel\.app$/.test(location.hostname) &&
                   location.hostname !== 'hayluz.vercel.app';
 const API_BASE = isPreview ? PROD_URL : window.location.origin;
+const DEBUG = false;
 
 const sectors = [
   { name: "Venancio Pulgar", zone: "Noroeste", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
@@ -2541,7 +2542,7 @@ class PerformanceMonitor {
       observer.observe({ entryTypes: ['navigation'] });
       this.observers.navigation = observer;
     } catch (e) {
-      console.warn('Navigation monitoring failed:', e);
+      if (DEBUG) console.warn('Navigation monitoring failed:', e);
     }
   }
 
@@ -2561,7 +2562,7 @@ class PerformanceMonitor {
       observer.observe({ entryTypes: ['resource'] });
       this.observers.resource = observer;
     } catch (e) {
-      console.warn('Resource monitoring failed:', e);
+      if (DEBUG) console.warn('Resource monitoring failed:', e);
     }
   }
 
@@ -2575,7 +2576,7 @@ class PerformanceMonitor {
       observer.observe({ entryTypes: ['paint'] });
       this.observers.paint = observer;
     } catch (e) {
-      console.warn('Paint monitoring failed:', e);
+      if (DEBUG) console.warn('Paint monitoring failed:', e);
     }
   }
 
@@ -2600,13 +2601,13 @@ class PerformanceMonitor {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           this.metrics.custom.longTasks = (this.metrics.custom.longTasks || 0) + 1;
-          console.warn(`Long task detected: ${entry.duration}ms`);
+          if (DEBUG) console.warn(`Long task detected: ${entry.duration}ms`);
         });
       });
       observer.observe({ entryTypes: ['longtask'] });
       this.observers.longtask = observer;
     } catch (e) {
-      console.warn('Long task monitoring failed:', e);
+      if (DEBUG) console.warn('Long task monitoring failed:', e);
     }
   }
 
@@ -2847,11 +2848,9 @@ class SmartUpdater {
   }
 
   logUpdate(duration) {
-    // Solo log en desarrollo o si hay errores
-    if (this.errorCount > 0) {
+    if (DEBUG && this.errorCount > 0) {
       console.warn(`[SmartUpdater] Update completed with ${this.errorCount} errors in ${duration.toFixed(2)}ms`);
     }
-    // No log en producción para evitar spam
   }
 
   async forceUpdate() {
