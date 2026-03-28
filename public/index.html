@@ -2131,17 +2131,24 @@ function updateLivePill(status) {
 
 function updateDataSourceIndicator() {
   const sourceEl = document.getElementById('dataSourceIndicator');
-  if (!sourceEl) return;
+  console.log('[updateDataSourceIndicator] dataSource:', dataSource, 'element:', !!sourceEl);
+  if (!sourceEl) {
+    console.warn('[updateDataSourceIndicator] Elemento #dataSourceIndicator no encontrado');
+    return;
+  }
   
   if (dataSource === 'offline') {
     sourceEl.textContent = 'Sin conexión';
     sourceEl.style.color = 'var(--red)';
+    console.log('[updateDataSourceIndicator] Actualizado a: Sin conexión (offline)');
   } else if (dataSource === 'cargando...') {
     sourceEl.textContent = 'Cargando...';
     sourceEl.style.color = 'var(--amber)';
+    console.log('[updateDataSourceIndicator] Actualizado a: Cargando...');
   } else {
     sourceEl.textContent = dataSource;
     sourceEl.style.color = 'var(--green)';
+    console.log('[updateDataSourceIndicator] Actualizado a:', dataSource);
   }
 }
 
