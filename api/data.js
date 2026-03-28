@@ -76,11 +76,14 @@ Devuelve SOLO JSON válido sin markdown:
   }
 }
 
-async function handleReport(body) {
+async function handleReport(req, body) {
   const { parroquia, status, cause, reporterNote } = body;
 
   // rate limiting botnets
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
+  const ip =
+    req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req?.socket?.remoteAddress ||
+    'unknown';
   if (!checkRate(ip)) return { status: 429, body: { error: 'Demasiados reportes. Espera 10 minutos.' } };
 
   if (!parroquia || !status) return { status: 400, body: { error: 'parroquia and status required' } };
@@ -175,7 +178,7 @@ module.exports = async function handler(req, res) {
       let result;
       if (action === 'analyze') result = await handleAnalyze(body);
       else if (action === 'verify') result = await handleVerify(body);
-      else if (action === 'report') result = await handleReport(body);
+      else if (action === 'report') result = await handleReport(req, body);
       else if (action === 'reports') result = await handleGetReports();
       else result = { status: 400, body: { error: 'action required: analyze|verify|report' } };
       return res.status(result.status).json(result.body);

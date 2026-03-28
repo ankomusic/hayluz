@@ -2,8 +2,10 @@
   "name": "hayluz-monitor",
   "version": "0.0.26-beta",
   "description": "Monitor de cortes eléctricos en Venezuela",
+  "license": "UNLICENSED",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "echo ok",
+    "start": "vercel dev --local --listen 3000"
   },
   "engines": {
     "node": "20.x"
