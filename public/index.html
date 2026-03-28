@@ -2245,8 +2245,8 @@ const sectors = [
   { name: "Bolívar",                      zone: "Este",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Santa Lucía",                  zone: "Este",       status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Chiquinquirá",                 zone: "Centro-Este", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Caracciolo Parra Pérez",       zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Raúl Leoni",                   zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Caracciolo Parra Pérez",       zone: "Centro-Oeste", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Cacique Mara",                 zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Cecilio Acosta",               zone: "Centro",     status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Antonio Borjas Romero",        zone: "Oeste",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
@@ -2255,6 +2255,7 @@ const sectors = [
   { name: "Manuel Dagnino",               zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Cristo de Aranza",             zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Luis Hurtado Higuera",         zone: "Sur",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
+  { name: "Juana de Ávila Sur",           zone: "Centro-Sur", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
 ];
 
 // Zone map for enriching API responses that may omit zone
@@ -2262,12 +2263,12 @@ const ZONE_MAP = {
   "Coquivacoa":"Norte","Urdaneta":"Norte","Idelfonso Vásquez":"Norte",
   "Venancio Pulgar":"Norte-Oeste","Juana de Ávila":"Norte",
   "Olegario Villalobos":"Este","Bolívar":"Este","Santa Lucía":"Este",
-  "Chiquinquirá":"Centro-Este","Caracciolo Parra Pérez":"Centro",
+  "Chiquinquirá":"Centro-Este","Caracciolo Parra Pérez":"Centro-Oeste",
   "Raúl Leoni":"Centro","Cacique Mara":"Centro","Cecilio Acosta":"Centro",
   "Antonio Borjas Romero":"Oeste","San Isidro":"Oeste",
   "Francisco Eugenio Bustamante":"Sur-Oeste",
   "Manuel Dagnino":"Sur-Este","Cristo de Aranza":"Sur-Este",
-  "Luis Hurtado Higuera":"Sur"
+  "Luis Hurtado Higuera":"Sur","Juana de Ávila Sur":"Centro-Sur"
 };
 
 let dataSource = 'cargando...';
@@ -4010,190 +4011,181 @@ function toggleTheme() {
 // Norte ~10.740, Sur ~10.620, Oeste ~-71.700
 const sectorGeoData = [
   {
-    // Noreste, frente al lago, arriba de Juana de Ávila
+    // NORTE - Coquivacoa (lakeside, northwest sector)
     name: "Coquivacoa", zone: "Norte",
     coords: [
-      [10.740,-71.638],[10.740,-71.610],
-      [10.718,-71.610],[10.718,-71.625],
-      [10.725,-71.638]
+      [10.758,-71.650],[10.758,-71.620],
+      [10.730,-71.620],[10.725,-71.630],
+      [10.728,-71.650]
     ]
   },
   {
-    // Norte, interior, encima de Idelfonso Vásquez / Venancio Pulgar
+    // NOROESTE - Urdaneta
     name: "Urdaneta", zone: "Norte",
     coords: [
-      [10.740,-71.665],[10.740,-71.638],
-      [10.725,-71.638],[10.718,-71.625],
-      [10.718,-71.645],[10.725,-71.665]
+      [10.758,-71.700],[10.758,-71.650],
+      [10.730,-71.650],[10.728,-71.670],
+      [10.735,-71.700]
     ]
   },
   {
-    // Noreste pegado al lago, debajo de Coquivacoa
-    name: "Olegario Villalobos", zone: "Este",
-    coords: [
-      [10.718,-71.625],[10.718,-71.610],
-      [10.700,-71.610],[10.700,-71.618],
-      [10.705,-71.625]
-    ]
-  },
-  {
-    // Este, costa, centro-norte
-    name: "Bolívar", zone: "Este",
-    coords: [
-      [10.700,-71.618],[10.700,-71.610],
-      [10.684,-71.610],[10.684,-71.618],
-      [10.692,-71.622]
-    ]
-  },
-  {
-    // Centro-este, interior
-    name: "Chiquinquirá", zone: "Centro-Este",
-    coords: [
-      [10.705,-71.625],[10.700,-71.618],
-      [10.692,-71.622],[10.684,-71.618],
-      [10.684,-71.632],[10.698,-71.638],
-      [10.705,-71.638]
-    ]
-  },
-  {
-    // Este, al sur de Bolívar, pegado al lago
-    name: "Santa Lucía", zone: "Este",
-    coords: [
-      [10.684,-71.618],[10.684,-71.610],
-      [10.668,-71.610],[10.668,-71.618],
-      [10.676,-71.622]
-    ]
-  },
-  {
-    // Noreste interior, al norte de Juana de Ávila
-    name: "Juana de Ávila", zone: "Norte",
-    coords: [
-      [10.718,-71.645],[10.718,-71.625],
-      [10.705,-71.625],[10.705,-71.638],
-      [10.710,-71.648]
-    ]
-  },
-  {
-    // Centro, entre Chiquinquirá y Cacique Mara
-    name: "Raúl Leoni", zone: "Centro",
-    coords: [
-      [10.698,-71.638],[10.684,-71.632],
-      [10.684,-71.645],[10.690,-71.652],
-      [10.698,-71.650]
-    ]
-  },
-  {
-    // Centro, debajo de Raúl Leoni
-    name: "Cacique Mara", zone: "Centro",
-    coords: [
-      [10.684,-71.645],[10.684,-71.632],
-      [10.676,-71.635],[10.668,-71.640],
-      [10.668,-71.652],[10.678,-71.655]
-    ]
-  },
-  {
-    // Centro-oeste, grande
-    name: "Caracciolo Parra Pérez", zone: "Centro-Oeste",
-    coords: [
-      [10.710,-71.648],[10.705,-71.638],
-      [10.698,-71.638],[10.698,-71.650],
-      [10.698,-71.660],[10.705,-71.665],
-      [10.710,-71.660]
-    ]
-  },
-  {
-    // Noreste interior, al norte de Caracciolo
+    // NORTE - Idelfonso Vásquez
     name: "Idelfonso Vásquez", zone: "Norte",
     coords: [
-      [10.725,-71.665],[10.718,-71.645],
-      [10.710,-71.648],[10.710,-71.660],
-      [10.718,-71.668],[10.725,-71.668]
+      [10.745,-71.670],[10.745,-71.700],
+      [10.728,-71.700],[10.728,-71.670]
     ]
   },
   {
-    // Centro, al sur de Cacique Mara, pegado al lago
-    name: "Cecilio Acosta", zone: "Centro",
-    coords: [
-      [10.676,-71.635],[10.684,-71.632],
-      [10.684,-71.618],[10.676,-71.622],
-      [10.668,-71.618],[10.668,-71.628],
-      [10.668,-71.640]
-    ]
-  },
-  {
-    // Sur-este pegado al lago
-    name: "Manuel Dagnino", zone: "Sur-Este",
-    coords: [
-      [10.668,-71.618],[10.668,-71.610],
-      [10.652,-71.610],[10.652,-71.622],
-      [10.660,-71.628],[10.668,-71.628]
-    ]
-  },
-  {
-    // Sur-este al sur de Manuel Dagnino
-    name: "Cristo de Aranza", zone: "Sur-Este",
-    coords: [
-      [10.652,-71.622],[10.652,-71.610],
-      [10.636,-71.610],[10.636,-71.622],
-      [10.644,-71.628],[10.652,-71.628]
-    ]
-  },
-  {
-    // Centro-sur, entre Cacique Mara y Francisco Bustamante
-    name: "Juana de Ávila", zone: "Centro-Sur",
-    coords: [
-      [10.668,-71.652],[10.668,-71.640],
-      [10.660,-71.645],[10.652,-71.648],
-      [10.652,-71.658],[10.660,-71.658]
-    ]
-  },
-  {
-    // Sur-oeste grande
-    name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
-    coords: [
-      [10.660,-71.678],[10.668,-71.670],
-      [10.668,-71.658],[10.660,-71.658],
-      [10.652,-71.660],[10.644,-71.665],
-      [10.640,-71.678],[10.650,-71.682]
-    ]
-  },
-  {
-    // Oeste grande, limita con municipio Jesús E. Lossada
-    name: "Antonio Borjas Romero", zone: "Oeste",
-    coords: [
-      [10.700,-71.690],[10.705,-71.665],
-      [10.698,-71.660],[10.690,-71.665],
-      [10.680,-71.672],[10.675,-71.685],
-      [10.682,-71.695]
-    ]
-  },
-  {
-    // Norte-oeste, arriba de Antonio Borjas Romero
+    // NOROESTE - Venancio Pulgar
     name: "Venancio Pulgar", zone: "Norte-Oeste",
     coords: [
-      [10.725,-71.700],[10.740,-71.695],
-      [10.740,-71.665],[10.725,-71.665],
-      [10.718,-71.668],[10.715,-71.680],
-      [10.718,-71.695]
+      [10.745,-71.720],[10.758,-71.715],
+      [10.758,-71.700],[10.745,-71.700]
     ]
   },
   {
-    // Extremo oeste, zona rural
-    name: "San Isidro", zone: "Oeste",
+    // NORTE - Juana de Ávila (north-center, inland)
+    name: "Juana de Ávila", zone: "Norte",
     coords: [
-      [10.680,-71.700],[10.700,-71.695],
-      [10.700,-71.690],[10.682,-71.695],
-      [10.675,-71.695],[10.668,-71.700]
+      [10.745,-71.650],[10.745,-71.630],
+      [10.730,-71.630],[10.725,-71.645],
+      [10.730,-71.655],[10.738,-71.650]
     ]
   },
   {
-    // Sur, abajo de Francisco Bustamante
+    // NORESTE - Olegario Villalobos (lakeside northeast)
+    name: "Olegario Villalobos", zone: "Este",
+    coords: [
+      [10.745,-71.630],[10.745,-71.610],
+      [10.720,-71.610],[10.718,-71.620],
+      [10.720,-71.630]
+    ]
+  },
+  {
+    // ESTE - Bolívar (center-east lakeside)
+    name: "Bolívar", zone: "Este",
+    coords: [
+      [10.720,-71.620],[10.720,-71.610],
+      [10.700,-71.610],[10.698,-71.618],
+      [10.700,-71.625]
+    ]
+  },
+  {
+    // CENTRO-ESTE - Chiquinquirá
+    name: "Chiquinquirá", zone: "Centro-Este",
+    coords: [
+      [10.720,-71.630],[10.720,-71.618],
+      [10.700,-71.625],[10.698,-71.630],
+      [10.705,-71.640]
+    ]
+  },
+  {
+    // CENTRO - Raúl Leoni
+    name: "Raúl Leoni", zone: "Centro",
+    coords: [
+      [10.718,-71.650],[10.718,-71.640],
+      [10.705,-71.640],[10.698,-71.635],
+      [10.698,-71.648],[10.710,-71.655]
+    ]
+  },
+  {
+    // CENTRO-OESTE - Caracciolo Parra Pérez
+    name: "Caracciolo Parra Pérez", zone: "Centro-Oeste",
+    coords: [
+      [10.738,-71.670],[10.738,-71.650],
+      [10.718,-71.650],[10.710,-71.655],
+      [10.710,-71.670]
+    ]
+  },
+  {
+    // CENTRO - Cacique Mara
+    name: "Cacique Mara", zone: "Centro",
+    coords: [
+      [10.710,-71.655],[10.710,-71.648],
+      [10.698,-71.648],[10.698,-71.660],
+      [10.705,-71.665]
+    ]
+  },
+  {
+    // CENTRO - Cecilio Acosta (center lakeside)
+    name: "Cecilio Acosta", zone: "Centro",
+    coords: [
+      [10.700,-71.625],[10.700,-71.618],
+      [10.685,-71.615],[10.682,-71.625],
+      [10.685,-71.635],[10.695,-71.640]
+    ]
+  },
+  {
+    // ESTE - Santa Lucía (south-center lakeside)
+    name: "Santa Lucía", zone: "Este",
+    coords: [
+      [10.685,-71.615],[10.685,-71.610],
+      [10.665,-71.610],[10.665,-71.620],
+      [10.670,-71.625],[10.675,-71.615]
+    ]
+  },
+  {
+    // SUR-ESTE - Manuel Dagnino
+    name: "Manuel Dagnino", zone: "Sur-Este",
+    coords: [
+      [10.670,-71.625],[10.670,-71.615],
+      [10.655,-71.612],[10.652,-71.620],
+      [10.655,-71.632],[10.665,-71.635]
+    ]
+  },
+  {
+    // SUR-ESTE - Cristo de Aranza
+    name: "Cristo de Aranza", zone: "Sur-Este",
+    coords: [
+      [10.655,-71.632],[10.655,-71.620],
+      [10.640,-71.618],[10.638,-71.628],
+      [10.642,-71.638],[10.648,-71.635]
+    ]
+  },
+  {
+    // SUR - Luis Hurtado Higuera
     name: "Luis Hurtado Higuera", zone: "Sur",
     coords: [
-      [10.640,-71.678],[10.644,-71.665],
-      [10.636,-71.662],[10.625,-71.662],
-      [10.620,-71.672],[10.625,-71.682],
-      [10.634,-71.685]
+      [10.648,-71.635],[10.648,-71.638],
+      [10.638,-71.638],[10.635,-71.650],
+      [10.640,-71.660],[10.648,-71.655]
+    ]
+  },
+  {
+    // SUR-OESTE - Francisco Eugenio Bustamante
+    name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
+    coords: [
+      [10.670,-71.665],[10.670,-71.655],
+      [10.648,-71.655],[10.648,-71.668],
+      [10.655,-71.678],[10.665,-71.672]
+    ]
+  },
+  {
+    // CENTRO-SUR - Juana de Ávila (sur) - fixed duplicate
+    name: "Juana de Ávila Sur", zone: "Centro-Sur",
+    coords: [
+      [10.705,-71.665],[10.705,-71.660],
+      [10.695,-71.660],[10.695,-71.672],
+      [10.700,-71.678],[10.705,-71.675]
+    ]
+  },
+  {
+    // OESTE - Antonio Borjas Romero
+    name: "Antonio Borjas Romero", zone: "Oeste",
+    coords: [
+      [10.720,-71.695],[10.725,-71.678],
+      [10.718,-71.670],[10.705,-71.670],
+      [10.705,-71.678],[10.708,-71.695]
+    ]
+  },
+  {
+    // OESTE - San Isidro (far west)
+    name: "San Isidro", zone: "Oeste",
+    coords: [
+      [10.690,-71.720],[10.720,-71.710],
+      [10.720,-71.695],[10.708,-71.695],
+      [10.705,-71.710],[10.690,-71.715]
     ]
   },
 ];
@@ -4243,14 +4235,17 @@ function initLeafletMap() {
   if (leafletInitialized) return;
   leafletInitialized = true;
 
+  // Initialize map centered on Maracaibo
   leafletMap = L.map('leafletMap', {
-    center: [10.680, -71.655],
+    center: [10.700, -71.660],
     zoom: 12,
     zoomControl: true,
     attributionControl: true,
+    minZoom: 11,
+    maxZoom: 15,
   });
 
-  // OpenStreetMap tile layer
+  // OpenStreetMap tile layer with dark filter for better contrast
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
     maxZoom: 18,
@@ -4263,18 +4258,19 @@ function initLeafletMap() {
     const vs = voltageState[geo.name];
     const alerted = vs && vs.alerted;
 
-    // Polygon
+    // Polygon with rounded edges
     const poly = L.polygon(geo.coords, {
       color: colors.stroke,
       fillColor: colors.fill,
       fillOpacity: colors.opacity,
       weight: alerted ? 2.5 : 1.5,
       dashArray: alerted ? '6,4' : null,
+      lineJoin: 'round',
     }).addTo(leafletMap);
 
-    poly.bindPopup(buildPopupContent(geo.name), { maxWidth: 220 });
+    poly.bindPopup(buildPopupContent(geo.name), { maxWidth: 240 });
 
-    poly.on('mouseover', function() { this.setStyle({ weight: 2.5, fillOpacity: colors.opacity + 0.1 }); });
+    poly.on('mouseover', function() { this.setStyle({ weight: 2.5, fillOpacity: colors.opacity + 0.15 }); });
     poly.on('mouseout',  function() {
       const c = getSectorColors(geo.name);
       this.setStyle({ weight: c.alerted ? 2.5 : 1.5, fillOpacity: c.opacity });
@@ -4284,30 +4280,31 @@ function initLeafletMap() {
       this.openPopup();
     });
 
-    // Div icon label
+    // Calculate center of polygon for label
     const center = poly.getBounds().getCenter();
     const v = vs ? Math.round(vs.v) : '—';
     const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
-    const statusShort = s ? { cut: 'CORTE', inter: 'FLUCT.', ok: 'OK' }[s.status] : '';
+    const shortName = geo.name.length > 12 ? geo.name.split(' ')[0] : geo.name;
 
     const icon = L.divIcon({
       className: '',
       html: `<div style="
-        background: rgba(10,12,15,0.82);
-        border: 1px solid ${colors.stroke};
-        border-radius: 5px;
-        padding: 3px 7px;
+        background: ${isLight ? 'rgba(255,255,255,0.92)' : 'rgba(15,17,22,0.88)'};
+        border: 2px solid ${colors.stroke};
+        border-radius: 6px;
+        padding: 5px 10px;
         font-family: 'Space Mono', monospace;
-        font-size: 10px;
+        font-size: 11px;
         color: ${colors.textColor || colors.stroke};
         white-space: nowrap;
         text-align: center;
-        line-height: 1.4;
-        backdrop-filter: blur(2px);
+        line-height: 1.35;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:9px;color:#aaa;margin-bottom:1px;">${geo.name}</div>
-        <div style="font-weight:700;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:600;color:${isLight ? '#333' : '#ddd'};margin-bottom:2px;">${shortName}</div>
+        <div style="font-weight:800;font-size:12px;">${voltLabel}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
@@ -4316,6 +4313,12 @@ function initLeafletMap() {
 
     leafletLayers[geo.name] = { polygon: poly, marker, center };
   });
+
+  // Fit bounds to show all sectors
+  const allCoords = sectorGeoData.flatMap(g => g.coords);
+  if (allCoords.length > 0) {
+    leafletMap.fitBounds(allCoords, { padding: [20, 20] });
+  }
 }
 
 function updateLeafletLayers() {
@@ -4330,6 +4333,7 @@ function updateLeafletLayers() {
     const alerted = vs && vs.alerted;
     const v = vs ? Math.round(vs.v) : '—';
     const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
+    const shortName = geo.name.length > 12 ? geo.name.split(' ')[0] : geo.name;
 
     // Update polygon style
     layer.polygon.setStyle({
@@ -4338,27 +4342,29 @@ function updateLeafletLayers() {
       fillOpacity: colors.opacity,
       weight: alerted ? 2.5 : 1.5,
       dashArray: alerted ? '6,4' : null,
+      lineJoin: 'round',
     });
 
-    // Update label icon
+    // Update label icon with improved styling
     const newIcon = L.divIcon({
       className: '',
       html: `<div style="
-        background: ${isLight ? 'rgba(255,255,255,0.88)' : 'rgba(10,12,15,0.82)'};
-        border: 1px solid ${colors.stroke};
-        border-radius: 5px;
-        padding: 3px 7px;
+        background: ${isLight ? 'rgba(255,255,255,0.92)' : 'rgba(15,17,22,0.88)'};
+        border: 2px solid ${colors.stroke};
+        border-radius: 6px;
+        padding: 5px 10px;
         font-family: 'Space Mono', monospace;
-        font-size: 10px;
-        color: ${colors.stroke};
+        font-size: 11px;
+        color: ${colors.textColor || colors.stroke};
         white-space: nowrap;
         text-align: center;
-        line-height: 1.4;
-        backdrop-filter: blur(2px);
+        line-height: 1.35;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:9px;color:${isLight ? '#666' : '#aaa'};margin-bottom:1px;">${geo.name}</div>
-        <div style="font-weight:700;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:600;color:${isLight ? '#333' : '#ddd'};margin-bottom:2px;">${shortName}</div>
+        <div style="font-weight:800;font-size:12px;">${voltLabel}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
