@@ -146,8 +146,8 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: var(--red-dim);
-      border: 1px solid rgba(255,77,77,0.25);
+      background: var(--green-dim);
+      border: 1px solid rgba(61,220,132,0.25);
       border-radius: 20px;
       padding: 4px 10px;
       font-family: var(--mono);
@@ -157,9 +157,15 @@
     .live-dot {
       width: 6px;
       height: 6px;
-      background: var(--red);
+      background: var(--green);
       border-radius: 50%;
       animation: pulse 1.5s ease-in-out infinite;
+    }
+    #liveLabel {
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
