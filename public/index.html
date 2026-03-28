@@ -1982,7 +1982,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.27-beta</span> · <span id="dataSourceIndicator" style="color:var(--green);">supabase</span></span>
+      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.27-beta</span> · <span id="dataSourceIndicator" style="color:var(--green);">Operativo</span></span>
       <div class="footer-bottom-right">
         <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
@@ -2110,22 +2110,32 @@ let lastUpdateTime = null;
 
 function updateLivePill(status) {
   const dot = document.getElementById('liveDot');
+  const pill = document.getElementById('livePill');
   const label = document.getElementById('liveLabel');
   if (!dot || !label) return;
   
   if (status === 'loading') {
     dot.style.animation = 'none';
     dot.style.background = 'var(--amber)';
+    pill.style.borderColor = 'rgba(245,166,35,0.25)';
+    pill.style.background = 'var(--amber-dim)';
     label.textContent = 'ACTUALIZANDO...';
+    label.style.color = 'var(--amber)';
   } else if (status === 'error') {
     dot.style.animation = 'pulse 1.5s ease-in-out infinite';
     dot.style.background = 'var(--red)';
+    pill.style.borderColor = 'rgba(255,77,77,0.25)';
+    pill.style.background = 'var(--red-dim)';
     label.textContent = 'OFFLINE';
+    label.style.color = 'var(--red)';
   } else {
     dot.style.animation = 'pulse 1.5s ease-in-out infinite';
-    dot.style.background = 'var(--red)';
+    dot.style.background = 'var(--green)';
+    pill.style.borderColor = 'rgba(61,220,132,0.25)';
+    pill.style.background = 'var(--green-dim)';
     const time = lastUpdateTime ? lastUpdateTime.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' }) : 'EN VIVO';
     label.textContent = time;
+    label.style.color = 'var(--green)';
   }
 }
 
@@ -2140,7 +2150,7 @@ function updateDataSourceIndicator() {
     sourceEl.textContent = 'Cargando...';
     sourceEl.style.color = 'var(--amber)';
   } else {
-    sourceEl.textContent = dataSource;
+    sourceEl.textContent = 'Operativo';
     sourceEl.style.color = 'var(--green)';
   }
 }
