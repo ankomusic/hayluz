@@ -1886,8 +1886,20 @@
         </div>
 
         <div class="rf-field">
-          <label class="rf-label" for="rpCause">Causa (opcional)</label>
-          <input type="text" class="rf-input" id="rpCause" placeholder="ej. Falla en transformador, mantenimiento..." aria-label="Describe la causa del problema eléctrico" />
+          <label class="rf-label" for="rpCause">Tipo de falla (opcional)</label>
+          <select class="rf-select" id="rpCause" aria-label="Selecciona el tipo de falla eléctrica">
+            <option value="">Selecciona el tipo de falla...</option>
+            <option value="Falla en transformador">Falla en transformador</option>
+            <option value="Mantenimiento programado">Mantenimiento programado</option>
+            <option value="Sobrecarga">Sobrecarga</option>
+            <option value="Corto circuito">Corto circuito</option>
+            <option value="Falla en cableado">Falla en cableado</option>
+            <option value="Condiciones climáticas">Condiciones climáticas</option>
+            <option value="Déficit de generación">Déficit de generación</option>
+            <option value="Falla en sub-estación">Falla en sub-estación</option>
+            <option value="Accidente">Accidente (cables caídos)</option>
+            <option value="Otra">Otra</option>
+          </select>
         </div>
 
         <div class="rf-field">
@@ -4250,7 +4262,7 @@ function selectStatus(s) {
 
 async function submitCommunityReport() {
   const parroquia = document.getElementById('rpParroquia')?.value;
-  const cause     = document.getElementById('rpCause')?.value.trim();
+  const cause     = document.getElementById('rpCause')?.value;
   const note      = document.getElementById('rpNote')?.value.trim();
   const resultEl  = document.getElementById('rpResult');
   const btn       = document.getElementById('rpSubmitBtn');
@@ -4278,7 +4290,7 @@ async function submitCommunityReport() {
       showRpResult('✓ Reporte enviado — gracias por contribuir', 'success');
       addToFeed({ parroquia, status: selectedStatus, cause: cause || '—', time: 'ahora mismo' });
       document.getElementById('rpParroquia').value = '';
-      document.getElementById('rpCause').value = '';
+      document.getElementById('rpCause').selectedIndex = 0;
       document.getElementById('rpNote').value = '';
       selectedStatus = '';
       ['ok','inter','cut'].forEach(v => { const e = document.getElementById('pill-'+v); if(e) e.className='status-pill'; });
