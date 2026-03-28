@@ -9,26 +9,32 @@ Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia
 ```
 hayluz/
 ├── api/
-│   ├── data.js           # Endpoint legacy (v0 deprecated)
-│   ├── admin.js          # Admin legacy
 │   ├── v1/
 │   │   ├── data.js      # API v1 — GET/POST con rate limiting persistente
 │   │   └── admin.js     # Admin v1
+│   ├── legacy/          # Endpoints deprecated
+│   │   ├── data.js
+│   │   └── admin.js
 │   └── utils/
 │       ├── rateLimit.js # Rate limiter con Supabase
-│       └── helpers.js   # Sanitización, retry, circuit breaker, helpers
+│       └── helpers.js   # Sanitización, retry, circuit breaker
 ├── public/
-│   ├── index.html        # App completa (frontend)
-│   ├── admin.html       # Panel de administración
-│   ├── manifest.json    # PWA manifest
-│   ├── sw.js            # Service worker
-│   └── icons/
-├── tests/               # Tests Vitest
-├── supabase-updates.sql # Migración de schema + RLS mejorado
-├── vercel.json         # Headers CORS, rewrite /admin, API v1
-├── .eslintrc.json      # ESLint config
-├── prettier.config.json # Prettier config
-└── package.json        # Node 20.x
+│   ├── index.html       # App completa (frontend)
+│   ├── admin.html      # Panel de administración
+│   ├── manifest.json   # PWA manifest
+│   ├── sw.js           # Service worker
+│   ├── icons/          # Iconos PWA
+│   └── data/
+│       └── parroquias_maracaibo_oficial.geojson  # Coordenadas oficiales
+├── tests/              # Tests Vitest
+├── docs/              # Documentación
+│   ├── README.md
+│   └── AGENTS.md     # Instrucciones para Claude AI
+├── supabase-updates.sql
+├── vercel.json
+├── .eslintrc.json
+├── prettier.config.json
+└── package.json
 ```
 
 ---

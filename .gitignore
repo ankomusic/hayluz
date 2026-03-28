@@ -1,8 +1,27 @@
+# Dependencies
 node_modules/
-.vercel/
+
+# Environment
 .env
 .env.local
-*.log
-
-.vercel
 .env*.local
+.env*.*
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
