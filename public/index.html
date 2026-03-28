@@ -1101,7 +1101,14 @@
       gap: 14px;
       flex-wrap: wrap;
     }
-    .footer-bottom-right .btn { font-size: 12px; padding: 7px 12px; border-radius: var(--radius); white-space: nowrap; }
+    .footer-bottom-right .btn, .footer-bottom-right button.btn { 
+      font-size: 12px !important; 
+      padding: 7px 12px !important; 
+      border-radius: var(--radius) !important; 
+      white-space: nowrap; 
+      min-height: unset !important;
+      min-width: unset !important;
+    }
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
 
