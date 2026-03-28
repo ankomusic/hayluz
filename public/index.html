@@ -27,10 +27,10 @@
       /* Borders */
       --border:       #333333;
       --border-bright:#444444;
-      /* Text */
-      --text:         #ededed;
-      --text-muted:   #888888;
-      --text-dim:     #555555;
+      /* Text — improved contrast for elderly users (WCAG AA minimum 4.5:1) */
+      --text:         #f0f0f0;
+      --text-muted:   #aaaaaa;
+      --text-dim:     #777777;
       /* Accent — Geist uses pure white accents on black */
       --accent:       #ffffff;
       --accent-dim:   rgba(255,255,255,0.06);
@@ -58,11 +58,11 @@
       --surface:      #fafafa;
       --surface2:     #f4f4f4;
       --surface3:     #ebebeb;
-      --border:       #eaeaea;
-      --border-bright:#d1d1d1;
-      --text:         #000000;
-      --text-muted:   #666666;
-      --text-dim:     #999999;
+      --border:       #e0e0e0;
+      --border-bright:#c0c0c0;
+      --text:         #111111;
+      --text-muted:   #555555;
+      --text-dim:     #888888;
       --accent:       #000000;
       --accent-dim:   rgba(0,0,0,0.04);
       --red:          #e00;
@@ -81,8 +81,8 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--sans);
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 16px;
+      line-height: 1.7;
       min-height: 100vh;
       transition: background 0.25s, color 0.25s;
     }
@@ -131,13 +131,13 @@
     }
     .logo-text {
       font-family: var(--mono);
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.5px;
     }
     .logo-sub {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
       font-family: var(--mono);
       margin-top: 1px;
@@ -145,18 +145,18 @@
     .live-pill {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: var(--green-dim);
       border: 1px solid rgba(61,220,132,0.25);
       border-radius: 20px;
-      padding: 4px 10px;
+      padding: 8px 14px;
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       color: var(--red);
     }
     .live-dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       background: var(--green);
       border-radius: 50%;
       animation: pulse 1.5s ease-in-out infinite;
@@ -164,7 +164,7 @@
     #liveLabel {
       color: var(--green);
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
     }
     @keyframes pulse {
@@ -182,12 +182,12 @@
     @media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
     .stat {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 14px 16px;
+      padding: 18px 20px;
     }
-    .stat-label { font-size: 11px; color: var(--text-muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-    .stat-val { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 13px; color: var(--text-muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .stat-val { font-family: var(--mono); font-size: 36px; font-weight: 700; line-height: 1; }
     .stat-val.red { color: var(--red); }
     .stat-val.amber { color: var(--amber); }
     .stat-val.green { color: var(--green); }
@@ -205,9 +205,9 @@
       width: fit-content;
     }
     .nav-tab {
-      padding: 7px 16px;
+      padding: 10px 18px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 14px;
       font-family: var(--mono);
       cursor: pointer;
       color: var(--text-muted);
@@ -236,47 +236,52 @@
     }
     .search {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius);
-      padding: 8px 12px;
+      padding: 12px 16px;
       color: var(--text);
       font-family: var(--sans);
-      font-size: 13px;
+      font-size: 16px;
       flex: 1;
-      min-width: 180px;
+      min-width: 200px;
       outline: none;
     }
-    .search:focus { border-color: var(--border-bright); }
+    .search:focus { border-color: var(--green); border-width: 2px; }
     .search::placeholder { color: var(--text-dim); }
     .btn {
       background: transparent;
-      border: 1px solid var(--border-bright);
+      border: 2px solid var(--border-bright);
       border-radius: var(--radius);
-      padding: 8px 14px;
+      padding: 12px 20px;
       color: var(--text-muted);
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer;
       transition: all 0.15s;
       white-space: nowrap;
+      min-height: 44px;
+      min-width: 44px;
     }
-    .btn:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+    .btn:hover { color: var(--text); border-color: rgba(255,255,255,0.5); background: var(--surface); }
     .btn.primary {
       background: var(--accent-dim);
-      border-color: rgba(245,200,66,0.4);
+      border-color: rgba(245,200,66,0.5);
       color: var(--accent);
+      font-weight: 600;
     }
-    .btn.primary:hover { background: rgba(245,200,66,0.2); }
+    .btn.primary:hover { background: rgba(245,200,66,0.25); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:focus { outline: 2px solid var(--green); outline-offset: 2px; }
 
     /* Filter pills */
-    .filter-pills { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-pills { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
     .pill {
-      padding: 4px 12px;
+      padding: 8px 16px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 14px;
       font-family: var(--mono);
       cursor: pointer;
+      min-height: 40px;
       border: 1px solid var(--border);
       color: var(--text-muted);
       background: transparent;
@@ -287,43 +292,43 @@
     /* Sector grid */
     .sector-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
     }
     .sector-card {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 14px 16px;
+      padding: 18px 20px;
       cursor: default;
       transition: border-color 0.15s;
     }
     .sector-card:hover { border-color: var(--border-bright); }
-    .sector-card.status-cut { border-left: 2px solid var(--red); }
-    .sector-card.status-inter { border-left: 2px solid var(--amber); }
-    .sector-card.status-ok { border-left: 2px solid var(--green); }
+    .sector-card.status-cut { border-left: 4px solid var(--red); }
+    .sector-card.status-inter { border-left: 4px solid var(--amber); }
+    .sector-card.status-ok { border-left: 4px solid var(--green); }
 
-    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-    .card-name { font-size: 14px; font-weight: 500; color: var(--text); }
-    .card-zone { font-size: 11px; color: var(--text-muted); font-family: var(--mono); margin-top: 2px; }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-name { font-size: 18px; font-weight: 600; color: var(--text); }
+    .card-zone { font-size: 13px; color: var(--text-muted); font-family: var(--mono); margin-top: 4px; }
     .badge {
-      font-size: 10px;
+      font-size: 12px;
       font-family: var(--mono);
-      padding: 3px 8px;
+      padding: 6px 12px;
       border-radius: 20px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .badge.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,77,0.2); }
-    .badge.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
-    .badge.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+    .badge.red { background: var(--red-dim); color: var(--red); border: 2px solid rgba(255,77,77,0.3); }
+    .badge.amber { background: var(--amber-dim); color: var(--amber); border: 2px solid rgba(245,166,35,0.3); }
+    .badge.green { background: var(--green-dim); color: var(--green); border: 2px solid rgba(61,220,132,0.3); }
     .badge.dim { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
 
-    .card-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted); }
+    .card-meta { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--text-muted); }
     .meta-row { display: flex; justify-content: space-between; }
-    .meta-val { color: var(--text); font-family: var(--mono); font-size: 12px; }
-    .meta-cause { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
+    .meta-val { color: var(--text); font-family: var(--mono); font-size: 14px; font-weight: 500; }
+    .meta-cause { font-size: 13px; color: var(--text-dim); margin-top: 6px; font-style: italic; }
 
     .bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
     .bar-fill { height: 100%; border-radius: 2px; }
@@ -1324,43 +1329,46 @@
     .rf-select, .rf-input, .rf-textarea {
       width: 100%;
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius);
-      padding: 9px 12px;
+      padding: 14px 16px;
       color: var(--text);
       font-family: var(--sans);
-      font-size: 13px;
+      font-size: 16px;
       outline: none;
-      transition: border-color .15s;
+      transition: border-color .2s;
+      min-height: 52px;
     }
-    .rf-select:focus, .rf-input:focus, .rf-textarea:focus { border-color: var(--border-bright); }
+    .rf-select:focus, .rf-input:focus, .rf-textarea:focus { border-color: var(--green); }
     .rf-select option { background: var(--surface2); }
-    .rf-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+    .rf-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
 
-    .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .status-pills { display: flex; gap: 10px; flex-wrap: wrap; }
     .status-pill {
       flex: 1;
-      min-width: 80px;
-      padding: 10px 8px;
+      min-width: 100px;
+      padding: 14px 12px;
       border-radius: var(--radius);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       background: var(--surface2);
       cursor: pointer;
       text-align: center;
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-muted);
-      transition: all .15s;
+      transition: all .2s;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      min-height: 70px;
     }
-    .status-pill:hover { border-color: var(--border-bright); }
+    .status-pill:hover { border-color: var(--border-bright); transform: translateY(-1px); }
+    .status-pill:focus { outline: 2px solid var(--green); outline-offset: 2px; }
     .status-pill.selected-ok    { border-color: var(--green); background: var(--green-dim); color: var(--green); }
     .status-pill.selected-inter { border-color: var(--amber); background: var(--amber-dim); color: var(--amber); }
     .status-pill.selected-cut   { border-color: var(--red);   background: var(--red-dim);   color: var(--red); }
-    .status-pill-icon { font-size: 18px; }
+    .status-pill-icon { font-size: 22px; }
 
     .report-result {
       background: var(--surface2);
@@ -1643,6 +1651,9 @@
     <div style="font-size:13px;color:#aaa;max-width:320px;line-height:1.6;">Para usar esta aplicación debes habilitar JavaScript en tu navegador. Sin él no es posible cargar el monitor de cortes eléctricos.</div>
   </div>
 </noscript>
+
+<!-- Skip to main content link for keyboard users -->
+<a href="#mainContent" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:99999;background:var(--accent);color:var(--bg);padding:12px 20px;font-family:var(--mono);text-decoration:none;border-radius:4px;" onfocus="this.style.left='10px';this.style.top='10px';this.style.width='auto';this.style.height='auto';this.style.overflow='visible';" onblur="this.style.left='-9999px';this.style.top='auto';this.style.width='1px';this.style.height='1px';this.style.overflow='hidden';">Saltar al contenido principal</a>
 <!-- Announcement banner -->
 <div class="top-banner" id="topBanner">
   <div class="banner-dot"></div>
@@ -1650,7 +1661,7 @@
   <button class="banner-close" onclick="document.getElementById('topBanner').style.display='none'" title="Cerrar">×</button>
 </div>
 
-<div class="app">
+<div class="app" id="mainContent">
 
   <!-- Header -->
   <div class="topbar">
@@ -1765,11 +1776,11 @@
   </div>
 
   <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat"><div class="stat-label">Con corte</div><div class="stat-val red" id="statCut">—</div></div>
-    <div class="stat"><div class="stat-label">Intermitentes</div><div class="stat-val amber" id="statInter">—</div></div>
-    <div class="stat"><div class="stat-label">Estables</div><div class="stat-val green" id="statOk">—</div></div>
-    <div class="stat"><div class="stat-label">Promedio (h)</div><div class="stat-val blue" id="statAvg">—</div></div>
+  <div class="stats-row" role="region" aria-label="Estadísticas de cortes eléctricos">
+    <div class="stat"><div class="stat-label" id="statCutLabel">Con corte</div><div class="stat-val red" id="statCut" aria-labelledby="statCutLabel">—</div></div>
+    <div class="stat"><div class="stat-label" id="statInterLabel">Intermitentes</div><div class="stat-val amber" id="statInter" aria-labelledby="statInterLabel">—</div></div>
+    <div class="stat"><div class="stat-label" id="statOkLabel">Estables</div><div class="stat-val green" id="statOk" aria-labelledby="statOkLabel">—</div></div>
+    <div class="stat"><div class="stat-label" id="statAvgLabel">Promedio (h)</div><div class="stat-val blue" id="statAvg" aria-labelledby="statAvgLabel">—</div></div>
   </div>
 
   <!-- Nav -->
@@ -1795,7 +1806,7 @@
     </div>
 
     <div class="controls-bar">
-      <input type="text" class="search" id="searchInput" placeholder="Buscar parroquia o zona..." oninput="filterSectors()" />
+      <input type="text" class="search" id="searchInput" placeholder="Buscar parroquia o zona..." oninput="filterSectors()" aria-label="Buscar parroquias o zonas" />
     </div>
     <div class="filter-pills" id="filterPills">
       <button class="pill active-pill" data-f="all" onclick="setFilter('all',this)">Todos</button>
@@ -1827,12 +1838,12 @@
   <!-- ===== REPORT VIEW ===== -->
   <div id="view-report" class="view">
     <div class="report-layout">
-      <div class="report-card">
+      <div class="report-card" role="region" aria-label="Formulario para reportar cortes o fluctuaciones">
         <h3>Reportar corte o fluctuación</h3>
 
         <div class="rf-field">
           <label class="rf-label" for="rpParroquia">¿En qué parroquia?</label>
-          <select class="rf-select" id="rpParroquia">
+          <select class="rf-select" id="rpParroquia" aria-label="Selecciona tu parroquia" aria-required="true">
             <option value="">Selecciona tu parroquia...</option>
             <option>Coquivacoa</option>
             <option>Urdaneta</option>
@@ -1859,16 +1870,16 @@
         <div class="rf-field">
           <span class="rf-label" id="statusGroupLabel">¿Qué está pasando?</span>
           <div class="status-pills" role="group" aria-labelledby="statusGroupLabel">
-            <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')" role="button" tabindex="0">
-              <span class="status-pill-icon">✓</span>
+            <div class="status-pill" id="pill-ok" onclick="selectStatus('ok')" role="button" tabindex="0" aria-label="Reportar que hay luz en tu zona">
+              <span class="status-pill-icon" aria-hidden="true">✓</span>
               <span>Hay luz</span>
             </div>
-            <div class="status-pill" id="pill-inter" onclick="selectStatus('inter')" role="button" tabindex="0">
-              <span class="status-pill-icon">⚡</span>
+            <div class="status-pill" id="pill-inter" onclick="selectStatus('inter')" role="button" tabindex="0" aria-label="Reportar fluctuación de voltaje">
+              <span class="status-pill-icon" aria-hidden="true">⚡</span>
               <span>Fluctuando</span>
             </div>
-            <div class="status-pill" id="pill-cut" onclick="selectStatus('cut')" role="button" tabindex="0">
-              <span class="status-pill-icon">✗</span>
+            <div class="status-pill" id="pill-cut" onclick="selectStatus('cut')" role="button" tabindex="0" aria-label="Reportar que no hay luz">
+              <span class="status-pill-icon" aria-hidden="true">✗</span>
               <span>Sin luz</span>
             </div>
           </div>
@@ -1876,15 +1887,15 @@
 
         <div class="rf-field">
           <label class="rf-label" for="rpCause">Causa (opcional)</label>
-          <input type="text" class="rf-input" id="rpCause" placeholder="ej. Falla en transformador, mantenimiento..." />
+          <input type="text" class="rf-input" id="rpCause" placeholder="ej. Falla en transformador, mantenimiento..." aria-label="Describe la causa del problema eléctrico" />
         </div>
 
         <div class="rf-field">
           <label class="rf-label" for="rpNote">Nota adicional (opcional)</label>
-          <textarea class="rf-textarea" id="rpNote" placeholder="Cualquier detalle que ayude a confirmar el reporte..."></textarea>
+          <textarea class="rf-textarea" id="rpNote" placeholder="Cualquier detalle que ayude a confirmar el reporte..." aria-label="Notas adicionales sobre el reporte"></textarea>
         </div>
 
-        <button class="btn primary" style="width:100%;margin-top:4px;" id="rpSubmitBtn" onclick="submitCommunityReport()">
+        <button class="btn primary" style="width:100%;margin-top:4px;" id="rpSubmitBtn" onclick="submitCommunityReport()" aria-label="Enviar reporte de corte o fluctuación">
           Enviar reporte ↗
         </button>
 
