@@ -159,16 +159,15 @@ describe('Status validation', () => {
 
 describe('Parroquias validation', () => {
   const PARROQUIAS = [
-    "Coquivacoa", "Urdaneta", "Idelfonso Vásquez", "Venancio Pulgar",
-    "Juana de Ávila", "Olegario Villalobos", "Bolívar", "Santa Lucía",
-    "Chiquinquirá", "Caracciolo Parra Pérez", "Raúl Leoni", "Cacique Mara",
-    "Cecilio Acosta", "Antonio Borjas Romero", "San Isidro",
-    "Francisco Eugenio Bustamante", "Manuel Dagnino", "Cristo de Aranza",
-    "Luis Hurtado Higuera"
+    "Venancio Pulgar","Idelfonso Vásquez","Coquivacoa","Juana de Ávila",
+    "San Isidro","Antonio Borjas Romero","Caracciolo Parra Pérez","Olegario Villalobos",
+    "Chiquinquirá","Raúl Leoni","Francisco Eugenio Bustamante","Cacique Mara",
+    "Santa Lucía","Bolívar","Cecilio Acosta","Cristo de Aranza",
+    "Manuel Dagnino","Luis Hurtado Higuera"
   ];
 
-  it('has 19 parroquias', () => {
-    expect(PARROQUIAS.length).toBe(19);
+  it('has 18 parroquias', () => {
+    expect(PARROQUIAS.length).toBe(18);
   });
 
   it('contains expected parroquias', () => {

@@ -2,11 +2,11 @@ const { checkRateLimit, getClientIP, MAX_REQUESTS } = require('../utils/rateLimi
 const { sanitizePrompt, sanitizeJSONResponse, callOpenRouterWithRetry, setCorsHeaders, apiError, apiSuccess } = require('../utils/helpers');
 
 const PARROQUIAS = [
-  "Coquivacoa","Urdaneta","Idelfonso Vásquez","Venancio Pulgar","Juana de Ávila",
-  "Olegario Villalobos","Bolívar","Santa Lucía","Chiquinquirá",
-  "Caracciolo Parra Pérez","Raúl Leoni","Cacique Mara","Cecilio Acosta",
-  "Antonio Borjas Romero","San Isidro","Francisco Eugenio Bustamante",
-  "Manuel Dagnino","Cristo de Aranza","Luis Hurtado Higuera"
+  "Venancio Pulgar","Idelfonso Vásquez","Coquivacoa","Juana de Ávila",
+  "San Isidro","Antonio Borjas Romero","Caracciolo Parra Pérez","Olegario Villalobos",
+  "Chiquinquirá","Raúl Leoni","Francisco Eugenio Bustamante","Cacique Mara",
+  "Santa Lucía","Bolívar","Cecilio Acosta","Cristo de Aranza",
+  "Manuel Dagnino","Luis Hurtado Higuera"
 ];
 
 async function handleAnalyze(body) {
