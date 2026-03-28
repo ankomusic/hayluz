@@ -3109,12 +3109,6 @@ function switchView(name, el) {
 // renderStats and updateDataSourceIndicator defined earlier (before SmartUpdater class)
 
 // ---- SECTORS ----
-  
-  // Update source indicator
-  updateDataSourceIndicator();
-}
-
-// ---- SECTORS ----
 function statusInfo(s) {
   if (s === 'cut')    return { label: 'Corte activo',  cls: 'red',   barCls: 'red',   cardCls: 'status-cut'  };
   if (s === 'inter')  return { label: 'Intermitente',  cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
