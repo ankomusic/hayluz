@@ -6,8 +6,8 @@
   ],
   "routes": [
     { "src": "/admin", "dest": "/public/admin.html" },
-    { "src": "/api/data", "dest": "/api/data.js" },
-    { "src": "/api/admin", "dest": "/api/admin.js" },
+    { "src": "/api/data", "dest": "/api/legacy/data.js" },
+    { "src": "/api/admin", "dest": "/api/legacy/admin.js" },
     { "src": "/api/v1/data", "dest": "/api/v1/data.js" },
     { "src": "/api/v1/admin", "dest": "/api/v1/admin.js" },
     { "src": "/(.*)", "dest": "/public/$1" }
