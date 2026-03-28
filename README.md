@@ -27,9 +27,7 @@ hayluz/
 │   └── data/
 │       └── parroquias_maracaibo_oficial.geojson  # Coordenadas oficiales
 ├── tests/              # Tests Vitest
-├── docs/              # Documentación
-│   ├── README.md
-│   └── AGENTS.md     # Instrucciones para Claude AI
+├── AGENTS.md         # Instrucciones para Claude AI
 ├── supabase-updates.sql
 ├── vercel.json
 ├── .eslintrc.json
