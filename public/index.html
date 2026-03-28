@@ -4208,7 +4208,7 @@ function initLeafletMap() {
 
   // Initialize map centered on all of Maracaibo
   leafletMap = L.map('leafletMap', {
-    center: [10.680, -71.660],
+    center: [10.680, -71.650],
     zoom: 11,
     zoomControl: true,
     attributionControl: true,
@@ -4216,7 +4216,7 @@ function initLeafletMap() {
     maxZoom: 16,
   });
 
-  // OpenStreetMap tile layer with dark filter for better contrast
+  // OpenStreetMap tile layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
     maxZoom: 18,
@@ -4229,14 +4229,13 @@ function initLeafletMap() {
     const vs = voltageState[geo.name];
     const alerted = vs && vs.alerted;
 
-    // Polygon with rounded edges
+    // Polygon
     const poly = L.polygon(geo.coords, {
       color: colors.stroke,
       fillColor: colors.fill,
       fillOpacity: colors.opacity,
       weight: alerted ? 2.5 : 1.5,
       dashArray: alerted ? '6,4' : null,
-      lineJoin: 'round',
     }).addTo(leafletMap);
 
     poly.bindPopup(buildPopupContent(geo.name), { maxWidth: 240 });
@@ -4255,27 +4254,26 @@ function initLeafletMap() {
     const center = poly.getBounds().getCenter();
     const v = vs ? Math.round(vs.v) : '—';
     const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
-    const shortName = geo.name.length > 12 ? geo.name.split(' ')[0] : geo.name;
+    const shortName = geo.name.split(' ').slice(0, 2).join(' ');
 
     const icon = L.divIcon({
       className: '',
       html: `<div style="
-        background: ${isLight ? 'rgba(255,255,255,0.92)' : 'rgba(15,17,22,0.88)'};
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.90)'};
         border: 2px solid ${colors.stroke};
         border-radius: 6px;
-        padding: 5px 10px;
+        padding: 6px 10px;
         font-family: 'Space Mono', monospace;
-        font-size: 11px;
-        color: ${colors.textColor || colors.stroke};
-        white-space: nowrap;
-        text-align: center;
-        line-height: 1.35;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        min-width: 60px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:10px;font-weight:600;color:${isLight ? '#333' : '#ddd'};margin-bottom:2px;">${shortName}</div>
-        <div style="font-weight:800;font-size:12px;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#e0e0e0'};white-space:nowrap;">${shortName}</div>
+        <div style="font-size:13px;font-weight:800;color:${colors.textColor || colors.stroke};white-space:nowrap;margin-top:2px;">${voltLabel}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
@@ -4284,12 +4282,6 @@ function initLeafletMap() {
 
     leafletLayers[geo.name] = { polygon: poly, marker, center };
   });
-
-  // Fit bounds to show all sectors
-  const allCoords = sectorGeoData.flatMap(g => g.coords);
-  if (allCoords.length > 0) {
-    leafletMap.fitBounds(allCoords, { padding: [20, 20] });
-  }
 }
 
 function updateLeafletLayers() {
@@ -4304,7 +4296,7 @@ function updateLeafletLayers() {
     const alerted = vs && vs.alerted;
     const v = vs ? Math.round(vs.v) : '—';
     const voltLabel = s && s.status === 'cut' ? '0V' : v + 'V';
-    const shortName = geo.name.length > 12 ? geo.name.split(' ')[0] : geo.name;
+    const shortName = geo.name.split(' ').slice(0, 2).join(' ');
 
     // Update polygon style
     layer.polygon.setStyle({
@@ -4313,29 +4305,27 @@ function updateLeafletLayers() {
       fillOpacity: colors.opacity,
       weight: alerted ? 2.5 : 1.5,
       dashArray: alerted ? '6,4' : null,
-      lineJoin: 'round',
     });
 
-    // Update label icon with improved styling
+    // Update label icon
     const newIcon = L.divIcon({
       className: '',
       html: `<div style="
-        background: ${isLight ? 'rgba(255,255,255,0.92)' : 'rgba(15,17,22,0.88)'};
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.90)'};
         border: 2px solid ${colors.stroke};
         border-radius: 6px;
-        padding: 5px 10px;
+        padding: 6px 10px;
         font-family: 'Space Mono', monospace;
-        font-size: 11px;
-        color: ${colors.textColor || colors.stroke};
-        white-space: nowrap;
-        text-align: center;
-        line-height: 1.35;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        min-width: 60px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:10px;font-weight:600;color:${isLight ? '#333' : '#ddd'};margin-bottom:2px;">${shortName}</div>
-        <div style="font-weight:800;font-size:12px;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#e0e0e0'};white-space:nowrap;">${shortName}</div>
+        <div style="font-size:13px;font-weight:800;color:${colors.textColor || colors.stroke};white-space:nowrap;margin-top:2px;">${voltLabel}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
