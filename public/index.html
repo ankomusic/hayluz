@@ -2950,7 +2950,7 @@ async function loadLiveData() {
   updateLivePill('loading');
   
   try {
-    const res = await fetch(`${API_BASE}/api/data`);
+    const res = await fetch(`${API_BASE}/api/data?_=${Date.now()}`, { cache: 'no-cache' });
     if (!res.ok) {
       dataSource = 'offline';
       updateLivePill('error');
@@ -2961,7 +2961,7 @@ async function loadLiveData() {
     }
     const payload = await res.json();
     const sectorsData = payload.sectors || payload.data?.sectors;
-    console.log('[loadLiveData] Datos recibidos:', payload.source, 'sectores:', sectorsData?.length);
+    console.log('[loadLiveData] Datos recibidos:', payload.source, 'sectores:', sectorsData?.length, 'cortes:', sectorsData?.filter(s => s.status === 'cut').length);
     updateSectorsFromData(payload);
     dataSource = payload.source || 'api';
     lastUpdateTime = new Date();
