@@ -142,6 +142,22 @@
       font-family: var(--mono);
       margin-top: 1px;
     }
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .city-live-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .theme-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     .live-pill {
       display: flex;
       align-items: center;
@@ -1098,7 +1114,7 @@
       .topbar { 
         flex-direction: column; 
         align-items: center; 
-        gap: 14px; 
+        gap: 16px; 
         margin-bottom: 20px;
         padding-bottom: 16px;
       }
@@ -1106,15 +1122,32 @@
         width: 100%;
         justify-content: center; 
       }
-      .topbar > div:last-child { 
-        display: flex; 
-        justify-content: center; 
-        flex-wrap: wrap; 
-        gap: 8px;
-        align-items: center;
+      .topbar-controls { 
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
       }
-      .city-select { flex: 1; min-width: 120px; }
-      .live-pill { padding: 6px 12px; font-size: 11px; }
+      .city-live-row {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+      }
+      .theme-row {
+        justify-content: center;
+        gap: 8px;
+      }
+      .city-select { 
+        flex: 1; 
+        max-width: 200px;
+        min-height: 44px;
+        font-size: 14px;
+      }
+      .live-pill { 
+        padding: 10px 16px; 
+        font-size: 12px; 
+        height: 44px;
+        white-space: nowrap;
+      }
 
       /* Stats - 2x2 grid on mobile */
       .stats-row { 
@@ -1823,41 +1856,42 @@
         <div class="logo-sub" id="logoSub">Muestra en tiempo real dónde hay electricidad y dónde no.</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <!-- City selector -->
-      <div class="city-select-wrap">
-        <select class="city-select" id="citySelect" onchange="changeCity(this.value)">
-          <option value="maracaibo">Maracaibo</option>
-          <option value="caracas" disabled>Caracas (próximamente)</option>
-          <option value="valencia" disabled>Valencia (próximamente)</option>
-          <option value="barquisimeto" disabled>Barquisimeto (próximamente)</option>
-          <option value="merida" disabled>Mérida (próximamente)</option>
-        </select>
-        <span class="city-select-arrow">▾</span>
-      </div>
-      <div class="live-pill" id="livePill"><div class="live-dot" id="liveDot"></div> <span id="liveLabel">EN VIVO</span></div>
-      <!-- Divider -->
-      <div style="width:1px;height:22px;background:var(--border);flex-shrink:0;"></div>
-      <div class="tip-wrap">
-        <button class="theme-btn muted nudge" id="muteBtn" onclick="toggleMute()" title="">
-          <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="tip-bubble" id="muteTip">
-          <strong>Alertas desactivadas</strong>
-          Actívalas para recibir notificaciones de fluctuación de voltaje en tiempo real.
-          <span class="tip-cta" onclick="toggleMute()">Activar alertas →</span>
+    <div class="topbar-controls">
+      <div class="city-live-row">
+        <div class="city-select-wrap">
+          <select class="city-select" id="citySelect" onchange="changeCity(this.value)">
+            <option value="maracaibo">Maracaibo</option>
+            <option value="caracas" disabled>Caracas (próximamente)</option>
+            <option value="valencia" disabled>Valencia (próximamente)</option>
+            <option value="barquisimeto" disabled>Barquisimeto (próximamente)</option>
+            <option value="merida" disabled>Mérida (próximamente)</option>
+          </select>
+          <span class="city-select-arrow">▾</span>
         </div>
+        <div class="live-pill" id="livePill"><div class="live-dot" id="liveDot"></div> <span id="liveLabel">EN VIVO</span></div>
       </div>
-      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
-        <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-      <!-- Alert panel — activity/signal icon -->
-      <button class="notif-btn" onclick="toggleDrawer()" title="Panel de alertas" id="notifBtn">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        <span class="notif-badge" id="notifBadge">0</span>
-      </button>
+      <div class="theme-row">
+        <div class="tip-wrap">
+          <button class="theme-btn muted nudge" id="muteBtn" onclick="toggleMute()" title="">
+            <svg id="muteIcon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+          <div class="tip-bubble" id="muteTip">
+            <strong>Alertas desactivadas</strong>
+            Actívalas para recibir notificaciones de fluctuación de voltaje en tiempo real.
+            <span class="tip-cta" onclick="toggleMute()">Activar alertas →</span>
+          </div>
+        </div>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Cambiar tema">
+          <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <!-- Alert panel — activity/signal icon -->
+        <button class="notif-btn" onclick="toggleDrawer()" title="Panel de alertas" id="notifBtn">
+          <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span class="notif-badge" id="notifBadge">0</span>
+        </button>
+      </div>
     </div>
   </div><!-- /topbar -->
 
