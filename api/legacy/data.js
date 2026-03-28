@@ -1,5 +1,5 @@
-const { checkRateLimit, getClientIP, MAX_REQUESTS } = require('./utils/rateLimit');
-const { sanitizePrompt, sanitizeJSONResponse, callOpenRouterWithRetry, setCorsHeaders, apiError, apiSuccess } = require('./utils/helpers');
+const { checkRateLimit, getClientIP, MAX_REQUESTS } = require('../utils/rateLimit');
+const { sanitizePrompt, sanitizeJSONResponse, callOpenRouterWithRetry, setCorsHeaders, apiError, apiSuccess } = require('../utils/helpers');
 
 const PARROQUIAS = [
   "Venancio Pulgar","Idelfonso Vásquez","Coquivacoa","Juana de Ávila",

@@ -1,4 +1,4 @@
-const { setCorsHeaders, apiError, apiSuccess } = require('./utils/helpers');
+const { setCorsHeaders, apiError, apiSuccess } = require('../utils/helpers');
 
 const MAX_FAILS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
