@@ -2932,7 +2932,11 @@ class LazyLoader {
 
 // Función para actualizar sectors desde datos de la API
 window.updateSectorsFromData = function(data) {
-  if (!data || !data.sectors) return;
+  if (!data || !data.sectors) {
+    console.log('[updateSectorsFromData] No data or no sectors');
+    return;
+  }
+  console.log('[updateSectorsFromData] Actualizando con', data.sectors.length, 'sectores');
   data.sectors.forEach(live => {
     const idx = sectors.findIndex(s => s.name === live.name);
     if (idx !== -1) {
@@ -2941,7 +2945,7 @@ window.updateSectorsFromData = function(data) {
   });
   dataSource = data.source || 'api';
   const cuts = sectors.filter(s => s.status === 'cut');
-  console.log('[updateSectorsFromData] Cortes:', cuts.length, cuts.map(s => s.name));
+  console.log('[updateSectorsFromData] Sectors actualizados. Cortes:', cuts.length);
 };
 
 async function loadLiveData() {
@@ -2961,7 +2965,11 @@ async function loadLiveData() {
     }
     const payload = await res.json();
     const sectorsData = payload.sectors || payload.data?.sectors;
-    console.log('[loadLiveData] Datos recibidos:', payload.source, 'sectores:', sectorsData?.length, 'cortes:', sectorsData?.filter(s => s.status === 'cut').length);
+    const cuts = sectorsData?.filter(s => s.status === 'cut') || [];
+    const inters = sectorsData?.filter(s => s.status === 'inter') || [];
+    console.log('[loadLiveData] Datos recibidos:', payload.source);
+    console.log('[loadLiveData] Cortes:', cuts.length, cuts.map(s => s.name));
+    console.log('[loadLiveData] Intermitentes:', inters.length, inters.map(s => s.name));
     updateSectorsFromData(payload);
     dataSource = payload.source || 'api';
     lastUpdateTime = new Date();
