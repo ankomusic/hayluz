@@ -4284,12 +4284,18 @@ async function submitCommunityReport() {
       ['ok','inter','cut'].forEach(v => { const e = document.getElementById('pill-'+v); if(e) e.className='status-pill'; });
       // Reload data immediately so the new report shows up
       setTimeout(async () => {
-        await loadLiveData();
-        renderStats();
-        filterSectors();
-        renderMapSectors();
-        await loadCommunityReports();
-      }, 1500);
+        try {
+          await loadLiveData();
+          renderStats();
+          filterSectors();
+          renderMapSectors();
+          await loadCommunityReports();
+          updateLivePill('success');
+          updateDataSourceIndicator();
+        } catch (e) {
+          console.warn('[submitReport] Error actualizando datos:', e);
+        }
+      }, 2000);
     } else {
       // Check for specific error types
       if (data.error?.status === 429) {
