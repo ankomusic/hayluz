@@ -1,5 +1,5 @@
-const { checkRateLimit, getClientIP, MAX_REQUESTS } = require('./utils/rateLimit');
-const { sanitizePrompt, sanitizeJSONResponse, callOpenRouterWithRetry, setCorsHeaders, apiError, apiSuccess } = require('./utils/helpers');
+const { checkRateLimit, getClientIP, MAX_REQUESTS } = require('../utils/rateLimit');
+const { sanitizePrompt, sanitizeJSONResponse, callOpenRouterWithRetry, setCorsHeaders, apiError, apiSuccess } = require('../utils/helpers');
 
 const PARROQUIAS = [
   "Coquivacoa","Urdaneta","Idelfonso Vásquez","Venancio Pulgar","Juana de Ávila",
@@ -54,11 +54,10 @@ async function handleReport(req, body) {
   const { allowed, count, fallback } = await checkRateLimit(ip);
   
   if (!allowed) {
-    const retryAfter = Math.ceil((10 * 60 * 1000) / 1000);
     return {
       status: 429,
       body: apiError(429, 'Demasiados reportes. Espera 10 minutos.', {
-        retryAfter,
+        retryAfter: 600,
         limit: MAX_REQUESTS,
         fallback
       })
@@ -105,14 +104,10 @@ async function handleReport(req, body) {
       method: 'POST',
       headers: { 'Content-Type':'application/json', apikey: key, Authorization:`Bearer ${key}`, Prefer:'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
-        parroquia,
-        status,
-        cause: sanitizedCause,
+        parroquia, status, cause: sanitizedCause,
         hours: status === 'ok' ? 0 : 1,
-        since,
-        affected: 0,
-        reporter_note: sanitizedNote,
-        confidence,
+        since, affected: 0,
+        reporter_note: sanitizedNote, confidence,
         updated_at: new Date().toISOString()
       })
     });

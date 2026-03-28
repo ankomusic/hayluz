@@ -1,13 +1,22 @@
 {
   "name": "hayluz-monitor",
-  "version": "0.0.26-beta",
+  "version": "0.0.27-beta",
   "description": "Monitor de cortes eléctricos en Venezuela",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "echo ok",
-    "start": "vercel dev --local --listen 3000"
+    "start": "vercel dev --local --listen 3000",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "lint": "eslint api/ --fix",
+    "format": "prettier --write \"api/**/*.js\" \"tests/**/*.js\""
   },
   "engines": {
     "node": "20.x"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "vitest": "^2.0.0"
   }
 }

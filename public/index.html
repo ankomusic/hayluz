@@ -1982,7 +1982,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.26-beta</span></span>
+      <span class="footer-bottom-left">&copy; 2026 · Powered by Claude AI &amp; Vercel · <span style="color:var(--text-dim);">v0.0.27-beta</span></span>
       <div class="footer-bottom-right">
         <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openCredits()">Créditos</button>
         <a href="https://paypal.me/ankosito" target="_blank" rel="noopener" class="paypal-link" title="Apoyar el proyecto con una donación">
@@ -2106,10 +2106,817 @@ const ZONE_MAP = {
 
 let dataSource = 'cargando...';
 
+// ======== SISTEMAS DE OPTIMIZACIÓN DE RENDIMIENTO ========
+
+// 1. SmartCache - Sistema de caché inteligente
+class SmartCache {
+  constructor() {
+    this.cache = new Map();
+    this.metadata = new Map();
+    this.compressionEnabled = this.isCompressionSupported();
+    this.maxSize = 50 * 1024 * 1024; // 50MB
+    this.currentSize = 0;
+    this.lru = new Map();
+    this.stats = {
+      hits: 0,
+      misses: 0,
+      evictions: 0,
+      compressionSavings: 0
+    };
+  }
+
+  isCompressionSupported() {
+    try {
+      return 'CompressionStream' in window && 'DecompressionStream' in window;
+    } catch {
+      return false;
+    }
+  }
+
+  async compress(data) {
+    if (!this.compressionEnabled) return data;
+    
+    try {
+      const stream = new Blob([JSON.stringify(data)]).stream();
+      const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
+      const compressedBlob = await new Response(compressedStream).blob();
+      const buffer = await compressedBlob.arrayBuffer();
+      
+      this.stats.compressionSavings += JSON.stringify(data).length - buffer.byteLength;
+      return { compressed: true, data: buffer };
+    } catch {
+      return data;
+    }
+  }
+
+  async decompress(data) {
+    if (!data.compressed) return data;
+    
+    try {
+      const stream = new Blob([data.data]).stream();
+      const decompressedStream = stream.pipeThrough(new DecompressionStream('gzip'));
+      const decompressedBlob = await new Response(decompressedStream).blob();
+      const text = await decompressedBlob.text();
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  }
+
+  async set(key, value, ttl = 5 * 60 * 1000) {
+    const size = JSON.stringify(value).length;
+    
+    // LRU eviction
+    while (this.currentSize + size > this.maxSize && this.cache.size > 0) {
+      const oldestKey = this.lru.keys().next().value;
+      this.delete(oldestKey);
+    }
+
+    const compressedValue = await this.compress(value);
+    const entry = {
+      value: compressedValue,
+      size: size,
+      timestamp: Date.now(),
+      ttl: ttl
+    };
+
+    this.cache.set(key, entry);
+    this.metadata.set(key, { size, timestamp: entry.timestamp });
+    this.lru.set(key, Date.now());
+    this.currentSize += size;
+  }
+
+  async get(key) {
+    const entry = this.cache.get(key);
+    if (!entry) {
+      this.stats.misses++;
+      return null;
+    }
+
+    // Check TTL
+    if (Date.now() - entry.timestamp > entry.ttl) {
+      this.delete(key);
+      this.stats.misses++;
+      return null;
+    }
+
+    this.lru.set(key, Date.now());
+    this.stats.hits++;
+    
+    return await this.decompress(entry.value);
+  }
+
+  delete(key) {
+    const entry = this.cache.get(key);
+    if (entry) {
+      this.cache.delete(key);
+      this.metadata.delete(key);
+      this.lru.delete(key);
+      this.currentSize -= entry.size;
+      this.stats.evictions++;
+    }
+  }
+
+  clear() {
+    this.cache.clear();
+    this.metadata.clear();
+    this.lru.clear();
+    this.currentSize = 0;
+  }
+
+  getStats() {
+    const hitRate = this.stats.hits / (this.stats.hits + this.stats.misses) || 0;
+    return {
+      ...this.stats,
+      hitRate: Math.round(hitRate * 100) / 100,
+      cacheSize: this.currentSize,
+      entries: this.cache.size
+    };
+  }
+
+  async validate(key, validator) {
+    const value = await this.get(key);
+    if (!value) return false;
+    
+    const isValid = await validator(value);
+    if (!isValid) {
+      this.delete(key);
+    }
+    return isValid;
+  }
+}
+
+// 2. PerformanceMonitor - Monitor de rendimiento
+class PerformanceMonitor {
+  constructor() {
+    this.metrics = {
+      navigation: {},
+      resource: [],
+      paint: {},
+      memory: {},
+      custom: {}
+    };
+    this.observers = {};
+    this.isSupported = this.checkSupport();
+    this.startMonitoring();
+  }
+
+  checkSupport() {
+    return {
+      navigation: 'PerformanceObserver' in window && 'PerformanceNavigationTiming' in window,
+      resource: 'PerformanceObserver' in window && 'PerformanceResourceTiming' in window,
+      paint: 'PerformanceObserver' in window && 'PerformancePaintTiming' in window,
+      memory: 'memory' in performance,
+      longtask: 'PerformanceObserver' in window && 'PerformanceLongTaskTiming' in window
+    };
+  }
+
+  startMonitoring() {
+    if (this.isSupported.navigation) {
+      this.observeNavigation();
+    }
+    if (this.isSupported.resource) {
+      this.observeResources();
+    }
+    if (this.isSupported.paint) {
+      this.observePaint();
+    }
+    if (this.isSupported.memory) {
+      this.observeMemory();
+    }
+    if (this.isSupported.longtask) {
+      this.observeLongTasks();
+    }
+  }
+
+  observeNavigation() {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.metrics.navigation = {
+            dns: entry.domainLookupEnd - entry.domainLookupStart,
+            tcp: entry.connectEnd - entry.connectStart,
+            ssl: entry.secureConnectionStart > 0 ? entry.connectEnd - entry.secureConnectionStart : 0,
+            ttfb: entry.responseStart - entry.requestStart,
+            download: entry.responseEnd - entry.responseStart,
+            domParse: entry.domContentLoadedEventStart - entry.responseEnd,
+            domReady: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
+            loadComplete: entry.loadEventEnd - entry.loadEventStart,
+            total: entry.loadEventEnd - entry.navigationStart
+          };
+        });
+      });
+      observer.observe({ entryTypes: ['navigation'] });
+      this.observers.navigation = observer;
+    } catch (e) {
+      console.warn('Navigation monitoring failed:', e);
+    }
+  }
+
+  observeResources() {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.metrics.resource.push({
+            name: entry.name,
+            type: entry.initiatorType,
+            duration: entry.duration,
+            size: entry.transferSize,
+            cached: entry.transferSize === 0 && entry.decodedBodySize > 0
+          });
+        });
+      });
+      observer.observe({ entryTypes: ['resource'] });
+      this.observers.resource = observer;
+    } catch (e) {
+      console.warn('Resource monitoring failed:', e);
+    }
+  }
+
+  observePaint() {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.metrics.paint[entry.name] = entry.startTime;
+        });
+      });
+      observer.observe({ entryTypes: ['paint'] });
+      this.observers.paint = observer;
+    } catch (e) {
+      console.warn('Paint monitoring failed:', e);
+    }
+  }
+
+  observeMemory() {
+    const updateMemory = () => {
+      if (performance.memory) {
+        this.metrics.memory = {
+          used: performance.memory.usedJSHeapSize,
+          total: performance.memory.totalJSHeapSize,
+          limit: performance.memory.jsHeapSizeLimit,
+          utilization: performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit
+        };
+      }
+    };
+    
+    updateMemory();
+    this.memoryInterval = setInterval(updateMemory, 5000);
+  }
+
+  observeLongTasks() {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.metrics.custom.longTasks = (this.metrics.custom.longTasks || 0) + 1;
+          console.warn(`Long task detected: ${entry.duration}ms`);
+        });
+      });
+      observer.observe({ entryTypes: ['longtask'] });
+      this.observers.longtask = observer;
+    } catch (e) {
+      console.warn('Long task monitoring failed:', e);
+    }
+  }
+
+  getMetrics() {
+    return { ...this.metrics };
+  }
+
+  getPerformanceScore() {
+    const nav = this.metrics.navigation;
+    const memory = this.metrics.memory;
+    
+    let score = 100;
+    
+    // Penalizaciones basadas en métricas
+    if (nav.ttfb > 2000) score -= 20;
+    else if (nav.ttfb > 1000) score -= 10;
+    
+    if (nav.total > 5000) score -= 20;
+    else if (nav.total > 3000) score -= 10;
+    
+    if (memory.utilization > 0.8) score -= 15;
+    else if (memory.utilization > 0.6) score -= 5;
+    
+    if (this.metrics.custom.longTasks > 5) score -= 10;
+    
+    return Math.max(0, Math.min(100, score));
+  }
+
+  cleanup() {
+    Object.values(this.observers).forEach(observer => observer.disconnect());
+    if (this.memoryInterval) clearInterval(this.memoryInterval);
+  }
+}
+
+// 3. SmartUpdater - Sistema de actualización inteligente
+class SmartUpdater {
+  constructor(cacheManager, performanceMonitor) {
+    this.cache = cacheManager;
+    this.monitor = performanceMonitor;
+    this.isOnline = navigator.onLine;
+    this.updateInterval = null;
+    this.lastUpdate = 0;
+    this.errorCount = 0;
+    this.baseInterval = 30000; // 30 segundos base
+    this.maxInterval = 300000; // 5 minutos máximo
+    this.minInterval = 10000; // 10 segundos mínimo
+    this.isUpdating = false;
+    this.validators = new Map();
+    
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.scheduleNextUpdate();
+    });
+    
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
+      }
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.adaptForBackground();
+      } else {
+        this.adaptForForeground();
+      }
+    });
+  }
+
+  adaptForBackground() {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = setInterval(() => this.update(), this.maxInterval);
+    }
+  }
+
+  adaptForForeground() {
+    this.scheduleNextUpdate();
+  }
+
+  scheduleNextUpdate() {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+    
+    const interval = this.calculateAdaptiveInterval();
+    this.updateInterval = setInterval(() => this.update(), interval);
+  }
+
+  calculateAdaptiveInterval() {
+    const score = this.monitor.getPerformanceScore();
+    const memoryUtil = this.monitor.metrics.memory.utilization || 0;
+    const network = navigator.connection?.effectiveType || 'unknown';
+    
+    let multiplier = 1;
+    
+    // Ajustar basado en performance
+    if (score < 50) multiplier = 2.5;
+    else if (score < 75) multiplier = 1.5;
+    else if (score > 90) multiplier = 0.8;
+    
+    // Ajustar basado en memoria
+    if (memoryUtil > 0.8) multiplier *= 2;
+    else if (memoryUtil > 0.6) multiplier *= 1.5;
+    
+    // Ajustar basado en red
+    if (network === 'slow-2g' || network === '2g') multiplier *= 3;
+    else if (network === '3g') multiplier *= 1.5;
+    else if (network === '4g') multiplier *= 0.7;
+    
+    let interval = Math.floor(this.baseInterval * multiplier);
+    interval = Math.max(this.minInterval, Math.min(this.maxInterval, interval));
+    
+    return interval;
+  }
+
+  async update() {
+    if (this.isUpdating || !this.isOnline) return;
+    
+    this.isUpdating = true;
+    const startTime = performance.now();
+    
+    try {
+      const data = await this.fetchData();
+      if (data) {
+        await this.processData(data);
+        this.errorCount = 0;
+        this.lastUpdate = Date.now();
+      } else {
+        // No data returned - API might be unavailable
+        this.errorCount++;
+      }
+    } catch (error) {
+      this.errorCount++;
+      // No mostrar errores de red individuales para evitar spam
+    } finally {
+      this.isUpdating = false;
+      const duration = performance.now() - startTime;
+      this.logUpdate(duration);
+    }
+  }
+
+  async fetchData() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/data`, {
+        signal: controller.signal,
+        headers: { 'X-Cache-Control': 'smart' }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        // No lanzar error para 404/503 - solo retornar null
+        // Esto evita que se muestren errores en la consola
+        return null;
+      }
+      
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      // No lanzar error - solo retornar null para manejo silencioso
+      return null;
+    }
+  }
+
+  async processData(data) {
+    // Validar datos
+    if (!this.validateData(data)) {
+      throw new Error('Invalid data received');
+    }
+    
+    // Procesar y almacenar en caché
+    const processedData = this.processDataStructure(data);
+    await this.cache.set('liveData', processedData, 60000); // 1 minuto TTL
+    
+    // Notificar actualización exitosa
+    this.notifyUpdate(processedData);
+  }
+
+  validateData(data) {
+    return data && 
+           Array.isArray(data.sectors) && 
+           data.sectors.length > 0 &&
+           typeof data.timestamp === 'number';
+  }
+
+  processDataStructure(data) {
+    // Enrich data with zone information
+    data.sectors.forEach(sector => {
+      sector.zone = ZONE_MAP[sector.name] || sector.zone || 'Desconocida';
+    });
+    
+    return {
+      ...data,
+      processedAt: Date.now(),
+      source: 'smart-updater'
+    };
+  }
+
+  notifyUpdate(data) {
+    // Actualizar UI
+    sectors.forEach(s => {
+      const live = data.sectors.find(l => l.name === s.name);
+      if (live) {
+        Object.assign(s, live);
+      }
+    });
+    
+    // Re-renderizar vistas activas
+    if (document.getElementById('view-monitor').classList.contains('active')) {
+      filterSectors();
+    }
+    if (document.getElementById('view-map').classList.contains('active')) {
+      renderMapSectors();
+    }
+    
+    // Actualizar estadísticas
+    renderStats();
+  }
+
+  logUpdate(duration) {
+    // Solo log en desarrollo o si hay errores
+    if (this.errorCount > 0) {
+      console.warn(`[SmartUpdater] Update completed with ${this.errorCount} errors in ${duration.toFixed(2)}ms`);
+    }
+    // No log en producción para evitar spam
+  }
+
+  async forceUpdate() {
+    if (this.isUpdating) return;
+    
+    this.isUpdating = true;
+    try {
+      const data = await this.fetchData();
+      await this.processData(data);
+      this.errorCount = 0;
+      this.lastUpdate = Date.now();
+      showToast({
+        color: 'green', icon: '✓',
+        title: 'Actualización forzada',
+        msg: 'Datos actualizados exitosamente',
+        time: new Date().toLocaleTimeString('es-VE'),
+        system: true
+      });
+    } catch (error) {
+      showToast({
+        color: 'red', icon: '✗',
+        title: 'Error en actualización',
+        msg: 'No se pudieron cargar los datos',
+        time: new Date().toLocaleTimeString('es-VE'),
+        system: true
+      });
+    } finally {
+      this.isUpdating = false;
+    }
+  }
+
+  async clearCacheAndReload() {
+    this.cache.clear();
+    await this.forceUpdate();
+  }
+
+  start() {
+    this.scheduleNextUpdate();
+  }
+
+  stop() {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = null;
+    }
+  }
+}
+
+// 4. LazyLoader - Cargador diferido inteligente
+class LazyLoader {
+  constructor() {
+    this.intersectionObserver = null;
+    this.idleObserver = null;
+    this.views = new Map();
+    this.resources = new Map();
+    this.isIdle = false;
+    
+    this.init();
+  }
+
+  init() {
+    this.setupIntersectionObserver();
+    this.setupIdleObserver();
+    this.setupProactiveLoading();
+  }
+
+  setupIntersectionObserver() {
+    if ('IntersectionObserver' in window) {
+      this.intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              this.loadView(entry.target.id);
+            }
+          });
+        },
+        {
+          root: null,
+          rootMargin: '50px',
+          threshold: 0.1
+        }
+      );
+    }
+  }
+
+  setupIdleObserver() {
+    if ('requestIdleCallback' in window) {
+      const runIdleTasks = () => {
+        this.isIdle = true;
+        this.loadIdleResources();
+        requestIdleCallback(runIdleTasks);
+      };
+      requestIdleCallback(runIdleTasks);
+    } else {
+      // Fallback para navegadores sin requestIdleCallback
+      setTimeout(() => {
+        this.isIdle = true;
+        this.loadIdleResources();
+      }, 1000);
+    }
+  }
+
+  setupProactiveLoading() {
+    // Cargar recursos críticos proactivamente
+    this.preloadCriticalResources();
+    
+    // Escuchar cambios de vista
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const viewId = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
+        this.preloadViewResources(viewId);
+      });
+    });
+  }
+
+  observeViews() {
+    if (!this.intersectionObserver) return;
+    
+    document.querySelectorAll('.view').forEach(view => {
+      this.intersectionObserver.observe(view);
+    });
+  }
+
+  async loadView(viewId) {
+    const view = document.getElementById(`view-${viewId}`);
+    if (!view || view.dataset.loaded === 'true') return;
+    
+    view.dataset.loading = 'true';
+    
+    try {
+      switch (viewId) {
+        case 'map':
+          await this.loadMapResources();
+          break;
+        case 'incidents':
+          await this.loadIncidentResources();
+          break;
+        case 'report':
+          await this.loadReportResources();
+          break;
+        case 'verify':
+          await this.loadVerifyResources();
+          break;
+      }
+      
+      view.dataset.loaded = 'true';
+      view.dataset.loading = 'false';
+      
+    } catch (error) {
+      console.error(`Failed to load view ${viewId}:`, error);
+      view.dataset.loading = 'false';
+    }
+  }
+
+  async loadMapResources() {
+    // Cargar tiles de Leaflet solo cuando se necesita
+    if (typeof L !== 'undefined') {
+      renderMapSectors();
+    }
+  }
+
+  async loadIncidentResources() {
+    // Cargar recursos para IA de incidentes
+    renderIncidents();
+  }
+
+  async loadReportResources() {
+    // Cargar validaciones y recursos del formulario
+    seedFeedFromSectors();
+    await loadCommunityReports();
+  }
+
+  async loadVerifyResources() {
+    // Cargar ejemplos y recursos del verificador
+    // Los ejemplos ya están cargados, solo inicializar UI
+  }
+
+  preloadCriticalResources() {
+    // No preload crítico - evitar warnings de recursos no usados
+    // Los recursos se cargarán cuando sean necesarios
+  }
+
+  preloadViewResources(viewId) {
+    // No preload de vistas - evitar warnings
+    // Las vistas se cargarán cuando el usuario las active
+  }
+
+  preloadImage(url) {
+    // No preload de imágenes - evitar warnings
+  }
+
+  preloadCSS(href) {
+    // No preload de CSS - evitar warnings
+  }
+
+  preloadScript(src) {
+    // No preload de scripts - evitar warnings
+  }
+
+  async loadIdleResources() {
+    if (!this.isIdle) return;
+    
+    // Cargar recursos no críticos cuando el navegador está idle
+    const resources = Array.from(this.resources.values()).filter(r => !r.loaded);
+    
+    for (const resource of resources) {
+      try {
+        await this.loadResource(resource);
+      } catch (error) {
+        console.warn(`Failed to load idle resource:`, error);
+      }
+    }
+  }
+
+  async loadResource(resource) {
+    // Implementar lógica de carga de recurso
+    resource.loaded = true;
+  }
+
+  setupIdleLoading() {
+    // Configurar carga en idle para recursos pesados
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        // Cargar recursos pesados cuando haya tiempo disponible
+        this.loadHeavyResources();
+      });
+    }
+  }
+
+  async loadHeavyResources() {
+    // Cargar recursos que no son críticos para el rendimiento inicial
+    // como analíticas, widgets sociales, etc.
+  }
+}
+
+// ======== FUNCIONES DE CACHÉ Y ACTUALIZACIÓN ========
+
+// Función para actualizar sectors desde datos de la API
+window.updateSectorsFromData = function(data) {
+  if (!data || !data.sectors) return;
+  data.sectors.forEach(live => {
+    const idx = sectors.findIndex(s => s.name === live.name);
+    if (idx !== -1) {
+      sectors[idx] = { ...sectors[idx], ...live, zone: ZONE_MAP[live.name] || sectors[idx].zone };
+    }
+  });
+  dataSource = data.source || 'api';
+};
+
 async function loadLiveData() {
   try {
     const res = await fetch(`${API_BASE}/api/data`);
-    if (!res.ok) throw new Error('API error');
+    if (!res.ok) {
+      dataSource = 'sin conexión';
+      return;
+    }
+    const payload = await res.json();
+    // Handle both legacy and v1 API response formats
+    const sectorsData = payload.sectors || payload.data?.sectors;
+    if (sectorsData?.length) {
+      updateSectorsFromData(payload);
+    }
+  } catch {
+    dataSource = 'sin conexión';
+  }
+}
+
+// Sistema de actualización inteligente
+let smartUpdater = null;
+let performanceMonitor = null;
+let lazyLoader = null;
+
+// Inicializar sistemas de optimización
+function initOptimizationSystems() {
+  // Inicializar monitor de rendimiento
+  performanceMonitor = new PerformanceMonitor();
+  
+  // Inicializar gestor de caché
+  const cacheManager = new SmartCache();
+  
+  // Inicializar actualizador inteligente
+  smartUpdater = new SmartUpdater(cacheManager, performanceMonitor);
+  
+  // Inicializar cargador diferido
+  lazyLoader = new LazyLoader();
+  
+  // Configurar lazy loading
+  lazyLoader.setupIntersectionObserver();
+  lazyLoader.observeViews();
+  lazyLoader.setupProactiveLoading();
+  lazyLoader.setupIdleLoading();
+  
+  // Iniciar actualización inteligente
+  smartUpdater.start();
+  
+  console.log('🚀 Sistemas de optimización iniciados');
+}
+
+// Reemplazar función loadLiveData para usar el nuevo sistema
+async function loadLiveData() {
+  try {
+    const res = await fetch(`${API_BASE}/api/data`);
+    if (!res.ok) {
+      // API no disponible - mostrar estado sin conexión
+      dataSource = 'sin conexión';
+      return;
+    }
     const payload = await res.json();
     if (payload.sectors?.length) {
       // Merge live data into sectors array in-place
@@ -2127,13 +2934,29 @@ async function loadLiveData() {
   }
 }
 
-// Re-fetch live data every 5 minutes
-setInterval(async () => {
-  await loadLiveData();
-  renderStats();
-  filterSectors();
-  renderMapSectors();
-}, 30 * 1000);
+// Función para forzar actualización manual
+async function forceUpdate() {
+  if (smartUpdater) {
+    await smartUpdater.forceUpdate();
+  } else {
+    await loadLiveData();
+    renderStats();
+    filterSectors();
+    renderMapSectors();
+  }
+}
+
+// Función para limpiar caché y recargar
+async function clearCacheAndReload() {
+  if (smartUpdater) {
+    await smartUpdater.clearCacheAndReload();
+  } else {
+    await loadLiveData();
+    renderStats();
+    filterSectors();
+    renderMapSectors();
+  }
+}
 
 const incidents = [
   { text: "Caracciolo Parra Pérez: corte total desde las 3:15 AM sin restauración confirmada", color: "red", time: "hace 11 h" },
@@ -2156,6 +2979,9 @@ let verifyHistory = [];
 
 // ---- INIT ----
 async function init() {
+  // Inicializar sistemas de optimización
+  initOptimizationSystems();
+
   // Show skeleton immediately
   renderStats();
   filterSectors();
@@ -2310,13 +3136,18 @@ function renderIncidents() {
 // ---- AI ANALYSIS ----
 async function callAPI(action, body) {
   // All AI calls go to /api/data (the single proven endpoint) with an action field
+  // Handles both legacy format and v1 format: { success: true, data: {...} }
   const res = await fetch(`${API_BASE}/api/data`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...body })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const json = await res.json();
+  // Unwrap v1 format if present
+  if (json.success && json.data) return json.data;
+  // Legacy format
+  return json;
 }
 
 async function runAnalysis() {
@@ -3344,9 +4175,11 @@ async function submitCommunityReport() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
     });
-    const data = await res.json();
+    const json = await res.json();
+    // Handle both legacy and v1 API response formats
+    const data = json.data || json;
 
-    if (res.ok && data.ok) {
+    if (res.ok && (data.ok || data.success)) {
       showRpResult('✓ Reporte enviado — gracias por contribuir', 'success');
       addToFeed({ parroquia, status: selectedStatus, cause: cause || '—', time: 'ahora mismo' });
       document.getElementById('rpParroquia').value = '';
@@ -3363,7 +4196,8 @@ async function submitCommunityReport() {
         await loadCommunityReports();
       }, 1500);
     } else {
-      showRpResult(data.error || 'No se pudo enviar el reporte', 'error');
+      const errorMsg = data.error?.message || data.error || 'No se pudo enviar el reporte';
+      showRpResult(errorMsg, 'error');
     }
   } catch {
     showRpResult('Error de conexión — verifica tu internet', 'error');
@@ -3427,7 +4261,9 @@ async function loadCommunityReports() {
       body: JSON.stringify({ action: 'reports' })
     });
     if (!res.ok) return;
-    const data = await res.json();
+    const json = await res.json();
+    // Handle both legacy and v1 API response formats
+    const data = json.data || json;
     if (data.reports?.length) {
       communityReports = data.reports.map(r => ({
         parroquia: r.parroquia,

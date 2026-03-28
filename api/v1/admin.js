@@ -1,4 +1,4 @@
-const { setCorsHeaders, apiError, apiSuccess } = require('./utils/helpers');
+const { setCorsHeaders, apiError, apiSuccess } = require('../utils/helpers');
 
 const MAX_FAILS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -164,12 +164,12 @@ module.exports = async function handler(req, res) {
       if (!r.ok) {
         return res.status(r.status).json(apiError(r.status, 'Delete failed', { detail: await r.text() }));
       }
-      return res.status(200).json(apiSuccess({ ok: true, action: 'delete', parroquia }));
+      return res.status(200).json(apiSuccess({ ok: true, action: 'delete', deletedParroquia: parroquia }));
     }
 
     return res.status(405).json(apiError(405, 'Method not allowed'));
   } catch (e) {
-    console.error('[admin] exception:', e.message);
+    console.error('[admin/v1] exception:', e.message);
     return res.status(500).json(apiError(500, 'Internal server error', { detail: e.message }));
   }
 };
