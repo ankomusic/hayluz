@@ -2940,7 +2940,8 @@ window.updateSectorsFromData = function(data) {
     }
   });
   dataSource = data.source || 'api';
-  console.log('[updateSectorsFromData] Sectors actualizados:', sectors.filter(s => s.status !== 'ok' && s.status !== 'nodata').length);
+  const cuts = sectors.filter(s => s.status === 'cut');
+  console.log('[updateSectorsFromData] Cortes:', cuts.length, cuts.map(s => s.name));
 };
 
 async function loadLiveData() {
@@ -2960,6 +2961,7 @@ async function loadLiveData() {
     }
     const payload = await res.json();
     const sectorsData = payload.sectors || payload.data?.sectors;
+    console.log('[loadLiveData] Datos recibidos:', payload.source, 'sectores:', sectorsData?.length);
     updateSectorsFromData(payload);
     dataSource = payload.source || 'api';
     lastUpdateTime = new Date();
@@ -4268,12 +4270,14 @@ async function submitCommunityReport() {
   resultEl.style.display = 'none';
 
   try {
+    console.log('[submitReport] Enviando:', { parroquia, status: selectedStatus, cause, note });
     const res = await fetch(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
     });
     const json = await res.json();
+    console.log('[submitReport] Respuesta:', res.status, json);
     // Handle both legacy and v1 API response formats
     const data = json.data || json;
 
