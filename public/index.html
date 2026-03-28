@@ -2108,6 +2108,27 @@ let dataSource = 'cargando...';
 let isUpdating = false;
 let lastUpdateTime = null;
 
+function updateLivePill(status) {
+  const dot = document.getElementById('liveDot');
+  const label = document.getElementById('liveLabel');
+  if (!dot || !label) return;
+  
+  if (status === 'loading') {
+    dot.style.animation = 'none';
+    dot.style.background = 'var(--amber)';
+    label.textContent = 'ACTUALIZANDO...';
+  } else if (status === 'error') {
+    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
+    dot.style.background = 'var(--red)';
+    label.textContent = 'OFFLINE';
+  } else {
+    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
+    dot.style.background = 'var(--red)';
+    const time = lastUpdateTime ? lastUpdateTime.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' }) : 'EN VIVO';
+    label.textContent = time;
+  }
+}
+
 // ======== SISTEMAS DE OPTIMIZACIÓN DE RENDIMIENTO ========
 
 // 1. SmartCache - Sistema de caché inteligente
@@ -2430,17 +2451,29 @@ class SmartUpdater {
   }
 
   setupEventListeners() {
-    window.addEventListener('online', () => {
-      this.isOnline = true;
-      this.scheduleNextUpdate();
-    });
-    
     window.addEventListener('offline', () => {
       this.isOnline = false;
       if (this.updateInterval) {
         clearInterval(this.updateInterval);
         this.updateInterval = null;
       }
+      // Update the live pill to show offline status
+      if (typeof updateLivePill === 'function') {
+        updateLivePill('error');
+      }
+      dataSource = 'offline';
+      renderStats();
+    });
+    
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.scheduleNextUpdate();
+      // Update the live pill to show success status
+      if (typeof updateLivePill === 'function') {
+        updateLivePill('success');
+      }
+      // Reload data when coming back online
+      loadLiveData();
     });
     
     document.addEventListener('visibilitychange', () => {
@@ -2886,27 +2919,6 @@ async function loadLiveData() {
     updateLivePill('error');
   } finally {
     isUpdating = false;
-  }
-}
-
-function updateLivePill(status) {
-  const dot = document.getElementById('liveDot');
-  const label = document.getElementById('liveLabel');
-  if (!dot || !label) return;
-  
-  if (status === 'loading') {
-    dot.style.animation = 'none';
-    dot.style.background = 'var(--amber)';
-    label.textContent = 'ACTUALIZANDO...';
-  } else if (status === 'error') {
-    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
-    dot.style.background = 'var(--red)';
-    label.textContent = 'OFFLINE';
-  } else {
-    dot.style.animation = 'pulse 1.5s ease-in-out infinite';
-    dot.style.background = 'var(--red)';
-    const time = lastUpdateTime ? lastUpdateTime.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' }) : 'EN VIVO';
-    label.textContent = time;
   }
 }
 
