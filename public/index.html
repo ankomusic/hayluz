@@ -2129,6 +2129,38 @@ function updateLivePill(status) {
   }
 }
 
+function updateDataSourceIndicator() {
+  const sourceEl = document.getElementById('dataSourceIndicator');
+  if (!sourceEl) return;
+  
+  if (dataSource === 'offline') {
+    sourceEl.textContent = 'Sin conexión';
+    sourceEl.style.color = 'var(--red)';
+  } else if (dataSource === 'cargando...') {
+    sourceEl.textContent = 'Cargando...';
+    sourceEl.style.color = 'var(--amber)';
+  } else {
+    sourceEl.textContent = dataSource;
+    sourceEl.style.color = 'var(--green)';
+  }
+}
+
+function renderStats() {
+  const cut    = sectors.filter(s => s.status === 'cut').length;
+  const inter  = sectors.filter(s => s.status === 'inter').length;
+  const ok     = sectors.filter(s => s.status === 'ok').length;
+  const nodata = sectors.filter(s => s.status === 'nodata').length;
+  const hrs    = sectors.filter(s => s.hours > 0).map(s => s.hours);
+  const avg    = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
+  
+  document.getElementById('statCut').textContent   = dataSource === 'offline' ? '?' : (cut || '—');
+  document.getElementById('statInter').textContent = dataSource === 'offline' ? '?' : (inter || '—');
+  document.getElementById('statOk').textContent    = nodata === sectors.length ? '—' : ok;
+  document.getElementById('statAvg').textContent   = nodata === sectors.length ? '—' : avg + 'h';
+  
+  updateDataSourceIndicator();
+}
+
 // ======== SISTEMAS DE OPTIMIZACIÓN DE RENDIMIENTO ========
 
 // 1. SmartCache - Sistema de caché inteligente
@@ -2457,12 +2489,19 @@ class SmartUpdater {
         clearInterval(this.updateInterval);
         this.updateInterval = null;
       }
+      dataSource = 'offline';
       // Update the live pill to show offline status
       if (typeof updateLivePill === 'function') {
         updateLivePill('error');
       }
-      dataSource = 'offline';
-      renderStats();
+      // Update footer indicator
+      if (typeof updateDataSourceIndicator === 'function') {
+        updateDataSourceIndicator();
+      }
+      // Update stats
+      if (typeof renderStats === 'function') {
+        renderStats();
+      }
     });
     
     window.addEventListener('online', () => {
@@ -3067,33 +3106,12 @@ function switchView(name, el) {
 }
 
 // ---- STATS ----
-function renderStats() {
-  const cut    = sectors.filter(s => s.status === 'cut').length;
-  const inter  = sectors.filter(s => s.status === 'inter').length;
-  const ok     = sectors.filter(s => s.status === 'ok').length;
-  const nodata = sectors.filter(s => s.status === 'nodata').length;
-  const hrs    = sectors.filter(s => s.hours > 0).map(s => s.hours);
-  const avg    = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
-  
-  document.getElementById('statCut').textContent   = dataSource === 'offline' ? '?' : (cut || '—');
-  document.getElementById('statInter').textContent = dataSource === 'offline' ? '?' : (inter || '—');
-  document.getElementById('statOk').textContent    = nodata === sectors.length ? '—' : ok;
-  document.getElementById('statAvg').textContent   = nodata === sectors.length ? '—' : avg + 'h';
+// renderStats and updateDataSourceIndicator defined earlier (before SmartUpdater class)
+
+// ---- SECTORS ----
   
   // Update source indicator
-  const sourceEl = document.getElementById('dataSourceIndicator');
-  if (sourceEl) {
-    if (dataSource === 'offline') {
-      sourceEl.textContent = 'Sin conexión';
-      sourceEl.style.color = 'var(--red)';
-    } else if (dataSource === 'cargando...') {
-      sourceEl.textContent = 'Cargando...';
-      sourceEl.style.color = 'var(--amber)';
-    } else {
-      sourceEl.textContent = dataSource;
-      sourceEl.style.color = 'var(--green)';
-    }
-  }
+  updateDataSourceIndicator();
 }
 
 // ---- SECTORS ----
