@@ -1,16 +1,4 @@
 {
-  "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" },
-    { "src": "api/v1/*.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/v1/(.*)", "dest": "/api/v1/$1" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/admin", "dest": "/public/admin.html" },
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ],
   "headers": [
     {
       "source": "/sw.js",
@@ -23,7 +11,6 @@
       "source": "/manifest.json",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" },
-        { "key": "Content-Type", "value": "application/manifest+json" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     },
@@ -34,22 +21,11 @@
       ]
     },
     {
-      "source": "/api/v1/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" },
-        { "key": "X-API-Version", "value": "v1" }
-      ]
-    },
-    {
       "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" },
-        { "key": "X-API-Version", "value": "v1" },
-        { "key": "X-API-Deprecation", "value": "true" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,x-admin-secret" }
       ]
     }
   ]
