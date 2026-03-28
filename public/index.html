@@ -4007,157 +4007,83 @@ function toggleTheme() {
 // Parroquias del Municipio Maracaibo
 // Coordenadas ajustadas al mapa oficial (imagen de referencia)
 // Lago de Maracaibo en el borde ESTE (~-71.595)
-// Norte ~10.760, Sur ~10.630, Oeste ~-71.720
+// Maracaibo municipality coordinates: lat 10.60-10.75, lon -71.75 to -71.60
 const sectorGeoData = [
   {
     name: "Coquivacoa", zone: "Norte",
-    coords: [
-      [10.758,-71.650],[10.758,-71.620],
-      [10.730,-71.620],[10.725,-71.630],
-      [10.728,-71.650]
-    ]
+    coords: [[10.730, -71.640], [10.730, -71.615], [10.715, -71.615], [10.710, -71.628], [10.715, -71.640]]
   },
   {
     name: "Urdaneta", zone: "Norte",
-    coords: [
-      [10.758,-71.700],[10.758,-71.650],
-      [10.730,-71.650],[10.728,-71.670],
-      [10.735,-71.700]
-    ]
+    coords: [[10.745, -71.680], [10.745, -71.645], [10.730, -71.640], [10.725, -71.660], [10.730, -71.680]]
   },
   {
     name: "Idelfonso Vásquez", zone: "Norte",
-    coords: [
-      [10.745,-71.670],[10.745,-71.700],
-      [10.728,-71.700],[10.728,-71.670]
-    ]
+    coords: [[10.745, -71.715], [10.745, -71.680], [10.730, -71.680], [10.730, -71.715]]
   },
   {
     name: "Venancio Pulgar", zone: "Norte-Oeste",
-    coords: [
-      [10.745,-71.720],[10.758,-71.715],
-      [10.758,-71.700],[10.745,-71.700]
-    ]
+    coords: [[10.745, -71.750], [10.745, -71.715], [10.730, -71.715], [10.730, -71.750]]
   },
   {
     name: "Juana de Ávila", zone: "Norte",
-    coords: [
-      [10.745,-71.650],[10.745,-71.630],
-      [10.730,-71.630],[10.725,-71.645],
-      [10.730,-71.655],[10.738,-71.650]
-    ]
+    coords: [[10.730, -71.660], [10.730, -71.640], [10.715, -71.640], [10.715, -71.660]]
   },
   {
     name: "Olegario Villalobos", zone: "Este",
-    coords: [
-      [10.745,-71.630],[10.745,-71.610],
-      [10.720,-71.610],[10.718,-71.620],
-      [10.720,-71.630]
-    ]
+    coords: [[10.730, -71.615], [10.730, -71.600], [10.710, -71.600], [10.705, -71.612], [10.710, -71.615]]
   },
   {
     name: "Bolívar", zone: "Este",
-    coords: [
-      [10.720,-71.620],[10.720,-71.610],
-      [10.700,-71.610],[10.698,-71.618],
-      [10.700,-71.625]
-    ]
+    coords: [[10.710, -71.612], [10.710, -71.600], [10.695, -71.600], [10.690, -71.608], [10.692, -71.612]]
   },
   {
     name: "Chiquinquirá", zone: "Centro-Este",
-    coords: [
-      [10.720,-71.630],[10.720,-71.618],
-      [10.700,-71.625],[10.698,-71.630],
-      [10.705,-71.640]
-    ]
+    coords: [[10.715, -71.628], [10.715, -71.615], [10.700, -71.615], [10.695, -71.625], [10.700, -71.628]]
   },
   {
     name: "Raúl Leoni", zone: "Centro",
-    coords: [
-      [10.718,-71.650],[10.718,-71.640],
-      [10.705,-71.640],[10.698,-71.635],
-      [10.698,-71.648],[10.710,-71.655]
-    ]
+    coords: [[10.700, -71.650], [10.700, -71.638], [10.685, -71.635], [10.682, -71.645], [10.688, -71.650]]
   },
   {
     name: "Caracciolo Parra Pérez", zone: "Centro-Oeste",
-    coords: [
-      [10.738,-71.670],[10.738,-71.650],
-      [10.718,-71.650],[10.710,-71.655],
-      [10.710,-71.670]
-    ]
+    coords: [[10.715, -71.665], [10.715, -71.650], [10.700, -71.650], [10.700, -71.665]]
   },
   {
     name: "Cacique Mara", zone: "Centro",
-    coords: [
-      [10.710,-71.655],[10.710,-71.648],
-      [10.698,-71.648],[10.698,-71.660],
-      [10.705,-71.665]
-    ]
+    coords: [[10.700, -71.638], [10.700, -71.628], [10.685, -71.625], [10.682, -71.635], [10.688, -71.638]]
   },
   {
     name: "Cecilio Acosta", zone: "Centro",
-    coords: [
-      [10.700,-71.625],[10.700,-71.618],
-      [10.685,-71.615],[10.682,-71.625],
-      [10.685,-71.635],[10.695,-71.640]
-    ]
+    coords: [[10.690, -71.612], [10.690, -71.600], [10.675, -71.598], [10.672, -71.608], [10.678, -71.612]]
   },
   {
     name: "Santa Lucía", zone: "Este",
-    coords: [
-      [10.685,-71.615],[10.685,-71.610],
-      [10.665,-71.610],[10.665,-71.620],
-      [10.670,-71.625],[10.675,-71.615]
-    ]
+    coords: [[10.678, -71.612], [10.678, -71.598], [10.660, -71.600], [10.658, -71.610], [10.665, -71.612]]
   },
   {
     name: "Manuel Dagnino", zone: "Sur-Este",
-    coords: [
-      [10.670,-71.625],[10.670,-71.615],
-      [10.655,-71.612],[10.652,-71.620],
-      [10.655,-71.632],[10.665,-71.635]
-    ]
+    coords: [[10.660, -71.610], [10.660, -71.600], [10.645, -71.598], [10.642, -71.608], [10.648, -71.610]]
   },
   {
     name: "Cristo de Aranza", zone: "Sur-Este",
-    coords: [
-      [10.655,-71.632],[10.655,-71.620],
-      [10.640,-71.618],[10.638,-71.628],
-      [10.642,-71.638],[10.648,-71.635]
-    ]
+    coords: [[10.645, -71.608], [10.645, -71.598], [10.630, -71.600], [10.628, -71.610], [10.635, -71.608]]
   },
   {
     name: "Luis Hurtado Higuera", zone: "Sur",
-    coords: [
-      [10.648,-71.635],[10.648,-71.638],
-      [10.638,-71.638],[10.635,-71.650],
-      [10.640,-71.660],[10.648,-71.655]
-    ]
+    coords: [[10.635, -71.660], [10.635, -71.650], [10.620, -71.650], [10.618, -71.658], [10.622, -71.660]]
   },
   {
     name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
-    coords: [
-      [10.670,-71.665],[10.670,-71.655],
-      [10.648,-71.655],[10.648,-71.668],
-      [10.655,-71.678],[10.665,-71.672]
-    ]
+    coords: [[10.650, -71.690], [10.650, -71.668], [10.635, -71.665], [10.632, -71.678], [10.638, -71.685], [10.645, -71.690]]
   },
   {
     name: "Antonio Borjas Romero", zone: "Oeste",
-    coords: [
-      [10.720,-71.695],[10.725,-71.678],
-      [10.718,-71.670],[10.705,-71.670],
-      [10.705,-71.678],[10.708,-71.695]
-    ]
+    coords: [[10.715, -71.695], [10.715, -71.668], [10.700, -71.665], [10.695, -71.680], [10.700, -71.695]]
   },
   {
     name: "San Isidro", zone: "Oeste",
-    coords: [
-      [10.690,-71.720],[10.720,-71.710],
-      [10.720,-71.695],[10.708,-71.695],
-      [10.705,-71.710],[10.690,-71.715]
-    ]
+    coords: [[10.700, -71.750], [10.700, -71.710], [10.680, -71.705], [10.675, -71.720], [10.682, -71.735], [10.692, -71.750]]
   },
 ];
 
@@ -4263,19 +4189,20 @@ function initLeafletMap() {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.90)'};
+        text-align: center;
+        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.92)'};
         border: 2px solid ${colors.stroke};
-        border-radius: 6px;
-        padding: 6px 10px;
+        border-radius: 8px;
+        padding: 8px 12px;
         font-family: 'Space Mono', monospace;
-        min-width: 60px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        min-width: 70px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#e0e0e0'};white-space:nowrap;">${shortName}</div>
-        <div style="font-size:13px;font-weight:800;color:${colors.textColor || colors.stroke};white-space:nowrap;margin-top:2px;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#ddd'};line-height:1.3;">${shortName}</div>
+        <div style="font-size:14px;font-weight:800;color:${colors.textColor || colors.stroke};margin-top:3px;">${voltLabel}</div>
       </div>`,
-      iconAnchor: [0, 0],
+      iconAnchor: [35, 30],
     });
 
     const marker = L.marker(center, { icon, interactive: false }).addTo(leafletMap);
@@ -4315,19 +4242,20 @@ function updateLeafletLayers() {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.90)'};
+        text-align: center;
+        background: ${isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,12,15,0.92)'};
         border: 2px solid ${colors.stroke};
-        border-radius: 6px;
-        padding: 6px 10px;
+        border-radius: 8px;
+        padding: 8px 12px;
         font-family: 'Space Mono', monospace;
-        min-width: 60px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        min-width: 70px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#e0e0e0'};white-space:nowrap;">${shortName}</div>
-        <div style="font-size:13px;font-weight:800;color:${colors.textColor || colors.stroke};white-space:nowrap;margin-top:2px;">${voltLabel}</div>
+        <div style="font-size:10px;font-weight:700;color:${isLight ? '#222' : '#ddd'};line-height:1.3;">${shortName}</div>
+        <div style="font-size:14px;font-weight:800;color:${colors.textColor || colors.stroke};margin-top:3px;">${voltLabel}</div>
       </div>`,
-      iconAnchor: [0, 0],
+      iconAnchor: [35, 30],
     });
     layer.marker.setIcon(newIcon);
   });
