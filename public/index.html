@@ -2131,24 +2131,17 @@ function updateLivePill(status) {
 
 function updateDataSourceIndicator() {
   const sourceEl = document.getElementById('dataSourceIndicator');
-  console.log('[updateDataSourceIndicator] dataSource:', dataSource, 'element:', !!sourceEl);
-  if (!sourceEl) {
-    console.warn('[updateDataSourceIndicator] Elemento #dataSourceIndicator no encontrado');
-    return;
-  }
+  if (!sourceEl) return;
   
   if (dataSource === 'offline') {
     sourceEl.textContent = 'Sin conexión';
     sourceEl.style.color = 'var(--red)';
-    console.log('[updateDataSourceIndicator] Actualizado a: Sin conexión (offline)');
   } else if (dataSource === 'cargando...') {
     sourceEl.textContent = 'Cargando...';
     sourceEl.style.color = 'var(--amber)';
-    console.log('[updateDataSourceIndicator] Actualizado a: Cargando...');
   } else {
     sourceEl.textContent = dataSource;
     sourceEl.style.color = 'var(--green)';
-    console.log('[updateDataSourceIndicator] Actualizado a:', dataSource);
   }
 }
 
@@ -2506,7 +2499,11 @@ class SmartUpdater {
       this.isOnline = true;
       this.scheduleNextUpdate();
       updateLivePill('success');
-      loadLiveData();
+      updateDataSourceIndicator();
+      loadLiveData().then(() => {
+        updateDataSourceIndicator();
+        renderStats();
+      });
     });
     
     document.addEventListener('visibilitychange', () => {
@@ -2938,21 +2935,24 @@ async function loadLiveData() {
       dataSource = 'offline';
       updateLivePill('error');
       updateDataSourceIndicator();
+      renderStats();
+      isUpdating = false;
       return;
     }
     const payload = await res.json();
     const sectorsData = payload.sectors || payload.data?.sectors;
-    if (sectorsData?.length) {
-      updateSectorsFromData(payload);
-      dataSource = payload.source || 'api';
-      lastUpdateTime = new Date();
-      updateLivePill('success');
-      updateDataSourceIndicator();
-    }
-  } catch {
+    updateSectorsFromData(payload);
+    dataSource = payload.source || 'api';
+    lastUpdateTime = new Date();
+    updateLivePill('success');
+    updateDataSourceIndicator();
+    renderStats();
+  } catch (e) {
+    console.error('[loadLiveData] Error:', e);
     dataSource = 'offline';
     updateLivePill('error');
     updateDataSourceIndicator();
+    renderStats();
   } finally {
     isUpdating = false;
   }
