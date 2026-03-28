@@ -2255,7 +2255,6 @@ const sectors = [
   { name: "Manuel Dagnino",               zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Cristo de Aranza",             zone: "Sur-Este",   status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
   { name: "Luis Hurtado Higuera",         zone: "Sur",        status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
-  { name: "Juana de Ávila Sur",           zone: "Centro-Sur", status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
 ];
 
 // Zone map for enriching API responses that may omit zone
@@ -2268,7 +2267,7 @@ const ZONE_MAP = {
   "Antonio Borjas Romero":"Oeste","San Isidro":"Oeste",
   "Francisco Eugenio Bustamante":"Sur-Oeste",
   "Manuel Dagnino":"Sur-Este","Cristo de Aranza":"Sur-Este",
-  "Luis Hurtado Higuera":"Sur","Juana de Ávila Sur":"Centro-Sur"
+  "Luis Hurtado Higuera":"Sur"
 };
 
 let dataSource = 'cargando...';
@@ -4008,10 +4007,9 @@ function toggleTheme() {
 // Parroquias del Municipio Maracaibo
 // Coordenadas ajustadas al mapa oficial (imagen de referencia)
 // Lago de Maracaibo en el borde ESTE (~-71.595)
-// Norte ~10.740, Sur ~10.620, Oeste ~-71.700
+// Norte ~10.760, Sur ~10.630, Oeste ~-71.720
 const sectorGeoData = [
   {
-    // NORTE - Coquivacoa (lakeside, northwest sector)
     name: "Coquivacoa", zone: "Norte",
     coords: [
       [10.758,-71.650],[10.758,-71.620],
@@ -4020,7 +4018,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // NOROESTE - Urdaneta
     name: "Urdaneta", zone: "Norte",
     coords: [
       [10.758,-71.700],[10.758,-71.650],
@@ -4029,7 +4026,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // NORTE - Idelfonso Vásquez
     name: "Idelfonso Vásquez", zone: "Norte",
     coords: [
       [10.745,-71.670],[10.745,-71.700],
@@ -4037,7 +4033,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // NOROESTE - Venancio Pulgar
     name: "Venancio Pulgar", zone: "Norte-Oeste",
     coords: [
       [10.745,-71.720],[10.758,-71.715],
@@ -4045,7 +4040,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // NORTE - Juana de Ávila (north-center, inland)
     name: "Juana de Ávila", zone: "Norte",
     coords: [
       [10.745,-71.650],[10.745,-71.630],
@@ -4054,7 +4048,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // NORESTE - Olegario Villalobos (lakeside northeast)
     name: "Olegario Villalobos", zone: "Este",
     coords: [
       [10.745,-71.630],[10.745,-71.610],
@@ -4063,7 +4056,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // ESTE - Bolívar (center-east lakeside)
     name: "Bolívar", zone: "Este",
     coords: [
       [10.720,-71.620],[10.720,-71.610],
@@ -4072,7 +4064,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO-ESTE - Chiquinquirá
     name: "Chiquinquirá", zone: "Centro-Este",
     coords: [
       [10.720,-71.630],[10.720,-71.618],
@@ -4081,7 +4072,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO - Raúl Leoni
     name: "Raúl Leoni", zone: "Centro",
     coords: [
       [10.718,-71.650],[10.718,-71.640],
@@ -4090,7 +4080,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO-OESTE - Caracciolo Parra Pérez
     name: "Caracciolo Parra Pérez", zone: "Centro-Oeste",
     coords: [
       [10.738,-71.670],[10.738,-71.650],
@@ -4099,7 +4088,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO - Cacique Mara
     name: "Cacique Mara", zone: "Centro",
     coords: [
       [10.710,-71.655],[10.710,-71.648],
@@ -4108,7 +4096,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO - Cecilio Acosta (center lakeside)
     name: "Cecilio Acosta", zone: "Centro",
     coords: [
       [10.700,-71.625],[10.700,-71.618],
@@ -4117,7 +4104,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // ESTE - Santa Lucía (south-center lakeside)
     name: "Santa Lucía", zone: "Este",
     coords: [
       [10.685,-71.615],[10.685,-71.610],
@@ -4126,7 +4112,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // SUR-ESTE - Manuel Dagnino
     name: "Manuel Dagnino", zone: "Sur-Este",
     coords: [
       [10.670,-71.625],[10.670,-71.615],
@@ -4135,7 +4120,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // SUR-ESTE - Cristo de Aranza
     name: "Cristo de Aranza", zone: "Sur-Este",
     coords: [
       [10.655,-71.632],[10.655,-71.620],
@@ -4144,7 +4128,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // SUR - Luis Hurtado Higuera
     name: "Luis Hurtado Higuera", zone: "Sur",
     coords: [
       [10.648,-71.635],[10.648,-71.638],
@@ -4153,7 +4136,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // SUR-OESTE - Francisco Eugenio Bustamante
     name: "Francisco Eugenio Bustamante", zone: "Sur-Oeste",
     coords: [
       [10.670,-71.665],[10.670,-71.655],
@@ -4162,16 +4144,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // CENTRO-SUR - Juana de Ávila (sur) - fixed duplicate
-    name: "Juana de Ávila Sur", zone: "Centro-Sur",
-    coords: [
-      [10.705,-71.665],[10.705,-71.660],
-      [10.695,-71.660],[10.695,-71.672],
-      [10.700,-71.678],[10.705,-71.675]
-    ]
-  },
-  {
-    // OESTE - Antonio Borjas Romero
     name: "Antonio Borjas Romero", zone: "Oeste",
     coords: [
       [10.720,-71.695],[10.725,-71.678],
@@ -4180,7 +4152,6 @@ const sectorGeoData = [
     ]
   },
   {
-    // OESTE - San Isidro (far west)
     name: "San Isidro", zone: "Oeste",
     coords: [
       [10.690,-71.720],[10.720,-71.710],
@@ -4235,14 +4206,14 @@ function initLeafletMap() {
   if (leafletInitialized) return;
   leafletInitialized = true;
 
-  // Initialize map centered on Maracaibo
+  // Initialize map centered on all of Maracaibo
   leafletMap = L.map('leafletMap', {
-    center: [10.700, -71.660],
-    zoom: 12,
+    center: [10.680, -71.660],
+    zoom: 11,
     zoomControl: true,
     attributionControl: true,
-    minZoom: 11,
-    maxZoom: 15,
+    minZoom: 10,
+    maxZoom: 16,
   });
 
   // OpenStreetMap tile layer with dark filter for better contrast
