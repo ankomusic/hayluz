@@ -2328,7 +2328,7 @@ function renderStats() {
   const hrs    = sectors.filter(s => s.hours > 0).map(s => s.hours);
   const avg    = hrs.length ? Math.round(hrs.reduce((a,b) => a+b, 0) / hrs.length) : 0;
   
-  console.log('[renderStats] cut:', cut, 'inter:', inter, 'ok:', ok, 'nodata:', nodata);
+  // console.log('[renderStats] cut:', cut, 'inter:', inter, 'ok:', ok, 'nodata:', nodata);
   
   document.getElementById('statCut').textContent   = dataSource === 'offline' ? '?' : (cut || '—');
   document.getElementById('statInter').textContent = dataSource === 'offline' ? '?' : (inter || '—');
@@ -3092,10 +3092,10 @@ class LazyLoader {
 // Función para actualizar sectors desde datos de la API
 window.updateSectorsFromData = function(data) {
   if (!data || !data.sectors) {
-    console.log('[updateSectorsFromData] No data or no sectors');
+    // console.log('[updateSectorsFromData] No data or no sectors');
     return;
   }
-  console.log('[updateSectorsFromData] Actualizando con', data.sectors.length, 'sectores');
+  // console.log('[updateSectorsFromData] Actualizando con', data.sectors.length, 'sectores');
   data.sectors.forEach(live => {
     const idx = sectors.findIndex(s => s.name === live.name);
     if (idx !== -1) {
@@ -3104,7 +3104,7 @@ window.updateSectorsFromData = function(data) {
   });
   dataSource = data.source || 'api';
   const cuts = sectors.filter(s => s.status === 'cut');
-  console.log('[updateSectorsFromData] Sectors actualizados. Cortes:', cuts.length);
+  // console.log('[updateSectorsFromData] Sectors actualizados. Cortes:', cuts.length);
 };
 
 async function loadLiveData() {
@@ -3126,9 +3126,9 @@ async function loadLiveData() {
     const sectorsData = payload.sectors || payload.data?.sectors;
     const cuts = sectorsData?.filter(s => s.status === 'cut') || [];
     const inters = sectorsData?.filter(s => s.status === 'inter') || [];
-    console.log('[loadLiveData] Datos recibidos:', payload.source);
-    console.log('[loadLiveData] Cortes:', cuts.length, cuts.map(s => s.name));
-    console.log('[loadLiveData] Intermitentes:', inters.length, inters.map(s => s.name));
+    // console.log('[loadLiveData] Datos recibidos:', payload.source);
+    // console.log('[loadLiveData] Cortes:', cuts.length, cuts.map(s => s.name));
+    // console.log('[loadLiveData] Intermitentes:', inters.length, inters.map(s => s.name));
     updateSectorsFromData(payload);
     dataSource = payload.source || 'api';
     lastUpdateTime = new Date();
@@ -3174,7 +3174,7 @@ function initOptimizationSystems() {
   // Iniciar actualización inteligente
   smartUpdater.start();
   
-  console.log('🚀 Sistemas de optimización iniciados');
+  // console.log('🚀 Sistemas de optimización iniciados');
 }
 
 // Función para forzar actualización manual
@@ -4248,14 +4248,14 @@ async function submitCommunityReport() {
   resultEl.style.display = 'none';
 
   try {
-    console.log('[submitReport] Enviando:', { parroquia, status: selectedStatus, cause, note });
+    // console.log('[submitReport] Enviando:', { parroquia, status: selectedStatus, cause, note });
     const res = await fetch(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
     });
     const json = await res.json();
-    console.log('[submitReport] Respuesta:', res.status, json);
+    // console.log('[submitReport] Respuesta:', res.status, json);
     // Handle both legacy and v1 API response formats
     const data = json.data || json;
 
