@@ -1080,88 +1080,226 @@
        RESPONSIVE DESIGN
        ══════════════════════════════════════ */
 
-    /* Topbar — stack on very small screens */
-    @media (max-width: 600px) {
-      .topbar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
-      .topbar > div:last-child { width: 100%; justify-content: space-between; }
-      .city-select { min-width: 130px; }
-      .live-pill { font-size: 10px; }
+    /* Tablets (768px and up) */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .app { padding: 20px 24px; }
+      .topbar { gap: 16px; }
+      .stats-row { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .sector-grid { grid-template-columns: repeat(2, 1fr); }
+      .report-layout { gap: 20px; }
+      .verify-layout { gap: 20px; }
+      .sector-card { padding: 16px; }
     }
 
-    /* Stats row */
-    @media (max-width: 480px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .stat { padding: 12px; }
-      .stat-val { font-size: 22px; }
-      .stat-label { font-size: 10px; }
-    }
+    /* Large phones / small tablets (600px - 767px) */
+    @media (max-width: 767px) {
+      .app { padding: 16px 12px; }
+      .topbar { 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 14px; 
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+      }
+      .topbar > div:first-child { justify-content: space-between; }
+      .topbar > div:last-child { 
+        display: flex; 
+        justify-content: flex-start; 
+        flex-wrap: wrap; 
+        gap: 8px;
+        align-items: center;
+      }
+      .city-select { flex: 1; min-width: 120px; }
+      .live-pill { padding: 6px 12px; font-size: 11px; }
 
-    /* Nav tabs — scrollable on mobile */
-    .nav-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .nav-tabs::-webkit-scrollbar { display: none; }
-    @media (max-width: 500px) {
-      .nav-tab { padding: 7px 12px; font-size: 11px; white-space: nowrap; }
-    }
+      /* Stats - 2x2 grid on mobile */
+      .stats-row { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .stat { padding: 14px 12px; }
+      .stat-val { font-size: 28px; }
+      .stat-label { font-size: 11px; }
 
-    /* Sector grid */
-    @media (max-width: 500px) {
-      .sector-grid { grid-template-columns: 1fr; }
-    }
+      /* Nav tabs - full width, larger touch targets */
+      .nav-tabs { 
+        width: 100%; 
+        justify-content: flex-start;
+        gap: 4px;
+        padding: 4px;
+      }
+      .nav-tab { 
+        padding: 10px 14px; 
+        font-size: 12px; 
+        white-space: nowrap;
+        flex: 1;
+        text-align: center;
+      }
 
-    /* Map */
-    @media (max-width: 600px) {
-      #leafletMap { height: 320px; }
-      .map-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .map-legend { flex-wrap: wrap; gap: 8px; }
-    }
+      /* Search and controls */
+      .controls-bar { flex-direction: column; gap: 10px; }
+      .search { 
+        min-width: unset; 
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+      .filter-pills { 
+        gap: 8px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .pill { 
+        padding: 10px 16px; 
+        font-size: 12px;
+        min-height: 40px;
+        white-space: nowrap;
+      }
 
-    /* Verify layout */
-    @media (max-width: 720px) {
-      .verify-layout { grid-template-columns: 1fr; }
-    }
+      /* Sector cards - full width */
+      .sector-grid { grid-template-columns: 1fr; gap: 10px; }
+      .sector-card { padding: 16px; }
+      .card-name { font-size: 16px; }
+      .badge { padding: 4px 10px; font-size: 11px; }
 
-    /* Drawer full-width on mobile */
-    @media (max-width: 480px) {
-      .notif-drawer { width: 100%; }
-    }
+      /* Map */
+      #leafletMap { height: 300px; }
+      .map-wrap { padding: 12px; margin-bottom: 12px; }
+      .map-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .map-legend { flex-wrap: wrap; gap: 10px; }
+      .map-title { font-size: 12px; }
 
-    /* AI card */
-    @media (max-width: 500px) {
-      .ai-card { padding: 14px; }
-      .ai-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-    }
+      /* AI card */
+      .ai-card { padding: 14px; margin-bottom: 14px; }
+      .ai-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 10px; 
+      }
+      .ai-body { font-size: 14px; min-height: 60px; }
 
-    /* Footer */
-    @media (max-width: 640px) {
+      /* Report form - stacked layout */
+      .report-layout { grid-template-columns: 1fr; gap: 14px; }
+      .report-card { padding: 16px; }
+      .rf-field { margin-bottom: 12px; }
+      .rf-label { font-size: 12px; }
+      .status-pills { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .status-pill { 
+        padding: 12px 8px; 
+        font-size: 11px;
+        min-height: 70px;
+      }
+      .status-pill-icon { font-size: 20px; }
+
+      /* Verify view */
+      .verify-layout { grid-template-columns: 1fr; gap: 14px; }
+      .verify-input-card { padding: 14px; }
+      .verify-textarea { min-height: 120px; }
+      .example-chip { padding: 10px 12px; font-size: 12px; }
+
+      /* Incidents */
+      .incident { padding: 14px 0; }
+      .inc-text { font-size: 13px; }
+
+      /* Footer */
+      footer { margin-top: 32px; }
       .footer-top { flex-direction: column; gap: 16px; }
-      .footer-socials { flex-wrap: wrap; gap: 6px; }
-      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .footer-bottom-right { flex-wrap: wrap; gap: 10px; }
-    }
+      .footer-socials { flex-wrap: wrap; gap: 8px; }
+      .social-link { padding: 10px 14px; font-size: 11px; height: 38px; }
+      .footer-bottom { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 12px;
+        font-size: 10px;
+      }
 
-    /* Report form */
-    @media (max-width: 480px) {
-      .status-pills { gap: 6px; }
-      .status-pill { padding: 8px 6px; font-size: 10px; }
-      .status-pill-icon { font-size: 16px; }
-    }
-
-    /* PWA banner */
-    @media (max-width: 500px) {
-      .pwa-banner { flex-wrap: wrap; }
+      /* PWA banner */
+      .pwa-banner { flex-wrap: wrap; padding: 12px; }
       .pwa-banner-text { font-size: 12px; }
+
+      /* Notif drawer */
+      .notif-drawer { width: 100%; }
+
+      /* Credits modal */
+      .credits-modal { padding: 20px 16px 28px; }
+      .tech-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    /* Controls bar */
-    @media (max-width: 500px) {
-      .controls-bar { flex-direction: column; }
-      .search { min-width: unset; width: 100%; }
+    /* Small phones (up to 400px) */
+    @media (max-width: 400px) {
+      .app { padding: 12px 10px; }
+      .logo-text { font-size: 16px; }
+      .logo-sub { font-size: 11px; }
+      .stats-row { gap: 8px; }
+      .stat { padding: 12px 10px; }
+      .stat-val { font-size: 24px; }
+      .stat-label { font-size: 10px; }
+      .nav-tab { padding: 8px 10px; font-size: 11px; }
+      .sector-card { padding: 14px 12px; }
+      .card-name { font-size: 15px; }
+      .report-card { padding: 14px 12px; }
+      .footer-brand .footer-name { font-size: 14px; }
+      .tech-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .tech-card { padding: 10px 8px; }
+      .tech-name { font-size: 10px; }
+      .tech-role { font-size: 9px; }
     }
 
-    /* Incidents */
-    @media (max-width: 500px) {
-      .incident { gap: 8px; }
-      .inc-text { font-size: 12px; }
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .pill, .status-pill, .nav-tab, .social-link {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .btn { padding: 12px 18px; }
+      .status-pill { min-height: 60px; }
+      input, select, textarea {
+        min-height: 48px;
+        font-size: 16px !important;
+      }
+      .search { padding: 14px 16px; }
+    }
+
+    /* Landscape mobile */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .topbar { flex-direction: row; gap: 12px; }
+      .topbar > div:last-child { width: auto; justify-content: flex-end; }
+      .stats-row { grid-template-columns: repeat(4, 1fr); }
+      .notif-drawer { height: 100vh; }
+      .modal-overlay { align-items: center; }
+      .credits-modal { max-height: 90vh; overflow-y: auto; }
+    }
+
+    /* Minimum touch targets for accessibility */
+    @media (max-width: 768px) {
+      a, button, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .notif-btn, .theme-btn, .city-select {
+        min-height: 44px;
+      }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      :root {
+        --border: #666;
+        --border-bright: #999;
+        --text-muted: #ccc;
+      }
+      :root.light {
+        --border: #444;
+        --border-bright: #222;
+        --text: #000;
+      }
     }
 
     /* ══════════════════════════════════════
