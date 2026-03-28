@@ -1,4 +1,4 @@
-# Hay Luz? v0.0.26-beta
+# Hay Luz? v0.0.27-beta
 
 Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia. Construido con HTML/CSS/JS puro, Vercel serverless, Supabase como base de datos y OpenRouter como gateway de IA.
 
@@ -9,21 +9,31 @@ Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia
 ```
 hayluz/
 ├── api/
-│   ├── data.js        # Endpoint único — GET datos, POST acciones (analyze/verify/report/reports)
-│   └── admin.js       # CRUD protegido con x-admin-secret
+│   ├── data.js           # Endpoint legacy (v0 deprecated)
+│   ├── admin.js          # Admin legacy
+│   ├── v1/
+│   │   ├── data.js      # API v1 — GET/POST con rate limiting persistente
+│   │   └── admin.js     # Admin v1
+│   └── utils/
+│       ├── rateLimit.js # Rate limiter con Supabase
+│       └── helpers.js   # Sanitización, retry, circuit breaker, helpers
 ├── public/
-│   ├── index.html     # App completa (frontend)
-│   ├── admin.html     # Panel de administración
-│   ├── manifest.json  # PWA manifest
-│   ├── sw.js          # Service worker (cache-first assets, network-first pages)
-│   └── icons/         # icon-192.svg, icon-512.svg
-├── vercel.json        # Headers CORS, rewrite /admin
-└── package.json       # Node 20.x, v0.0.26-beta
+│   ├── index.html        # App completa (frontend)
+│   ├── admin.html       # Panel de administración
+│   ├── manifest.json    # PWA manifest
+│   ├── sw.js            # Service worker
+│   └── icons/
+├── tests/               # Tests Vitest
+├── supabase-updates.sql # Migración de schema + RLS mejorado
+├── vercel.json         # Headers CORS, rewrite /admin, API v1
+├── .eslintrc.json      # ESLint config
+├── prettier.config.json # Prettier config
+└── package.json        # Node 20.x, v0.0.27-beta
 ```
 
 ---
 
-## Funcionalidades v0.0.26-beta
+## Funcionalidades v0.0.27-beta
 
 - **Monitor por parroquia** — 19 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
 - **Estados** — Corte activo / Intermitente / Estable / Sin info (nodata cuando no hay fila en Supabase)
@@ -37,6 +47,12 @@ hayluz/
 - **PWA** — Instalable en móvil, funciona offline, service worker v3
 - **Modo oscuro/claro** — Toggle con persistencia visual
 - **Zona horaria** — Toda hora mostrada en America/Caracas (UTC-4)
+- **Rate limiting persistente** — Límite de reportes por IP almacenado en Supabase (no en memoria)
+- **Retry con circuit breaker** — Reintentos automáticos con backoff exponencial para llamadas IA
+- **Sanitización de prompts** — Protección contra XSS y prompt injection
+- **API versionada** — Endpoint `/api/v1/` con formato de respuestas estandarizado
+- **OpenTelemetry** — Telemetría integrada para monitoreo de rendimiento
+- **Tests** — Suite de tests con Vitest
 
 ---
 
@@ -49,6 +65,8 @@ hayluz/
 | `SUPABASE_ANON_KEY` | ✅ | Clave pública — lectura |
 | `SUPABASE_SERVICE_KEY` | ✅ | Clave privada — escritura |
 | `ADMIN_SECRET` | ✅ | Contraseña del panel `/admin` |
+| `ALLOWED_ORIGIN` | ⬜ | Dominio para CORS (default: *) |
+| `OPENROUTER_MODEL` | ⬜ | Modelo de IA (default: google/gemini-2.0-flash-001) |
 | `TWITTER_BEARER_TOKEN` | ⬜ | Scraping automático de tweets (opcional) |
 
 ---
@@ -98,23 +116,38 @@ CREATE POLICY "service_write" ON outages FOR ALL USING (auth.role() = 'service_r
 
 ---
 
-## API — endpoint único `/api/data`
+## API — endpoints
+
+### v1 (recomendado) — `/api/v1/data`
 
 Todas las operaciones pasan por un solo endpoint para compatibilidad con el routing de Vercel.
 
-### GET /api/data
+**Respuestas estandarizadas:**
+```json
+// Éxito
+{ "success": true, "data": {...}, "timestamp": "...", "apiVersion": "v1" }
+
+// Error
+{ "error": true, "status": 400, "message": "...", "details": {...}, "timestamp": "...", "apiVersion": "v1" }
+```
+
+### GET /api/v1/data
 Devuelve el estado actual de las 19 parroquias.
 ```json
 {
   "sectors": [{ "name": "Coquivacoa", "status": "ok", "hours": 0, ... }],
-  "source": "supabase | twitter+ai | fallback",
+  "source": "supabase | fallback",
   "fetchedAt": "2026-03-21T...",
-  "city": "Maracaibo"
+  "city": "Maracaibo",
+  "apiVersion": "v1"
 }
 ```
 Parroquias sin fila en Supabase devuelven `"status": "nodata"`.
 
-### POST /api/data — action: "analyze"
+Parámetros query:
+- `limit` (default: 200, max: 200)
+
+### POST /api/v1/data — action: "analyze"
 Análisis IA del sistema eléctrico.
 ```json
 { "action": "analyze", "prompt": "...", "systemPrompt": "..." }
