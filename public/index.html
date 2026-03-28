@@ -1073,6 +1073,7 @@
       gap: 14px;
       flex-wrap: wrap;
     }
+    .footer-bottom-right .btn { font-size: 12px; padding: 8px 14px; }
 
     @media (max-width: 400px) { .notif-drawer { width: 100%; } }
 
@@ -1096,15 +1097,18 @@
       .app { padding: 16px 12px; }
       .topbar { 
         flex-direction: column; 
-        align-items: stretch; 
+        align-items: center; 
         gap: 14px; 
         margin-bottom: 20px;
         padding-bottom: 16px;
       }
-      .topbar > div:first-child { justify-content: space-between; }
+      .topbar > div:first-child { 
+        width: 100%;
+        justify-content: center; 
+      }
       .topbar > div:last-child { 
         display: flex; 
-        justify-content: flex-start; 
+        justify-content: center; 
         flex-wrap: wrap; 
         gap: 8px;
         align-items: center;
@@ -1130,11 +1134,14 @@
         padding: 4px;
       }
       .nav-tab { 
-        padding: 10px 14px; 
-        font-size: 12px; 
+        padding: 10px 8px; 
+        font-size: 11px; 
         white-space: nowrap;
-        flex: 1;
         text-align: center;
+      }
+      .nav-tabs { 
+        width: 100%; 
+        justify-content: center;
       }
 
       /* Search and controls */
@@ -1210,12 +1217,18 @@
 
       /* Footer */
       footer { margin-top: 32px; }
-      .footer-top { flex-direction: column; gap: 16px; }
-      .footer-socials { flex-wrap: wrap; gap: 8px; }
+      .footer-top { 
+        flex-direction: column; 
+        align-items: center;
+        text-align: center;
+        gap: 16px; 
+      }
+      .footer-socials { flex-wrap: wrap; gap: 8px; justify-content: center; }
       .social-link { padding: 10px 14px; font-size: 11px; height: 38px; }
       .footer-bottom { 
         flex-direction: column; 
-        align-items: flex-start; 
+        align-items: center; 
+        text-align: center;
         gap: 12px;
         font-size: 10px;
       }
