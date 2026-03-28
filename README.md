@@ -1,4 +1,4 @@
-# Hay Luz? v0.0.27-beta
+# Hay Luz?
 
 Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia. Construido con HTML/CSS/JS puro, Vercel serverless, Supabase como base de datos y OpenRouter como gateway de IA.
 
@@ -28,14 +28,14 @@ hayluz/
 ├── vercel.json         # Headers CORS, rewrite /admin, API v1
 ├── .eslintrc.json      # ESLint config
 ├── prettier.config.json # Prettier config
-└── package.json        # Node 20.x, v0.0.27-beta
+└── package.json        # Node 20.x
 ```
 
 ---
 
-## Funcionalidades v0.0.27-beta
+## Funcionalidades
 
-- **Monitor por parroquia** — 19 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
+- **Monitor por parroquia** — 18 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
 - **Estados** — Corte activo / Intermitente / Estable / Sin info (nodata cuando no hay fila en Supabase)
 - **Mapa interactivo** — Polígonos georreferenciados sobre OpenStreetMap con colores dinámicos por estado
 - **Análisis IA** — Diagnóstico del sistema eléctrico vía OpenRouter (Gemini 2.0 Flash)
@@ -132,7 +132,7 @@ Todas las operaciones pasan por un solo endpoint para compatibilidad con el rout
 ```
 
 ### GET /api/v1/data
-Devuelve el estado actual de las 19 parroquias.
+Devuelve el estado actual de las 18 parroquias.
 ```json
 {
   "sectors": [{ "name": "Coquivacoa", "status": "ok", "hours": 0, ... }],
@@ -183,9 +183,9 @@ Envío de reporte comunitario. Valida con IA y hace upsert en Supabase.
 
 ---
 
-## Parroquias (19)
+## Parroquias (18)
 
-Coquivacoa · Urdaneta · Idelfonso Vásquez · Venancio Pulgar · Juana de Ávila · Olegario Villalobos · Bolívar · Santa Lucía · Chiquinquirá · Caracciolo Parra Pérez · Raúl Leoni · Cacique Mara · Cecilio Acosta · Antonio Borjas Romero · San Isidro · Francisco Eugenio Bustamante · Manuel Dagnino · Cristo de Aranza · Luis Hurtado Higuera
+Venancio Pulgar · Idelfonso Vásquez · Coquivacoa · Juana de Ávila · San Isidro · Antonio Borjas Romero · Caracciolo Parra Pérez · Olegario Villalobos · Chiquinquirá · Raúl Leoni · Francisco Eugenio Bustamante · Cacique Mara · Santa Lucía · Bolívar · Cecilio Acosta · Cristo de Aranza · Manuel Dagnino · Luis Hurtado Higuera
 
 ---
 
