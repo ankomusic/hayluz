@@ -2490,28 +2490,15 @@ class SmartUpdater {
         this.updateInterval = null;
       }
       dataSource = 'offline';
-      // Update the live pill to show offline status
-      if (typeof updateLivePill === 'function') {
-        updateLivePill('error');
-      }
-      // Update footer indicator
-      if (typeof updateDataSourceIndicator === 'function') {
-        updateDataSourceIndicator();
-      }
-      // Update stats
-      if (typeof renderStats === 'function') {
-        renderStats();
-      }
+      updateLivePill('error');
+      updateDataSourceIndicator();
+      renderStats();
     });
     
     window.addEventListener('online', () => {
       this.isOnline = true;
       this.scheduleNextUpdate();
-      // Update the live pill to show success status
-      if (typeof updateLivePill === 'function') {
-        updateLivePill('success');
-      }
-      // Reload data when coming back online
+      updateLivePill('success');
       loadLiveData();
     });
     
@@ -2943,6 +2930,7 @@ async function loadLiveData() {
     if (!res.ok) {
       dataSource = 'offline';
       updateLivePill('error');
+      updateDataSourceIndicator();
       return;
     }
     const payload = await res.json();
@@ -2952,10 +2940,12 @@ async function loadLiveData() {
       dataSource = payload.source || 'api';
       lastUpdateTime = new Date();
       updateLivePill('success');
+      updateDataSourceIndicator();
     }
   } catch {
     dataSource = 'offline';
     updateLivePill('error');
+    updateDataSourceIndicator();
   } finally {
     isUpdating = false;
   }
