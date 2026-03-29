@@ -5104,38 +5104,84 @@
       }
 
       // ---- INCIDENTS ----
-      function renderIncidents() {
+      async function loadEvents() {
+        try {
+          const res = await callAPI("events", { limit: 50 });
+          if (res.events && res.events.length > 0) {
+            return res.events;
+          }
+        } catch (e) {
+          console.error("Failed to load events:", e);
+        }
+        return [];
+      }
+
+      function formatEventType(type) {
+        const labels = {
+          started: "Inicio de corte",
+          escalated: "Escalado",
+          restored: "Restaurado",
+          intermittent: "Intermitente",
+          updated: "Actualizado",
+        };
+        return labels[type] || type;
+      }
+
+      function getEventColor(type) {
+        const colors = {
+          started: "red",
+          escalated: "red",
+          restored: "green",
+          intermittent: "amber",
+          updated: "dim",
+        };
+        return colors[type] || "dim";
+      }
+
+      function formatTimeAgo(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) return "Justo ahora";
+        if (diffMins < 60) return `hace ${diffMins} min`;
+        if (diffHours < 24) return `hace ${diffHours}h`;
+        return `hace ${diffDays}d`;
+      }
+
+      async function renderIncidents() {
         const el = document.getElementById("incidentsList");
-        el.innerHTML = "";
+        el.innerHTML =
+          '<div style="text-align:center;padding:20px;color:var(--text-dim);font-family:var(--mono);font-size:12px;">Cargando eventos...</div>';
 
-        const activeSectors = sectors.filter(
-          (s) => s.status === "cut" || s.status === "inter",
-        );
+        const events = await loadEvents();
 
-        if (activeSectors.length === 0) {
+        if (events.length === 0) {
           el.innerHTML = `
       <div style="text-align:center;padding:40px 20px;color:var(--text-dim);font-family:var(--mono);font-size:12px;">
         <div style="font-size:28px;margin-bottom:12px;">✓</div>
-        <div style="color:var(--green);margin-bottom:8px;">Sin incidentes activos</div>
-        <div>No hay cortes ni fluctuaciones reportadas</div>
+        <div style="color:var(--green);margin-bottom:8px;">Sin incidentes registrados</div>
+        <div>El historial de eventos está vacío</div>
       </div>`;
           return;
         }
 
-        activeSectors.forEach((s) => {
+        el.innerHTML = "";
+        events.forEach((evt) => {
           const div = document.createElement("div");
           div.className = "incident";
-          const color = s.status === "cut" ? "red" : "amber";
-          const statusLabel = s.status === "cut" ? "Corte" : "Intermitente";
-          const timeLabel = s.hours > 0 ? `hace ${s.hours}h` : "Reciente";
+          const color = getEventColor(evt.event_type);
           div.innerHTML = `
       <div class="inc-dot ${color}"></div>
       <div style="flex:1;">
         <div class="inc-text">
-          <strong>${s.name}</strong> · ${statusLabel}
-          ${s.cause !== "—" ? `<br><span style="color:var(--text-muted);font-size:12px;">${s.cause}</span>` : ""}
+          <strong>${evt.parish}</strong> · ${formatEventType(evt.event_type)}
+          ${evt.cause ? `<br><span style="color:var(--text-muted);font-size:12px;">${evt.cause}</span>` : ""}
         </div>
-        <div class="inc-time">${timeLabel} · ${s.since !== "—" ? `desde ${s.since}` : "sin confirmar"}</div>
+        <div class="inc-time">${formatTimeAgo(evt.created_at)}${evt.hours_before_event > 0 ? ` · ${evt.hours_before_event}h sin luz` : ""}</div>
       </div>`;
           el.appendChild(div);
         });
@@ -5208,28 +5254,28 @@
         out.className = "ai-body loading";
         out.textContent = "Resumiendo incidentes...";
 
-        const activeSectors = sectors.filter(
-          (s) => s.status === "cut" || s.status === "inter",
-        );
-        const txt = activeSectors
-          .map(
-            (s) =>
-              `${s.name}: ${s.status === "cut" ? "corte total" : "intermitente"}, ${s.hours}h sin luz${s.cause !== "—" ? ", causa: " + s.cause : ""}`,
-          )
-          .join(" | ");
+        const events = await loadEvents();
 
-        if (activeSectors.length === 0) {
+        if (events.length === 0) {
           out.className = "ai-body";
           out.innerHTML =
-            "<span style='color:var(--green)'>✓ Sin incidentes activos en este momento</span>";
+            "<span style='color:var(--green)'>✓ Sin incidentes registrados</span>";
           return;
         }
+
+        const txt = events
+          .slice(0, 20)
+          .map(
+            (e) =>
+              `${e.parish}: ${formatEventType(e.event_type)}, ${e.hours_before_event || 0}h sin luz${e.cause ? ", causa: " + e.cause : ""}`,
+          )
+          .join(" | ");
 
         try {
           const data = await callAPI("analyze", {
             systemPrompt:
               "Eres analista eléctrico de Maracaibo, Venezuela. Responde en español, máximo 80 palabras.",
-            prompt: `Resume y prioriza estos incidentes eléctricos activos: ${txt}`,
+            prompt: `Resume y prioriza estos eventos eléctricos recientes: ${txt}`,
           });
           if (data.error) throw new Error(data.error);
           out.className = "ai-body";
