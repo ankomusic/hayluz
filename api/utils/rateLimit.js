@@ -14,7 +14,7 @@ async function getSupabaseHeaders() {
 }
 
 async function upsertRateLimit(ip, increment = true) {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {return null;}
   
   try {
     const now = Date.now();
@@ -22,10 +22,10 @@ async function upsertRateLimit(ip, increment = true) {
       headers: await getSupabaseHeaders()
     });
     
-    if (!r.ok) return null;
+    if (!r.ok) {return null;}
     
     const rows = await r.json();
-    let entry = rows?.[0];
+    const entry = rows?.[0];
     
     if (!entry || (now - new Date(entry.updated_at).getTime()) > WINDOW_MS) {
       const createRes = await fetch(`${SUPABASE_URL}/rest/v1/rate_limits`, {
@@ -37,7 +37,7 @@ async function upsertRateLimit(ip, increment = true) {
           updated_at: new Date().toISOString()
         })
       });
-      if (createRes.ok) return { count: 1, allowed: true };
+      if (createRes.ok) {return { count: 1, allowed: true };}
       return null;
     }
     
@@ -62,7 +62,7 @@ async function upsertRateLimit(ip, increment = true) {
 
 async function checkRateLimit(ip) {
   const result = await upsertRateLimit(ip);
-  if (result === null) return { allowed: true, fallback: true };
+  if (result === null) {return { allowed: true, fallback: true };}
   return { allowed: result.allowed, count: result.count, fallback: false };
 }
 

@@ -19,7 +19,7 @@ function checkLoginRateLimit(ip) {
     loginAttempts.set(ip, { count: 1, first: now });
     return true;
   }
-  if (record.count >= LOGIN_RATE_LIMIT) return false;
+  if (record.count >= LOGIN_RATE_LIMIT) {return false;}
   record.count++;
   loginAttempts.set(ip, record);
   return true;
@@ -27,7 +27,7 @@ function checkLoginRateLimit(ip) {
 
 function checkLockout(ip) {
   const failRecord = loginFails.get(ip);
-  if (!failRecord) return null;
+  if (!failRecord) {return null;}
   
   const lockedUntil = failRecord.lockedUntil || 0;
   if (Date.now() < lockedUntil) {
@@ -61,7 +61,7 @@ function clearFailedLogin(ip) {
 
 module.exports = async function handler(req, res) {
   setCorsHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'OPTIONS') {return res.status(200).end();}
 
   const ip = getClientIP(req);
   

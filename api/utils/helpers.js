@@ -3,10 +3,10 @@ const INITIAL_DELAY_MS = 500;
 const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_RESET_MS = 60 * 1000;
 
-let circuitState = { failures: 0, openUntil: 0 };
+const circuitState = { failures: 0, openUntil: 0 };
 
 function sanitizePrompt(input) {
-  if (typeof input !== 'string') return '';
+  if (typeof input !== 'string') {return '';}
   return input
     .replace(/[\x00-\x1F\x7F]/g, '')
     .replace(/<script[^>]*>.*?<\/script>/gi, '')
@@ -17,12 +17,12 @@ function sanitizePrompt(input) {
 }
 
 function sanitizeJSONResponse(text) {
-  if (typeof text !== 'string') return text;
+  if (typeof text !== 'string') {return text;}
   return text.replace(/```json|```/g, '').trim();
 }
 
 async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function retryWithBackoff(fn, retries = MAX_RETRIES) {
@@ -83,7 +83,7 @@ async function callOpenRouterWithRetry(system, user, maxTokens = 1024) {
 
 async function callOpenRouter(system, user, maxTokens = 1024) {
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error('OPENROUTER_API_KEY not configured');
+  if (!key) {throw new Error('OPENROUTER_API_KEY not configured');}
   
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -103,7 +103,7 @@ async function callOpenRouter(system, user, maxTokens = 1024) {
     })
   });
   
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) {throw new Error(await r.text());}
   const d = await r.json();
   return d.choices?.[0]?.message?.content || '';
 }

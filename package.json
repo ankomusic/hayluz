@@ -15,9 +15,10 @@
     "node": "20.x"
   },
   "devDependencies": {
-    "eslint": "^9.0.0",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
     "prettier": "^3.0.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

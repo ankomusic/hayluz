@@ -1,0 +1,28 @@
+import globals from "globals";
+
+export default [
+  {
+    files: ["api/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-console": "off",
+      semi: ["error", "always"],
+      quotes: ["error", "single", { avoidEscape: true }],
+      indent: ["error", 2],
+      "comma-dangle": ["error", "never"],
+      "arrow-parens": ["error", "always"],
+      eqeqeq: ["error", "always"],
+      curly: ["error", "all"],
+      "no-var": "error",
+      "prefer-const": "warn",
+      "no-undef": "off",
+    },
+  },
+];
