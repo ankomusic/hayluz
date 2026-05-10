@@ -1,4 +1,4 @@
-# Hay Luz?
+# Hay Luz? v0.0.93-beta
 
 Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia. Construido con HTML/CSS/JS puro, Vercel serverless, Supabase como base de datos y OpenRouter como gateway de IA.
 
@@ -9,37 +9,34 @@ Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia
 ```
 hayluz/
 ├── api/
+│   ├── data.js           # Endpoint legacy (v0 deprecated)
+│   ├── admin.js          # Admin legacy
 │   ├── v1/
 │   │   ├── data.js      # API v1 — GET/POST con rate limiting persistente
 │   │   └── admin.js     # Admin v1
-│   ├── legacy/          # Endpoints deprecated
-│   │   ├── data.js
-│   │   └── admin.js
 │   └── utils/
+│       ├── constants.js # Parroquias, estados y valores compartidos
 │       ├── rateLimit.js # Rate limiter con Supabase
-│       └── helpers.js   # Sanitización, retry, circuit breaker
+│       └── helpers.js   # Sanitización, retry, circuit breaker, helpers
 ├── public/
-│   ├── index.html       # App completa (frontend)
-│   ├── admin.html      # Panel de administración
-│   ├── manifest.json   # PWA manifest
-│   ├── sw.js           # Service worker
-│   ├── icons/          # Iconos PWA
-│   └── data/
-│       └── parroquias_maracaibo_oficial.geojson  # Coordenadas oficiales
-├── tests/              # Tests Vitest
-├── AGENTS.md         # Instrucciones para Claude AI
-├── supabase-updates.sql
-├── vercel.json
-├── .eslintrc.json
-├── prettier.config.json
-└── package.json
+│   ├── index.html        # App completa (frontend)
+│   ├── admin.html       # Panel de administración
+│   ├── manifest.json    # PWA manifest
+│   ├── sw.js            # Service worker
+│   └── icons/
+├── tests/               # Tests Vitest
+├── supabase-updates.sql # Migración de schema + RLS mejorado
+├── vercel.json         # Headers CORS, rewrite /admin, API v1
+├── eslint.config.js    # ESLint config (flat config)
+├── prettier.config.json # Prettier config
+└── package.json        # Node 20.x, v0.0.93-beta
 ```
 
 ---
 
-## Funcionalidades
+## Funcionalidades v0.0.93-beta
 
-- **Monitor por parroquia** — 18 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
+- **Monitor por parroquia** — 19 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
 - **Estados** — Corte activo / Intermitente / Estable / Sin info (nodata cuando no hay fila en Supabase)
 - **Mapa interactivo** — Polígonos georreferenciados sobre OpenStreetMap con colores dinámicos por estado
 - **Análisis IA** — Diagnóstico del sistema eléctrico vía OpenRouter (Gemini 2.0 Flash)
@@ -57,6 +54,14 @@ hayluz/
 - **API versionada** — Endpoint `/api/v1/` con formato de respuestas estandarizado
 - **OpenTelemetry** — Telemetría integrada para monitoreo de rendimiento
 - **Tests** — Suite de tests con Vitest
+
+## Release v0.0.93-beta
+
+- Commit objetivo del release: `93`
+- Correcciones de bugs en API pública/admin y respuestas duplicadas
+- Endurecimiento de sanitización y validaciones de entrada
+- Mejoras de latencia con timeouts, lazy loading real del mapa y menos trabajo en segundo plano
+- Lint migrado a `eslint.config.js` y tests reforzados contra regresiones reales
 
 ---
 
@@ -136,7 +141,7 @@ Todas las operaciones pasan por un solo endpoint para compatibilidad con el rout
 ```
 
 ### GET /api/v1/data
-Devuelve el estado actual de las 18 parroquias.
+Devuelve el estado actual de las 19 parroquias.
 ```json
 {
   "sectors": [{ "name": "Coquivacoa", "status": "ok", "hours": 0, ... }],
@@ -187,9 +192,9 @@ Envío de reporte comunitario. Valida con IA y hace upsert en Supabase.
 
 ---
 
-## Parroquias (18)
+## Parroquias (19)
 
-Venancio Pulgar · Idelfonso Vásquez · Coquivacoa · Juana de Ávila · San Isidro · Antonio Borjas Romero · Caracciolo Parra Pérez · Olegario Villalobos · Chiquinquirá · Raúl Leoni · Francisco Eugenio Bustamante · Cacique Mara · Santa Lucía · Bolívar · Cecilio Acosta · Cristo de Aranza · Manuel Dagnino · Luis Hurtado Higuera
+Coquivacoa · Urdaneta · Idelfonso Vásquez · Venancio Pulgar · Juana de Ávila · Olegario Villalobos · Bolívar · Santa Lucía · Chiquinquirá · Caracciolo Parra Pérez · Raúl Leoni · Cacique Mara · Cecilio Acosta · Antonio Borjas Romero · San Isidro · Francisco Eugenio Bustamante · Manuel Dagnino · Cristo de Aranza · Luis Hurtado Higuera
 
 ---
 

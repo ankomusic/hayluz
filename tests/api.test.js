@@ -1,218 +1,220 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createRequire } from 'node:module';
 
-describe('Sanitize prompt', () => {
-  const sanitizePrompt = (input) => {
-    if (typeof input !== 'string') return '';
-    return input
-      .replace(/[\x00-\x1F\x7F]/g, '')
-      .replace(/<script[^>]*>.*?<\/script>/gi, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+\s*=/gi, '')
-      .trim()
-      .slice(0, 2000);
+delete process.env.SUPABASE_URL;
+delete process.env.SUPABASE_ANON_KEY;
+delete process.env.SUPABASE_SERVICE_KEY;
+delete process.env.ADMIN_SECRET;
+delete process.env.OPENROUTER_API_KEY;
+
+const require = createRequire(import.meta.url);
+const {
+  apiError,
+  apiSuccess,
+  sanitizeJSONResponse,
+  sanitizePrompt
+} = require('../api/utils/helpers');
+const { PARROQUIAS } = require('../api/utils/constants');
+const dataHandler = require('../api/data');
+const v1DataHandler = require('../api/v1/data');
+const adminHandler = require('../api/admin');
+
+function createResponse() {
+  const res = {
+    body: undefined,
+    headers: {},
+    sent: false,
+    statusCode: 200,
+    setHeader: vi.fn((key, value) => {
+      res.headers[key.toLowerCase()] = value;
+      return res;
+    }),
+    status: vi.fn((code) => {
+      res.statusCode = code;
+      return res;
+    }),
+    json: vi.fn((body) => {
+      if (res.sent) throw new Error('Response sent twice');
+      res.sent = true;
+      res.body = body;
+      return res;
+    }),
+    end: vi.fn(() => {
+      if (res.sent) throw new Error('Response sent twice');
+      res.sent = true;
+      return res;
+    })
   };
 
-  it('removes script tags', () => {
-    const input = 'Hello <script>alert("xss")</script> world';
-    expect(sanitizePrompt(input)).toBe('Hello  world');
+  return res;
+}
+
+function createRequest({ method = 'GET', body = {}, query = {}, headers = {}, ip = '127.0.0.1' } = {}) {
+  return {
+    body,
+    headers: {
+      'x-forwarded-for': ip,
+      ...headers
+    },
+    method,
+    query,
+    socket: { remoteAddress: ip }
+  };
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
+  delete process.env.SUPABASE_SERVICE_KEY;
+  delete process.env.ADMIN_SECRET;
+  delete process.env.OPENROUTER_API_KEY;
+});
+
+describe('helpers', () => {
+  it('sanitizes script tags, dangerous protocols, handlers, controls, and length', () => {
+    const input = `Hello\x00<script>
+alert("xss")
+</script><a onclick="alert(1)" href="javascript:doEvil()">world</a>${'a'.repeat(3000)}`;
+    const result = sanitizePrompt(input);
+
+    expect(result).not.toContain('<script>');
+    expect(result).not.toContain('javascript:');
+    expect(result).not.toContain('onclick');
+    expect(result).not.toContain('\x00');
+    expect(result.length).toBeLessThanOrEqual(2000);
   });
 
-  it('removes javascript: protocol', () => {
-    const input = 'Click here: javascript:doEvil()';
-    expect(sanitizePrompt(input)).not.toContain('javascript:');
-  });
-
-  it('removes event handlers', () => {
-    const input = 'Test onclick="alert(1)" content';
-    expect(sanitizePrompt(input)).not.toContain('onclick');
-  });
-
-  it('removes control characters', () => {
-    const input = 'Hello\x00World\x1F';
-    expect(sanitizePrompt(input)).toBe('HelloWorld');
-  });
-
-  it('limits length to 2000 chars', () => {
-    const input = 'a'.repeat(3000);
-    expect(sanitizePrompt(input).length).toBe(2000);
-  });
-
-  it('returns empty string for non-string input', () => {
+  it('returns an empty string for non-string prompt input', () => {
     expect(sanitizePrompt(null)).toBe('');
     expect(sanitizePrompt(undefined)).toBe('');
     expect(sanitizePrompt(123)).toBe('');
   });
 
-  it('handles empty string', () => {
-    expect(sanitizePrompt('')).toBe('');
+  it('unwraps fenced JSON responses', () => {
+    expect(sanitizeJSONResponse('```json\n{"ok":true}\n```')).toBe('{"ok":true}');
+    expect(sanitizeJSONResponse('```\n{"ok":true}\n```')).toBe('{"ok":true}');
+  });
+
+  it('formats API success and error payloads consistently', () => {
+    const error = apiError(400, 'Test error', { field: 'value' });
+    const success = apiSuccess({ ok: true, count: 5 });
+
+    expect(error).toMatchObject({
+      apiVersion: 'v1',
+      details: { field: 'value' },
+      error: true,
+      message: 'Test error',
+      status: 400
+    });
+    expect(success).toMatchObject({
+      apiVersion: 'v1',
+      count: 5,
+      ok: true,
+      success: true
+    });
   });
 });
 
-describe('API Error Response Format', () => {
-  const apiError = (status, message, details = null) => ({
-    error: true,
-    status,
-    message,
-    ...(details && { details }),
-    timestamp: expect.any(String),
-    apiVersion: 'v1'
+describe('public data API', () => {
+  it('returns fallback sector data once for GET requests', async () => {
+    const res = createResponse();
+
+    await dataHandler(createRequest(), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json).toHaveBeenCalledTimes(1);
+    expect(res.body.sectors).toHaveLength(PARROQUIAS.length);
+    expect(res.body.source).toBe('fallback');
+    expect(res.headers['cache-control']).toContain('s-maxage=25');
   });
 
-  const apiSuccess = (data) => ({
-    success: true,
-    ...data,
-    timestamp: expect.any(String),
-    apiVersion: 'v1'
+  it('keeps the versioned GET endpoint aligned with the root endpoint', async () => {
+    const res = createResponse();
+
+    await v1DataHandler(createRequest(), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json).toHaveBeenCalledTimes(1);
+    expect(res.body.sectors).toHaveLength(PARROQUIAS.length);
+    expect(res.body.apiVersion).toBe('v1');
   });
 
-  it('creates error response with all fields', () => {
-    const result = apiError(400, 'Test error', { field: 'value' });
-    expect(result.error).toBe(true);
-    expect(result.status).toBe(400);
-    expect(result.message).toBe('Test error');
-    expect(result.details.field).toBe('value');
-    expect(result.apiVersion).toBe('v1');
-  });
+  it('rejects unknown POST actions', async () => {
+    const res = createResponse();
 
-  it('creates error response without details', () => {
-    const result = apiError(404, 'Not found');
-    expect(result.error).toBe(true);
-    expect(result.details).toBeUndefined();
-  });
+    await dataHandler(createRequest({ method: 'POST', body: { action: 'bogus' } }), res);
 
-  it('creates success response', () => {
-    const result = apiSuccess({ ok: true, count: 5 });
-    expect(result.success).toBe(true);
-    expect(result.ok).toBe(true);
-    expect(result.count).toBe(5);
-    expect(result.apiVersion).toBe('v1');
-  });
-});
-
-describe('Rate Limit Logic', () => {
-  it('allows requests within limit', () => {
-    const MAX_REQUESTS = 5;
-    const WINDOW_MS = 10 * 60 * 1000;
-    const map = new Map();
-    const now = Date.now();
-
-    const check = (ip) => {
-      const entry = map.get(ip) || { count: 0, start: now };
-      if (now - entry.start > WINDOW_MS) {
-        map.set(ip, { count: 1, start: now });
-        return true;
-      }
-      if (entry.count >= MAX_REQUESTS) return false;
-      entry.count++;
-      map.set(ip, entry);
-      return true;
-    };
-
-    for (let i = 0; i < 5; i++) {
-      expect(check('test-ip')).toBe(true);
-    }
-    expect(check('test-ip')).toBe(false);
-  });
-
-  it('resets after window expires', async () => {
-    const MAX_REQUESTS = 2;
-    const WINDOW_MS = 100;
-    const map = new Map();
-    let now = 1000;
-
-    const check = (ip) => {
-      const entry = map.get(ip) || { count: 0, start: now };
-      if (now - entry.start > WINDOW_MS) {
-        map.set(ip, { count: 1, start: now });
-        return true;
-      }
-      if (entry.count >= MAX_REQUESTS) return false;
-      entry.count++;
-      map.set(ip, entry);
-      return true;
-    };
-
-    expect(check('ip1')).toBe(true);
-    expect(check('ip1')).toBe(true);
-    expect(check('ip1')).toBe(false);
-
-    now = 1200;
-    expect(check('ip1')).toBe(true);
-  });
-});
-
-describe('Status validation', () => {
-  const validStatuses = ['ok', 'inter', 'cut'];
-
-  it('accepts valid statuses', () => {
-    validStatuses.forEach(status => {
-      expect(validStatuses.includes(status)).toBe(true);
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toMatchObject({
+      error: true,
+      message: 'action required: analyze|verify|report|reports'
     });
   });
 
-  it('rejects invalid statuses', () => {
-    expect(validStatuses.includes('invalid')).toBe(false);
-    expect(validStatuses.includes('')).toBe(false);
-    expect(validStatuses.includes('OK')).toBe(false);
+  it('rejects invalid report payloads before writing', async () => {
+    const res = createResponse();
+
+    await dataHandler(createRequest({
+      method: 'POST',
+      body: { action: 'report', parroquia: 'No existe', status: 'ok' },
+      ip: 'report-invalid'
+    }), res);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toContain('Invalid parroquia');
+  });
+
+  it('accepts a valid report even when persistence is not configured', async () => {
+    const res = createResponse();
+
+    await dataHandler(createRequest({
+      method: 'POST',
+      body: { action: 'report', parroquia: PARROQUIAS[0], status: 'ok' },
+      ip: 'report-valid'
+    }), res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      confidence: 'high',
+      ok: true,
+      reportsRemaining: 4,
+      success: true
+    });
   });
 });
 
-describe('Parroquias validation', () => {
-  const PARROQUIAS = [
-    "Venancio Pulgar","Idelfonso Vásquez","Coquivacoa","Juana de Ávila",
-    "San Isidro","Antonio Borjas Romero","Caracciolo Parra Pérez","Olegario Villalobos",
-    "Chiquinquirá","Raúl Leoni","Francisco Eugenio Bustamante","Cacique Mara",
-    "Santa Lucía","Bolívar","Cecilio Acosta","Cristo de Aranza",
-    "Manuel Dagnino","Luis Hurtado Higuera"
-  ];
+describe('admin API', () => {
+  it('returns lockout metadata under details for failed logins', async () => {
+    process.env.ADMIN_SECRET = 'expected';
+    const res = createResponse();
 
-  it('has 18 parroquias', () => {
-    expect(PARROQUIAS.length).toBe(18);
+    await adminHandler(createRequest({
+      headers: { 'x-admin-secret': 'wrong' },
+      ip: 'admin-wrong-secret'
+    }), res);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.details).toMatchObject({ attemptsLeft: 4 });
   });
 
-  it('contains expected parroquias', () => {
-    expect(PARROQUIAS).toContain('Coquivacoa');
-    expect(PARROQUIAS).toContain('Luis Hurtado Higuera');
-  });
+  it('rejects unknown parroquias before calling Supabase', async () => {
+    process.env.ADMIN_SECRET = 'expected';
+    process.env.SUPABASE_URL = 'https://supabase.example.test';
+    process.env.SUPABASE_SERVICE_KEY = 'service-key';
 
-  it('rejects invalid parroquia', () => {
-    expect(PARROQUIAS.includes('Invalid Parroquia')).toBe(false);
-  });
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const res = createResponse();
 
-  it('parroquias are unique', () => {
-    const unique = new Set(PARROQUIAS);
-    expect(unique.size).toBe(PARROQUIAS.length);
-  });
-});
+    await adminHandler(createRequest({
+      method: 'POST',
+      body: { parroquia: 'No existe', status: 'ok' },
+      headers: { 'x-admin-secret': 'expected' },
+      ip: 'admin-invalid-parroquia'
+    }), res);
 
-describe('Circuit Breaker', () => {
-  it('opens after threshold failures', () => {
-    const THRESHOLD = 5;
-    let failures = 0;
-
-    const isOpen = () => failures >= THRESHOLD;
-
-    for (let i = 0; i < 4; i++) {
-      failures++;
-      expect(isOpen()).toBe(false);
-    }
-
-    failures++;
-    expect(isOpen()).toBe(true);
-  });
-
-  it('records failures correctly', () => {
-    const THRESHOLD = 3;
-    let failures = 0;
-    const recordedFailures = [];
-
-    for (let i = 0; i < 5; i++) {
-      failures++;
-      recordedFailures.push(failures);
-    }
-
-    expect(recordedFailures[2]).toBe(3);
-    expect(recordedFailures[3]).toBe(4);
-    expect(recordedFailures[4]).toBe(5);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe('invalid parroquia');
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

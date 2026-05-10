@@ -226,6 +226,46 @@ let adminSecret = '';
 let currentData = [];
 
 let lockoutInterval = null;
+let refreshInterval = null;
+const EMPTY_TEXT = '\u2014';
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function getAPIErrorMessage(data, fallback = 'Error desconocido') {
+  if (!data) return fallback;
+  if (typeof data.error === 'string') return data.error;
+  return data.message || data.details?.message || fallback;
+}
+
+function clampPercent(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.min(100, number));
+}
+
+async function fetchJSON(url, options = {}, timeoutMs = 6000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: options.signal || controller.signal
+    });
+    const data = await response.json().catch(() => null);
+    return { data, response };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 function doLogin() {
   const val = document.getElementById('secretInput').value.trim();
@@ -236,9 +276,9 @@ function doLogin() {
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
-  fetch('/api/admin', { headers: { 'x-admin-secret': val } })
-    .then(async r => {
-      const data = await r.json();
+  fetchJSON('/api/admin', { headers: { 'x-admin-secret': val } }, 5000)
+    .then(({ data, response: r }) => {
+      const details = data?.details || {};
       btn.disabled = false;
       btn.textContent = 'Entrar';
       if (r.status === 200) {
@@ -246,18 +286,19 @@ function doLogin() {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         loadData();
-      } else if (r.status === 429 && data.lockedUntil) {
+        startAutoRefresh();
+      } else if (r.status === 429 && details.lockedUntil) {
         // Locked out — show countdown
-        startLockoutCountdown(data.lockedUntil, loginErr, btn);
+        startLockoutCountdown(details.lockedUntil, loginErr, btn);
       } else if (r.status === 401) {
-        const left = data.attemptsLeft;
+        const left = details.attemptsLeft;
         loginErr.textContent = left !== undefined
           ? `Contraseña incorrecta — ${left} intento${left !== 1 ? 's' : ''} restante${left !== 1 ? 's' : ''}`
           : 'Contraseña incorrecta';
         loginErr.style.display = 'block';
         adminSecret = '';
       } else {
-        loginErr.textContent = `Error del servidor (${r.status})`;
+        loginErr.textContent = getAPIErrorMessage(data, `Error del servidor (${r.status})`);
         loginErr.style.display = 'block';
       }
     })
@@ -296,19 +337,31 @@ function startLockoutCountdown(lockedUntil, loginErr, btn) {
 
 function doLogout() {
   adminSecret = '';
+  stopAutoRefresh();
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('adminPanel').classList.add('hidden');
   document.getElementById('secretInput').value = '';
 }
 
+function startAutoRefresh() {
+  stopAutoRefresh();
+  refreshInterval = setInterval(loadData, 60000);
+}
+
+function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+    refreshInterval = null;
+  }
+}
+
 async function loadData() {
   // Load from /api/data for display (public endpoint shows latest)
   try {
-    const r = await fetch('/api/data');
-    const d = await r.json();
-    currentData = d.sectors || [];
-    document.getElementById('dataSourceBadge').textContent = d.source || '—';
-    document.getElementById('fetchedAt').textContent = d.fetchedAt ? 'Actualizado: ' + new Date(d.fetchedAt).toLocaleTimeString('es-VE') : '';
+    const { data: d } = await fetchJSON('/api/data', {}, 4500);
+    currentData = d?.sectors || [];
+    document.getElementById('dataSourceBadge').textContent = d?.source || EMPTY_TEXT;
+    document.getElementById('fetchedAt').textContent = d?.fetchedAt ? 'Actualizado: ' + new Date(d.fetchedAt).toLocaleTimeString('es-VE') : '';
     renderTable(currentData);
     renderStats(currentData);
   } catch(e) { toast('Error cargando datos', 'red'); }
@@ -324,29 +377,36 @@ function renderStats(data) {
 function renderTable(data) {
   const labels = { cut: 'Corte', inter: 'Intermitente', ok: 'Estable' };
   const tbody = document.getElementById('adminTable');
-  tbody.innerHTML = data.map(s => `
+  tbody.innerHTML = data.map((s, index) => {
+    const status = ['ok', 'inter', 'cut'].includes(s.status) ? s.status : 'ok';
+    const cause = s.cause || EMPTY_TEXT;
+    return `
     <tr>
-      <td>${s.name}</td>
-      <td style="color:var(--text-dim)">${ZONES[s.name]||'—'}</td>
-      <td><span class="badge ${s.status}">${labels[s.status]||s.status}</span></td>
-      <td>${s.hours > 0 ? s.hours + ' h' : '—'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.cause||'—'}</td>
-      <td>${s.affected||0}%</td>
+      <td>${escapeHTML(s.name)}</td>
+      <td style="color:var(--text-dim)">${escapeHTML(ZONES[s.name] || EMPTY_TEXT)}</td>
+      <td><span class="badge ${status}">${escapeHTML(labels[status] || status)}</span></td>
+      <td>${s.hours > 0 ? escapeHTML(s.hours) + ' h' : EMPTY_TEXT}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(cause)}</td>
+      <td>${clampPercent(s.affected)}%</td>
       <td>
-        <button class="btn" style="font-size:10px;padding:4px 8px;" onclick="quickEdit('${s.name}','${s.status}')">Editar</button>
+        <button class="btn" style="font-size:10px;padding:4px 8px;" data-row-index="${index}">Editar</button>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+  tbody.querySelectorAll('[data-row-index]').forEach(btn => {
+    btn.addEventListener('click', () => quickEdit(Number(btn.dataset.rowIndex)));
+  });
 }
 
-function quickEdit(name, status) {
-  document.getElementById('fParroquia').value = name;
-  document.getElementById('fStatus').value = status;
-  const s = currentData.find(x => x.name === name);
+function quickEdit(index) {
+  const s = currentData[index];
   if (s) {
-    document.getElementById('fCause').value    = s.cause !== '—' ? s.cause : '';
+    document.getElementById('fParroquia').value = s.name;
+    document.getElementById('fStatus').value = s.status;
+    document.getElementById('fCause').value    = s.cause !== EMPTY_TEXT ? s.cause : '';
     document.getElementById('fHours').value    = s.hours || 0;
-    document.getElementById('fSince').value    = s.since !== '—' ? s.since : '';
+    document.getElementById('fSince').value    = s.since !== EMPTY_TEXT ? s.since : '';
     document.getElementById('fAffected').value = s.affected || 0;
   }
   document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
@@ -359,19 +419,19 @@ async function submitUpdate() {
 
   const body = {
     parroquia, status,
-    cause:    document.getElementById('fCause').value    || '—',
+    cause:    document.getElementById('fCause').value    || EMPTY_TEXT,
     hours:    Number(document.getElementById('fHours').value)    || 0,
-    since:    document.getElementById('fSince').value    || '—',
+    since:    document.getElementById('fSince').value    || EMPTY_TEXT,
     affected: Number(document.getElementById('fAffected').value) || 0,
   };
 
   try {
-    const r = await fetch('/api/admin', {
+    const { data: e, response: r } = await fetchJSON('/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-secret': adminSecret },
       body: JSON.stringify(body)
-    });
-    if (!r.ok) { const e = await r.json(); toast('Error: ' + (e.error||'desconocido'), 'red'); return; }
+    }, 5000);
+    if (!r.ok) { toast('Error: ' + getAPIErrorMessage(e), 'red'); return; }
     toast(`${parroquia} → ${status}`, 'green');
     setTimeout(loadData, 500);
   } catch(e) { toast('Error de red', 'red'); }
@@ -386,8 +446,8 @@ function toast(msg, type = '') {
   setTimeout(() => el.remove(), 3500);
 }
 
-// Auto-refresh every 60 seconds
-setInterval(loadData, 60000);
+window.addEventListener('pagehide', stopAutoRefresh);
+
 </script>
 </body>
 </html>

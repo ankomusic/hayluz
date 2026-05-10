@@ -2,14 +2,16 @@ const MAX_RETRIES = 3;
 const INITIAL_DELAY_MS = 500;
 const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_RESET_MS = 60 * 1000;
+const DEFAULT_FETCH_TIMEOUT_MS = 8000;
+const OPENROUTER_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS) || 12000;
 
-const circuitState = { failures: 0, openUntil: 0 };
+let circuitState = { failures: 0, openUntil: 0 };
 
 function sanitizePrompt(input) {
-  if (typeof input !== 'string') {return '';}
+  if (typeof input !== 'string') return '';
   return input
     .replace(/[\x00-\x1F\x7F]/g, '')
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/javascript:/gi, '')
     .replace(/on\w+\s*=/gi, '')
     .trim()
@@ -17,12 +19,16 @@ function sanitizePrompt(input) {
 }
 
 function sanitizeJSONResponse(text) {
-  if (typeof text !== 'string') {return text;}
-  return text.replace(/```json|```/g, '').trim();
+  if (typeof text !== 'string') return text;
+  return text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
 }
 
 async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function retryWithBackoff(fn, retries = MAX_RETRIES) {
@@ -40,6 +46,20 @@ async function retryWithBackoff(fn, retries = MAX_RETRIES) {
     }
   }
   throw lastError;
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: options.signal || controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function isCircuitOpen() {
@@ -83,9 +103,9 @@ async function callOpenRouterWithRetry(system, user, maxTokens = 1024) {
 
 async function callOpenRouter(system, user, maxTokens = 1024) {
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) {throw new Error('OPENROUTER_API_KEY not configured');}
+  if (!key) throw new Error('OPENROUTER_API_KEY not configured');
   
-  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const r = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -101,9 +121,9 @@ async function callOpenRouter(system, user, maxTokens = 1024) {
         { role: 'user', content: user }
       ]
     })
-  });
+  }, OPENROUTER_TIMEOUT_MS);
   
-  if (!r.ok) {throw new Error(await r.text());}
+  if (!r.ok) throw new Error(await r.text());
   const d = await r.json();
   return d.choices?.[0]?.message?.content || '';
 }
@@ -113,10 +133,13 @@ function getAllowedOrigin() {
 }
 
 function setCorsHeaders(res, origin = '*') {
-  const allowedOrigin = getAllowedOrigin();
+  const allowedOrigin = origin === '*' ? getAllowedOrigin() : origin;
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-secret');
+  if (allowedOrigin !== '*') {
+    res.setHeader('Vary', 'Origin');
+  }
 }
 
 function apiError(status, message, details = null) {
@@ -143,6 +166,7 @@ module.exports = {
   sanitizePrompt,
   sanitizeJSONResponse,
   retryWithBackoff,
+  fetchWithTimeout,
   isCircuitOpen,
   callOpenRouter,
   callOpenRouterWithRetry,

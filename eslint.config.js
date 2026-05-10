@@ -1,28 +1,57 @@
-import globals from "globals";
+const commonGlobals = {
+  AbortController: 'readonly',
+  clearInterval: 'readonly',
+  clearTimeout: 'readonly',
+  console: 'readonly',
+  fetch: 'readonly',
+  globalThis: 'readonly',
+  module: 'readonly',
+  process: 'readonly',
+  require: 'readonly',
+  setInterval: 'readonly',
+  setTimeout: 'readonly'
+};
 
-export default [
+const rules = {
+  'arrow-parens': 'off',
+  'comma-dangle': ['error', 'never'],
+  curly: 'off',
+  eqeqeq: ['error', 'always'],
+  indent: ['error', 2],
+  'no-console': 'off',
+  'no-undef': 'off',
+  'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+  'no-var': 'error',
+  'prefer-const': 'off',
+  quotes: ['error', 'single', { avoidEscape: true }],
+  semi: ['error', 'always']
+};
+
+module.exports = [
   {
-    files: ["api/**/*.js"],
+    ignores: ['node_modules/**', '.vercel/**']
+  },
+  {
+    files: ['api/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
+      globals: commonGlobals,
+      sourceType: 'commonjs'
     },
-    rules: {
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "no-console": "off",
-      semi: ["error", "always"],
-      quotes: ["error", "single", { avoidEscape: true }],
-      indent: ["error", 2],
-      "comma-dangle": ["error", "never"],
-      "arrow-parens": ["error", "always"],
-      eqeqeq: ["error", "always"],
-      curly: ["error", "all"],
-      "no-var": "error",
-      "prefer-const": "warn",
-      "no-undef": "off",
-    },
+    rules
   },
+  {
+    files: ['tests/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        ...commonGlobals,
+        describe: 'readonly',
+        expect: 'readonly',
+        it: 'readonly'
+      },
+      sourceType: 'module'
+    },
+    rules
+  }
 ];
