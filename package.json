@@ -1,6 +1,6 @@
 {
   "name": "hayluz-monitor",
-  "version": "0.0.93-beta",
+  "version": "0.0.144-beta",
   "description": "Monitor de cortes eléctricos en Venezuela",
   "license": "UNLICENSED",
   "scripts": {

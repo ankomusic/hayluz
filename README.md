@@ -1,4 +1,4 @@
-# Hay Luz? v0.0.93-beta
+# Hay Luz? v0.0.144-beta
 
 Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia. Construido con HTML/CSS/JS puro, Vercel serverless, Supabase como base de datos y OpenRouter como gateway de IA.
 
@@ -29,12 +29,12 @@ hayluz/
 ├── vercel.json         # Headers CORS, rewrite /admin, API v1
 ├── eslint.config.js    # ESLint config (flat config)
 ├── prettier.config.json # Prettier config
-└── package.json        # Node 20.x, v0.0.93-beta
+└── package.json        # Node 20.x, v0.0.144-beta
 ```
 
 ---
 
-## Funcionalidades v0.0.93-beta
+## Funcionalidades v0.0.144-beta
 
 - **Monitor por parroquia** — 19 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
 - **Estados** — Corte activo / Intermitente / Estable / Sin info (nodata cuando no hay fila en Supabase)
@@ -55,9 +55,9 @@ hayluz/
 - **OpenTelemetry** — Telemetría integrada para monitoreo de rendimiento
 - **Tests** — Suite de tests con Vitest
 
-## Release v0.0.93-beta
+## Release v0.0.144-beta
 
-- Commit objetivo del release: `93`
+- Commit objetivo del release: `144`
 - Correcciones de bugs en API pública/admin y respuestas duplicadas
 - Endurecimiento de sanitización y validaciones de entrada
 - Mejoras de latencia con timeouts, lazy loading real del mapa y menos trabajo en segundo plano
