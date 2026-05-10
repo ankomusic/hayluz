@@ -1,5 +1,6 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const { fetchWithTimeout } = require('./helpers');
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 5;
@@ -18,9 +19,9 @@ async function upsertRateLimit(ip, increment = true) {
   
   try {
     const now = Date.now();
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}&order=updated_at.desc&limit=1`, {
+    const r = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}&order=updated_at.desc&limit=1`, {
       headers: await getSupabaseHeaders()
-    });
+    }, 1500);
     
     if (!r.ok) return null;
     
@@ -28,7 +29,7 @@ async function upsertRateLimit(ip, increment = true) {
     let entry = rows?.[0];
     
     if (!entry || (now - new Date(entry.updated_at).getTime()) > WINDOW_MS) {
-      const createRes = await fetch(`${SUPABASE_URL}/rest/v1/rate_limits`, {
+      const createRes = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/rate_limits`, {
         method: 'POST',
         headers: { ...await getSupabaseHeaders(), 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({
@@ -36,20 +37,23 @@ async function upsertRateLimit(ip, increment = true) {
           count: 1,
           updated_at: new Date().toISOString()
         })
-      });
+      }, 1500);
       if (createRes.ok) return { count: 1, allowed: true };
       return null;
     }
     
-    const newCount = increment ? entry.count + 1 : 1;
-    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}`, {
+    const currentCount = Number(entry.count) || 0;
+    const newCount = increment ? currentCount + 1 : 1;
+    const updateRes = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/rate_limits?ip=eq.${encodeURIComponent(ip)}`, {
       method: 'PATCH',
       headers: { ...await getSupabaseHeaders(), 'Prefer': 'return=minimal' },
       body: JSON.stringify({
         count: newCount,
         updated_at: new Date().toISOString()
       })
-    });
+    }, 1500);
+
+    if (!updateRes.ok) return null;
     
     return {
       count: newCount,

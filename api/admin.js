@@ -1,4 +1,5 @@
-const { setCorsHeaders, apiError, apiSuccess } = require('./utils/helpers');
+const { setCorsHeaders, sanitizePrompt, fetchWithTimeout, apiError, apiSuccess } = require('./utils/helpers');
+const { EMPTY_VALUE, PARROQUIAS, STATUSES } = require('./utils/constants');
 
 const MAX_FAILS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -59,6 +60,12 @@ function clearFailedLogin(ip) {
   loginFails.delete(ip);
 }
 
+function clampNumber(value, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.min(max, Math.max(min, number));
+}
+
 module.exports = async function handler(req, res) {
   setCorsHeaders(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -116,7 +123,7 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const limit = Math.min(parseInt(req.query?.limit) || 100, 200);
-      const r = await fetch(`${url}/rest/v1/outages?select=*&order=updated_at.desc&limit=${limit}`, { headers });
+      const r = await fetchWithTimeout(`${url}/rest/v1/outages?select=*&order=updated_at.desc&limit=${limit}`, { headers }, 5000);
       const data = await r.json();
       return res.status(r.status).json(Array.isArray(data) ? data : []);
     }
@@ -127,25 +134,35 @@ module.exports = async function handler(req, res) {
       if (!parroquia || !status) {
         return res.status(400).json(apiError(400, 'parroquia and status required'));
       }
-      if (!['ok','inter','cut'].includes(status)) {
+      if (!STATUSES.includes(status)) {
         return res.status(400).json(apiError(400, 'invalid status'));
       }
+      if (!PARROQUIAS.includes(parroquia)) {
+        return res.status(400).json(apiError(400, 'invalid parroquia'));
+      }
 
-      const r = await fetch(`${url}/rest/v1/outages?on_conflict=parroquia`, {
+      const normalizedHours = clampNumber(hours, 0, 72);
+      const normalizedAffected = clampNumber(affected, 0, 100);
+      const normalizedSince = since
+        ? sanitizePrompt(String(since)).slice(0, 50)
+        : (status === 'ok' ? EMPTY_VALUE : new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' }));
+      const normalizedCause = cause ? sanitizePrompt(String(cause)).slice(0, 500) : EMPTY_VALUE;
+
+      const r = await fetchWithTimeout(`${url}/rest/v1/outages?on_conflict=parroquia`, {
         method: 'POST',
         headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
         body: JSON.stringify({
           parroquia,
           status,
-          hours: Number(hours) || 0,
-          since: since || (status === 'ok' ? '—' : new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Caracas' })),
-          cause: (cause || '—').slice(0, 500),
-          affected: Number(affected) || 0,
+          hours: normalizedHours,
+          since: normalizedSince,
+          cause: normalizedCause,
+          affected: normalizedAffected,
           confidence: 'high',
           source: 'admin',
           updated_at: new Date().toISOString()
         })
-      });
+      }, 5000);
       if (!r.ok) {
         return res.status(r.status).json(apiError(r.status, 'Database error', { detail: await r.text() }));
       }
@@ -157,10 +174,13 @@ module.exports = async function handler(req, res) {
       if (!parroquia) {
         return res.status(400).json(apiError(400, 'parroquia required'));
       }
-      const r = await fetch(`${url}/rest/v1/outages?parroquia=eq.${encodeURIComponent(parroquia)}`, {
+      if (!PARROQUIAS.includes(parroquia)) {
+        return res.status(400).json(apiError(400, 'invalid parroquia'));
+      }
+      const r = await fetchWithTimeout(`${url}/rest/v1/outages?parroquia=eq.${encodeURIComponent(parroquia)}`, {
         method: 'DELETE',
         headers
-      });
+      }, 5000);
       if (!r.ok) {
         return res.status(r.status).json(apiError(r.status, 'Delete failed', { detail: await r.text() }));
       }

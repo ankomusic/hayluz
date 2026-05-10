@@ -14,7 +14,6 @@
   <meta name="apple-mobile-web-app-title" content="Hay Luz?" />
   <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
   <!-- Leaflet + Fonts -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
     /* ── Geist Design System ── */
@@ -1627,7 +1626,6 @@
     .paypal-link:hover { background: #005ea6; }
     .paypal-link svg { width: 13px; height: 13px; fill: #fff; flex-shrink: 0; display: block; }
   </style>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <noscript>
@@ -2068,6 +2066,63 @@ const PROD_URL = 'https://hayluz.vercel.app';
 const isPreview = /\.vercel\.app$/.test(location.hostname) &&
                   location.hostname !== 'hayluz.vercel.app';
 const API_BASE = isPreview ? PROD_URL : window.location.origin;
+const LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+const LEAFLET_JS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const EMPTY_TEXT = '\u2014';
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function textToHTML(value) {
+  return escapeHTML(value).replace(/\r?\n/g, '<br>');
+}
+
+function getAPIErrorMessage(data, fallback = 'No se pudo completar la solicitud') {
+  if (!data) return fallback;
+  if (typeof data.error === 'string') return data.error;
+  return data.message || data.details?.message || fallback;
+}
+
+function getAPIStatus(data, response) {
+  return Number(data?.status || data?.details?.status || response?.status || 0);
+}
+
+function safeStatusClass(status) {
+  return ['ok', 'inter', 'cut', 'nodata'].includes(status) ? status : 'nodata';
+}
+
+function safeColorClass(color) {
+  return ['red', 'amber', 'green', 'blue'].includes(color) ? color : 'blue';
+}
+
+function clampPercent(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.min(100, number));
+}
+
+async function fetchJSON(url, options = {}, timeoutMs = 6000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: options.signal || controller.signal
+    });
+    const data = await response.json().catch(() => null);
+    return { data, response };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 const sectors = [
   { name: "Coquivacoa",                   zone: "Norte",      status: "ok", hours: 0, since: "—", affected: 0, cause: "—" },
@@ -2169,7 +2224,8 @@ class SmartCache {
     this.cache = new Map();
     this.metadata = new Map();
     this.compressionEnabled = this.isCompressionSupported();
-    this.maxSize = 50 * 1024 * 1024; // 50MB
+    this.compressionThreshold = 128 * 1024;
+    this.maxSize = 1024 * 1024; // Live data cache only needs a small in-memory budget.
     this.currentSize = 0;
     this.lru = new Map();
     this.stats = {
@@ -2192,12 +2248,14 @@ class SmartCache {
     if (!this.compressionEnabled) return data;
     
     try {
-      const stream = new Blob([JSON.stringify(data)]).stream();
+      const serialized = JSON.stringify(data);
+      if (serialized.length < this.compressionThreshold) return data;
+      const stream = new Blob([serialized]).stream();
       const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
       const compressedBlob = await new Response(compressedStream).blob();
       const buffer = await compressedBlob.arrayBuffer();
       
-      this.stats.compressionSavings += JSON.stringify(data).length - buffer.byteLength;
+      this.stats.compressionSavings += serialized.length - buffer.byteLength;
       return { compressed: true, data: buffer };
     } catch {
       return data;
@@ -2304,6 +2362,7 @@ class SmartCache {
 // 2. PerformanceMonitor - Monitor de rendimiento
 class PerformanceMonitor {
   constructor() {
+    this.maxResourceEntries = 120;
     this.metrics = {
       navigation: {},
       resource: [],
@@ -2379,6 +2438,9 @@ class PerformanceMonitor {
             size: entry.transferSize,
             cached: entry.transferSize === 0 && entry.decodedBodySize > 0
           });
+          if (this.metrics.resource.length > this.maxResourceEntries) {
+            this.metrics.resource.splice(0, this.metrics.resource.length - this.maxResourceEntries);
+          }
         });
       });
       observer.observe({ entryTypes: ['resource'] });
@@ -2415,7 +2477,7 @@ class PerformanceMonitor {
     };
     
     updateMemory();
-    this.memoryInterval = setInterval(updateMemory, 5000);
+    this.memoryInterval = setInterval(updateMemory, 15000);
   }
 
   observeLongTasks() {
@@ -2423,7 +2485,7 @@ class PerformanceMonitor {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           this.metrics.custom.longTasks = (this.metrics.custom.longTasks || 0) + 1;
-          console.warn(`Long task detected: ${entry.duration}ms`);
+          this.metrics.custom.lastLongTask = Math.round(entry.duration);
         });
       });
       observer.observe({ entryTypes: ['longtask'] });
@@ -2598,16 +2660,10 @@ class SmartUpdater {
   }
 
   async fetchData() {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
     try {
-      const response = await fetch(`${API_BASE}/api/data`, {
-        signal: controller.signal,
+      const { data, response } = await fetchJSON(`${API_BASE}/api/data`, {
         headers: { 'X-Cache-Control': 'smart' }
-      });
-      
-      clearTimeout(timeoutId);
+      }, 4500);
       
       if (!response.ok) {
         // No lanzar error para 404/503 - solo retornar null
@@ -2615,9 +2671,8 @@ class SmartUpdater {
         return null;
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
-      clearTimeout(timeoutId);
       // No lanzar error - solo retornar null para manejo silencioso
       return null;
     }
@@ -2640,8 +2695,7 @@ class SmartUpdater {
   validateData(data) {
     return data && 
            Array.isArray(data.sectors) && 
-           data.sectors.length > 0 &&
-           typeof data.timestamp === 'number';
+           data.sectors.length > 0;
   }
 
   processDataStructure(data) {
@@ -2653,7 +2707,7 @@ class SmartUpdater {
     return {
       ...data,
       processedAt: Date.now(),
-      source: 'smart-updater'
+      source: data.source || 'api'
     };
   }
 
@@ -2665,6 +2719,10 @@ class SmartUpdater {
         Object.assign(s, live);
       }
     });
+    dataSource = data.source || dataSource || 'api';
+    lastUpdateTime = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
+    updateLivePill('success');
+    updateDataSourceIndicator();
     
     // Re-renderizar vistas activas
     if (document.getElementById('view-monitor').classList.contains('active')) {
@@ -2756,7 +2814,7 @@ class LazyLoader {
         (entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
-              this.loadView(entry.target.id);
+              this.loadView(entry.target.id.replace(/^view-/, ''));
             }
           });
         },
@@ -2771,12 +2829,10 @@ class LazyLoader {
 
   setupIdleObserver() {
     if ('requestIdleCallback' in window) {
-      const runIdleTasks = () => {
+      requestIdleCallback(() => {
         this.isIdle = true;
         this.loadIdleResources();
-        requestIdleCallback(runIdleTasks);
-      };
-      requestIdleCallback(runIdleTasks);
+      });
     } else {
       // Fallback para navegadores sin requestIdleCallback
       setTimeout(() => {
@@ -2903,6 +2959,12 @@ class LazyLoader {
     resource.loaded = true;
   }
 
+  cleanup() {
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+    }
+  }
+
   setupIdleLoading() {
     // Configurar carga en idle para recursos pesados
     if ('requestIdleCallback' in window) {
@@ -2933,34 +2995,6 @@ window.updateSectorsFromData = function(data) {
   dataSource = data.source || 'api';
 };
 
-async function loadLiveData() {
-  if (isUpdating) return;
-  isUpdating = true;
-  updateLivePill('loading');
-  
-  try {
-    const res = await fetch(`${API_BASE}/api/data`);
-    if (!res.ok) {
-      dataSource = 'offline';
-      updateLivePill('error');
-      return;
-    }
-    const payload = await res.json();
-    const sectorsData = payload.sectors || payload.data?.sectors;
-    if (sectorsData?.length) {
-      updateSectorsFromData(payload);
-      dataSource = payload.source || 'api';
-      lastUpdateTime = new Date();
-      updateLivePill('success');
-    }
-  } catch {
-    dataSource = 'offline';
-    updateLivePill('error');
-  } finally {
-    isUpdating = false;
-  }
-}
-
 // Sistema de actualización inteligente
 let smartUpdater = null;
 let performanceMonitor = null;
@@ -2980,11 +3014,7 @@ function initOptimizationSystems() {
   // Inicializar cargador diferido
   lazyLoader = new LazyLoader();
   
-  // Configurar lazy loading
-  lazyLoader.setupIntersectionObserver();
   lazyLoader.observeViews();
-  lazyLoader.setupProactiveLoading();
-  lazyLoader.setupIdleLoading();
   
   // Iniciar actualización inteligente
   smartUpdater.start();
@@ -2994,15 +3024,18 @@ function initOptimizationSystems() {
 
 // Reemplazar función loadLiveData para usar el nuevo sistema
 async function loadLiveData() {
+  if (isUpdating) return;
+  isUpdating = true;
   try {
-    const res = await fetch(`${API_BASE}/api/data`);
-    if (!res.ok) {
+    updateLivePill('loading');
+    const { data: payload, response } = await fetchJSON(`${API_BASE}/api/data`, {}, 4500);
+    if (!response.ok) {
       // API no disponible - mostrar estado sin conexión
       dataSource = 'sin conexión';
+      updateLivePill('error');
       return;
     }
-    const payload = await res.json();
-    if (payload.sectors?.length) {
+    if (payload?.sectors?.length) {
       // Merge live data into sectors array in-place
       payload.sectors.forEach(live => {
         const idx = sectors.findIndex(s => s.name === live.name);
@@ -3011,10 +3044,16 @@ async function loadLiveData() {
         }
       });
       dataSource = payload.source || 'api';
+      lastUpdateTime = payload.fetchedAt ? new Date(payload.fetchedAt) : new Date();
+      updateLivePill('success');
+      updateDataSourceIndicator();
     }
   } catch {
     // Keep default ok status — show UI without data
     dataSource = 'sin conexión';
+    updateLivePill('error');
+  } finally {
+    isUpdating = false;
   }
 }
 
@@ -3026,7 +3065,9 @@ async function forceUpdate() {
     await loadLiveData();
     renderStats();
     filterSectors();
-    renderMapSectors();
+    if (document.getElementById('view-map')?.classList.contains('active')) {
+      renderMapSectors();
+    }
   }
 }
 
@@ -3038,7 +3079,9 @@ async function clearCacheAndReload() {
     await loadLiveData();
     renderStats();
     filterSectors();
-    renderMapSectors();
+    if (document.getElementById('view-map')?.classList.contains('active')) {
+      renderMapSectors();
+    }
   }
 }
 
@@ -3070,14 +3113,12 @@ async function init() {
   renderStats();
   filterSectors();
   renderIncidents();
-  renderMapSectors();
   syncOptInBtn();
 
   // Load live data then re-render
   await loadLiveData();
   renderStats();
   filterSectors();
-  renderMapSectors();
 
   // Auto-show tooltip after 1.5s if muted
   setTimeout(() => {
@@ -3109,12 +3150,6 @@ function switchView(name, el) {
 // renderStats and updateDataSourceIndicator defined earlier (before SmartUpdater class)
 
 // ---- SECTORS ----
-  
-  // Update source indicator
-  updateDataSourceIndicator();
-}
-
-// ---- SECTORS ----
 function statusInfo(s) {
   if (s === 'cut')    return { label: 'Corte activo',  cls: 'red',   barCls: 'red',   cardCls: 'status-cut'  };
   if (s === 'inter')  return { label: 'Intermitente',  cls: 'amber', barCls: 'amber', cardCls: 'status-inter' };
@@ -3138,7 +3173,7 @@ function renderSectors(list) {
   }
 
   // Show empty state when all sectors are ok and source appears to be fallback
-  const allOk = list.every(s => s.status === 'ok' && s.hours === 0 && s.cause === '—');
+  const allOk = list.every(s => s.status === 'ok' && s.hours === 0 && s.cause === EMPTY_TEXT);
   if (allOk && dataSource === 'fallback') {
     grid.innerHTML = `
       <div style="grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;">
@@ -3156,23 +3191,25 @@ function renderSectors(list) {
 
   list.forEach(s => {
     const si = statusInfo(s.status);
+    const affected = clampPercent(s.affected);
+    const cause = s.cause || EMPTY_TEXT;
     const div = document.createElement('div');
     div.className = `sector-card ${si.cardCls}`;
     div.innerHTML = `
       <div class="card-head">
         <div>
-          <div class="card-name">${s.name}</div>
-          <div class="card-zone">Zona ${s.zone}</div>
+          <div class="card-name">${escapeHTML(s.name)}</div>
+          <div class="card-zone">Zona ${escapeHTML(s.zone)}</div>
         </div>
         <span class="badge ${si.cls}">${si.label}</span>
       </div>
       <div class="card-meta">
-        <div class="meta-row"><span>Duración</span><span class="meta-val">${s.hours > 0 ? s.hours + ' h' : '—'}</span></div>
-        <div class="meta-row"><span>Inicio</span><span class="meta-val">${s.since}</span></div>
-        <div class="meta-row"><span>Afectación</span><span class="meta-val">${s.affected}%</span></div>
-        ${s.cause !== '—' ? `<div class="meta-cause">${s.cause}</div>` : ''}
+        <div class="meta-row"><span>Duración</span><span class="meta-val">${s.hours > 0 ? escapeHTML(s.hours) + ' h' : EMPTY_TEXT}</span></div>
+        <div class="meta-row"><span>Inicio</span><span class="meta-val">${escapeHTML(s.since || EMPTY_TEXT)}</span></div>
+        <div class="meta-row"><span>Afectación</span><span class="meta-val">${affected}%</span></div>
+        ${cause !== EMPTY_TEXT ? `<div class="meta-cause">${escapeHTML(cause)}</div>` : ''}
       </div>
-      <div class="bar"><div class="bar-fill ${si.barCls}" style="width:${s.affected}%"></div></div>
+      <div class="bar"><div class="bar-fill ${si.barCls}" style="width:${affected}%"></div></div>
     `;
     grid.appendChild(div);
   });
@@ -3207,7 +3244,7 @@ function renderIncidents() {
   incidents.forEach(i => {
     const div = document.createElement('div');
     div.className = 'incident';
-    div.innerHTML = `<div class="inc-dot ${i.color}"></div><div><div class="inc-text">${i.text}</div><div class="inc-time">${i.time}</div></div>`;
+    div.innerHTML = `<div class="inc-dot ${safeColorClass(i.color)}"></div><div><div class="inc-text">${escapeHTML(i.text)}</div><div class="inc-time">${escapeHTML(i.time)}</div></div>`;
     el.appendChild(div);
   });
 }
@@ -3216,17 +3253,19 @@ function renderIncidents() {
 async function callAPI(action, body) {
   // All AI calls go to /api/data (the single proven endpoint) with an action field
   // Handles both legacy format and v1 format: { success: true, data: {...} }
-  const res = await fetch(`${API_BASE}/api/data`, {
+  const { data: json, response: res } = await fetchJSON(`${API_BASE}/api/data`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...body })
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
+  }, 12000);
   // Unwrap v1 format if present
-  if (json.success && json.data) return json.data;
+  const data = json?.data || json;
+  if (!res.ok || data?.error) {
+    throw new Error(getAPIErrorMessage(data, `HTTP ${res.status}`));
+  }
+  if (json?.success && json.data) return json.data;
   // Legacy format
-  return json;
+  return data;
 }
 
 async function runAnalysis() {
@@ -3247,7 +3286,7 @@ async function runAnalysis() {
     });
     if (data.error) throw new Error(data.error);
     out.className = 'ai-body';
-    out.innerHTML = (data.result || 'Sin respuesta.').replace(/\n/g, '<br>');
+    out.innerHTML = textToHTML(data.result || 'Sin respuesta.');
     document.getElementById('analysisTime').textContent = new Date().toLocaleTimeString('es-VE');
   } catch (e) {
     out.className = 'ai-body';
@@ -3273,7 +3312,7 @@ async function runIncidentSummary() {
     });
     if (data.error) throw new Error(data.error);
     out.className = 'ai-body';
-    out.innerHTML = (data.result || '').replace(/\n/g, '<br>');
+    out.innerHTML = textToHTML(data.result || '');
   } catch {
     out.className = 'ai-body';
     out.textContent = 'Resumen no disponible. Verifica que OPENROUTER_API_KEY esté configurada en Vercel.';
@@ -3312,12 +3351,12 @@ async function runVerify() {
 
 function renderVerifyResult(d, report) {
   const rc = document.getElementById('resultContent');
-  const score = d.score || 0;
-  const verdict = d.verdict || 'Dudoso';
-  const confidence = d.confidence || 'Baja';
+  const score = clampPercent(d.score);
+  const verdict = escapeHTML(d.verdict || 'Dudoso');
+  const confidence = escapeHTML(d.confidence || 'Baja');
   const indicators = d.indicators || {};
-  const flags = d.flags || [];
-  const summary = d.summary || '';
+  const flags = Array.isArray(d.flags) ? d.flags : [];
+  const summary = escapeHTML(d.summary || '');
 
   const verdictColor = score >= 80 ? '#3ddc84' : score >= 60 ? '#f5a623' : score >= 40 ? '#f5a623' : '#ff4d4d';
   const circumference = 2 * Math.PI * 38;
@@ -3363,7 +3402,7 @@ function renderVerifyResult(d, report) {
     ${flags.length ? `
       <div class="section-title">Señales de alerta</div>
       <div class="flags-list">
-        ${flags.map(f => `<div class="flag-item"><span class="flag-sym">⚠</span>${f}</div>`).join('')}
+        ${flags.map(f => `<div class="flag-item"><span class="flag-sym">⚠</span>${escapeHTML(f)}</div>`).join('')}
       </div>
     ` : ''}
 
@@ -3372,11 +3411,6 @@ function renderVerifyResult(d, report) {
 }
 
 function addToHistory(report, result) {
-  const score = result.score || 0;
-  const verdict = result.verdict || '?';
-  const color = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--amber)' : 'var(--red)';
-  const bg = score >= 80 ? 'var(--green-dim)' : score >= 60 ? 'var(--amber-dim)' : 'var(--red-dim)';
-
   verifyHistory.unshift({ report, result });
   if (verifyHistory.length > 5) verifyHistory.pop();
 
@@ -3386,13 +3420,13 @@ function addToHistory(report, result) {
   listEl.innerHTML = '';
 
   verifyHistory.forEach((h, i) => {
-    const s = h.result.score || 0;
-    const v = h.result.verdict || '?';
+    const s = clampPercent(h.result.score);
+    const v = escapeHTML(h.result.verdict || '?');
     const c = s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--amber)' : 'var(--red)';
     const b = s >= 80 ? 'var(--green-dim)' : s >= 60 ? 'var(--amber-dim)' : 'var(--red-dim)';
     const div = document.createElement('div');
     div.className = 'history-item';
-    div.innerHTML = `<span class="history-text">${h.report.substring(0, 80)}${h.report.length > 80 ? '...' : ''}</span><span class="history-badge" style="color:${c};background:${b};border:1px solid ${c};">${v}</span>`;
+    div.innerHTML = `<span class="history-text">${escapeHTML(h.report.substring(0, 80))}${h.report.length > 80 ? '...' : ''}</span><span class="history-badge" style="color:${c};background:${b};border:1px solid ${c};">${v}</span>`;
     div.onclick = () => {
       document.getElementById('verifyInput').value = h.report;
       renderVerifyResult(h.result, h.report);
@@ -3499,7 +3533,7 @@ function renderVoltageRows() {
     const row = document.createElement('div');
     row.className = 'volt-row';
     row.innerHTML = `
-      <span class="volt-name">${s.name}</span>
+      <span class="volt-name">${escapeHTML(s.name)}</span>
       <div class="volt-bar-wrap"><div class="volt-bar-fill" style="width:${pct}%;background:${col};"></div></div>
       <span class="volt-val" style="color:${col}">${v}V</span>
     `;
@@ -3632,11 +3666,11 @@ function showToast({ color, icon, title, msg, time, system = false }) {
   const t = document.createElement('div');
   t.className = 'toast';
   t.innerHTML = `
-    <div class="toast-icon ${color}">${icon}</div>
+    <div class="toast-icon ${safeColorClass(color)}">${escapeHTML(icon)}</div>
     <div class="toast-body">
-      <div class="toast-title">${title}</div>
-      <div class="toast-msg">${msg}</div>
-      <div class="toast-time">${time}</div>
+      <div class="toast-title">${escapeHTML(title)}</div>
+      <div class="toast-msg">${escapeHTML(msg)}</div>
+      <div class="toast-time">${escapeHTML(time)}</div>
     </div>
     <button class="toast-close" onclick="dismissToast(this.parentElement)">×</button>
   `;
@@ -3672,11 +3706,11 @@ function renderLog() {
     const div = document.createElement('div');
     div.className = 'log-item';
     div.innerHTML = `
-      <div class="log-dot ${e.color}"></div>
+      <div class="log-dot ${safeColorClass(e.color)}"></div>
       <div class="log-content">
-        <div class="log-title">${e.title}</div>
-        <div class="log-desc">${e.msg}</div>
-        <div class="log-time">${e.time}</div>
+        <div class="log-title">${escapeHTML(e.title)}</div>
+        <div class="log-desc">${escapeHTML(e.msg)}</div>
+        <div class="log-time">${escapeHTML(e.time)}</div>
       </div>
     `;
     logEl.appendChild(div);
@@ -3776,15 +3810,18 @@ function toggleMonitor(btn) {
 function startMonitor() {
   if (monitorInterval) return;
   monitorInterval = setInterval(() => {
+    if (document.hidden) return;
     sectors.forEach(s => stepVoltage(s.name));
     checkThresholds();
     const drawerOpen = document.getElementById('notifDrawer')?.classList.contains('open');
     if (drawerOpen) renderVoltageRows();
+    const mapView = document.getElementById('view-map');
+    if (mapView && mapView.classList.contains('active')) renderMapSectors();
   }, 2500);
   waveInterval = setInterval(() => {
-    sectors.forEach(s => stepVoltage(s.name));
+    if (document.hidden) return;
     drawWaveform();
-  }, 200);
+  }, 500);
 }
 
 function stopMonitor() {
@@ -4047,6 +4084,30 @@ const sectorGeoData = [
 let leafletMap = null;
 let leafletLayers = {}; // name -> { polygon, marker }
 let leafletInitialized = false;
+let leafletLoadPromise = null;
+
+function ensureLeafletLoaded() {
+  if (window.L) return Promise.resolve();
+  if (leafletLoadPromise) return leafletLoadPromise;
+
+  leafletLoadPromise = new Promise((resolve, reject) => {
+    if (!document.querySelector(`link[href="${LEAFLET_CSS_URL}"]`)) {
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = LEAFLET_CSS_URL;
+      document.head.appendChild(stylesheet);
+    }
+
+    const script = document.createElement('script');
+    script.src = LEAFLET_JS_URL;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Leaflet failed to load'));
+    document.head.appendChild(script);
+  });
+
+  return leafletLoadPromise;
+}
 
 function getSectorColors(name) {
   const s = sectors.find(x => x.name === name);
@@ -4074,14 +4135,15 @@ function buildPopupContent(name) {
   const colors = getSectorColors(name);
   const statusTxt = { cut: 'Corte activo', inter: 'Intermitente', ok: 'Estable' };
   const voltTxt = s.status === 'cut' ? '0V — Sin servicio' : v + 'V';
+  const cause = s.cause || EMPTY_TEXT;
   return `
-    <div class="lf-popup-name">${name}</div>
-    <div class="lf-popup-volt" style="color:${colors.textColor}">${voltTxt}</div>
+    <div class="lf-popup-name">${escapeHTML(name)}</div>
+    <div class="lf-popup-volt" style="color:${colors.textColor}">${escapeHTML(voltTxt)}</div>
     <div class="lf-popup-meta">
-      Zona ${s.zone} · ${statusTxt[s.status] || s.status}<br>
-      ${s.hours > 0 ? 'Corte desde hace ' + s.hours + ' h · Inicio ' + s.since : 'Servicio activo'}
+      Zona ${escapeHTML(s.zone)} · ${escapeHTML(statusTxt[s.status] || s.status)}<br>
+      ${s.hours > 0 ? 'Corte desde hace ' + escapeHTML(s.hours) + ' h · Inicio ' + escapeHTML(s.since) : 'Servicio activo'}
     </div>
-    ${s.cause && s.cause !== '—' ? `<div class="lf-popup-cause">${s.cause}</div>` : ''}
+    ${cause !== EMPTY_TEXT ? `<div class="lf-popup-cause">${escapeHTML(cause)}</div>` : ''}
   `;
 }
 
@@ -4152,8 +4214,8 @@ function initLeafletMap() {
         backdrop-filter: blur(2px);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:9px;color:#aaa;margin-bottom:1px;">${geo.name}</div>
-        <div style="font-weight:700;">${voltLabel}</div>
+        <div style="font-size:9px;color:#aaa;margin-bottom:1px;">${escapeHTML(geo.name)}</div>
+        <div style="font-weight:700;">${escapeHTML(voltLabel)}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
@@ -4203,8 +4265,8 @@ function updateLeafletLayers() {
         backdrop-filter: blur(2px);
         ${alerted ? 'animation: markerPulse 1s ease-in-out infinite;' : ''}
       ">
-        <div style="font-size:9px;color:${isLight ? '#666' : '#aaa'};margin-bottom:1px;">${geo.name}</div>
-        <div style="font-weight:700;">${voltLabel}</div>
+        <div style="font-size:9px;color:${isLight ? '#666' : '#aaa'};margin-bottom:1px;">${escapeHTML(geo.name)}</div>
+        <div style="font-weight:700;">${escapeHTML(voltLabel)}</div>
       </div>`,
       iconAnchor: [0, 0],
     });
@@ -4212,23 +4274,22 @@ function updateLeafletLayers() {
   });
 }
 
-function renderMapSectors() {
-  if (!leafletInitialized) {
-    initLeafletMap();
-  } else {
-    updateLeafletLayers();
-    leafletMap.invalidateSize();
+async function renderMapSectors() {
+  try {
+    await ensureLeafletLoaded();
+    if (!leafletInitialized) {
+      initLeafletMap();
+    } else {
+      updateLeafletLayers();
+      leafletMap.invalidateSize();
+    }
+  } catch (error) {
+    console.warn('Map unavailable:', error.message);
   }
 }
 
 // ---- INIT MONITOR ----
 startMonitor();
-
-// patch: also update map on monitor ticks
-const _patchedInterval = setInterval(() => {
-  const mapView = document.getElementById('view-map');
-  if (mapView && mapView.classList.contains('active')) renderMapSectors();
-}, 800);
 
 init();
 
@@ -4258,18 +4319,17 @@ async function submitCommunityReport() {
   resultEl.style.display = 'none';
 
   try {
-    const res = await fetch(`${API_BASE}/api/data`, {
+    const { data: json, response: res } = await fetchJSON(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || '—', reporterNote: note || null })
-    });
-    const json = await res.json();
+      body: JSON.stringify({ action: 'report', parroquia, status: selectedStatus, cause: cause || EMPTY_TEXT, reporterNote: note || null })
+    }, 6000);
     // Handle both legacy and v1 API response formats
     const data = json.data || json;
 
     if (res.ok && (data.ok || data.success)) {
       showRpResult('✓ Reporte enviado — gracias por contribuir', 'success');
-      addToFeed({ parroquia, status: selectedStatus, cause: cause || '—', time: 'ahora mismo' });
+      addToFeed({ parroquia, status: selectedStatus, cause: cause || EMPTY_TEXT, time: 'ahora mismo' });
       document.getElementById('rpParroquia').value = '';
       document.getElementById('rpCause').value = '';
       document.getElementById('rpNote').value = '';
@@ -4280,18 +4340,21 @@ async function submitCommunityReport() {
         await loadLiveData();
         renderStats();
         filterSectors();
-        renderMapSectors();
+        if (document.getElementById('view-map')?.classList.contains('active')) {
+          renderMapSectors();
+        }
         await loadCommunityReports();
       }, 1500);
     } else {
       // Check for specific error types
-      if (data.error?.status === 429) {
+      const status = getAPIStatus(data, res);
+      const errorMsg = getAPIErrorMessage(data, 'No se pudo enviar el reporte');
+      if (status === 429) {
         showRpResult('⏳ Demasiados reportes. Espera unos minutos antes de intentar de nuevo.', 'error');
-      } else if (data.error?.message?.includes('validación')) {
-        showRpResult('⚠️ ' + (data.error.message || 'Reporte no pasó validación'), 'error');
+      } else if (errorMsg.toLowerCase().includes('validacion') || errorMsg.toLowerCase().includes('validación')) {
+        showRpResult('⚠ ' + errorMsg, 'error');
       } else {
-        const errorMsg = data.error?.message || data.error || 'No se pudo enviar el reporte';
-        showRpResult('⚠️ ' + errorMsg, 'error');
+        showRpResult('⚠ ' + errorMsg, 'error');
       }
     }
   } catch {
@@ -4311,6 +4374,7 @@ function showRpResult(msg, type) {
 
 // Community feed — shows recent reports
 let communityReports = [];
+let feedSeeded = false;
 
 function addToFeed(report) {
   communityReports.unshift(report);
@@ -4327,12 +4391,12 @@ function renderFeed() {
   const labels = { cut: 'Sin luz', inter: 'Fluctuando', ok: 'Con luz' };
   feed.innerHTML = communityReports.slice(0, 8).map(r => `
     <div class="report-item">
-      <div class="report-dot ${r.status}"></div>
+      <div class="report-dot ${safeStatusClass(r.status)}"></div>
       <div>
-        <strong style="color:var(--text);font-size:13px;">${r.parroquia}</strong>
-        <span style="font-size:12px;color:var(--text-muted);margin-left:6px;">${labels[r.status]||r.status}</span>
-        ${r.cause && r.cause !== '—' ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${r.cause}</div>` : ''}
-        <div style="font-size:10px;color:var(--text-dim);font-family:var(--mono);margin-top:3px;">${r.time||'—'}</div>
+        <strong style="color:var(--text);font-size:13px;">${escapeHTML(r.parroquia)}</strong>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:6px;">${escapeHTML(labels[r.status] || r.status)}</span>
+        ${r.cause && r.cause !== EMPTY_TEXT ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${escapeHTML(r.cause)}</div>` : ''}
+        <div style="font-size:10px;color:var(--text-dim);font-family:var(--mono);margin-top:3px;">${escapeHTML(r.time || EMPTY_TEXT)}</div>
       </div>
     </div>
   `).join('');
@@ -4340,6 +4404,8 @@ function renderFeed() {
 
 // Seed feed only with real active sectors (not nodata)
 function seedFeedFromSectors() {
+  if (feedSeeded) return;
+  feedSeeded = true;
   const active = sectors.filter(s => s.status === 'cut' || s.status === 'inter').slice(0, 5);
   active.forEach(s => communityReports.push({
     parroquia: s.name, status: s.status, cause: s.cause, time: 'hace ' + (s.hours || '?') + ' h'
@@ -4350,20 +4416,19 @@ function seedFeedFromSectors() {
 // Load recent community reports from Supabase
 async function loadCommunityReports() {
   try {
-    const res = await fetch(`${API_BASE}/api/data`, {
+    const { data: json, response: res } = await fetchJSON(`${API_BASE}/api/data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'reports' })
-    });
+    }, 4500);
     if (!res.ok) return;
-    const json = await res.json();
     // Handle both legacy and v1 API response formats
     const data = json.data || json;
     if (data.reports?.length) {
       communityReports = data.reports.map(r => ({
         parroquia: r.parroquia,
         status: r.status,
-        cause: r.cause || '—',
+        cause: r.cause || EMPTY_TEXT,
         time: formatReportTime(r.updated_at)
       }));
       renderFeed();
@@ -4372,7 +4437,7 @@ async function loadCommunityReports() {
 }
 
 function formatReportTime(isoString) {
-  if (!isoString) return '—';
+  if (!isoString) return EMPTY_TEXT;
   const diff = Math.floor((Date.now() - new Date(isoString)) / 1000);
   if (diff < 60) return 'hace un momento';
   if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
@@ -4416,6 +4481,13 @@ window.addEventListener('appinstalled', () => {
   const banner = document.getElementById('pwaBanner');
   if (banner) banner.style.display = 'none';
   deferredInstallPrompt = null;
+});
+
+window.addEventListener('pagehide', () => {
+  stopMonitor();
+  smartUpdater?.stop();
+  performanceMonitor?.cleanup();
+  lazyLoader?.cleanup();
 });
 
 // Seed community feed once sectors are loaded, then load real reports

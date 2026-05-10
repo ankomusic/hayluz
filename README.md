@@ -1,4 +1,4 @@
-# Hay Luz? v0.0.27-beta
+# Hay Luz? v0.0.93-beta
 
 Monitor de cortes eléctricos en tiempo real por parroquia para Maracaibo, Zulia. Construido con HTML/CSS/JS puro, Vercel serverless, Supabase como base de datos y OpenRouter como gateway de IA.
 
@@ -15,6 +15,7 @@ hayluz/
 │   │   ├── data.js      # API v1 — GET/POST con rate limiting persistente
 │   │   └── admin.js     # Admin v1
 │   └── utils/
+│       ├── constants.js # Parroquias, estados y valores compartidos
 │       ├── rateLimit.js # Rate limiter con Supabase
 │       └── helpers.js   # Sanitización, retry, circuit breaker, helpers
 ├── public/
@@ -26,14 +27,14 @@ hayluz/
 ├── tests/               # Tests Vitest
 ├── supabase-updates.sql # Migración de schema + RLS mejorado
 ├── vercel.json         # Headers CORS, rewrite /admin, API v1
-├── .eslintrc.json      # ESLint config
+├── eslint.config.js    # ESLint config (flat config)
 ├── prettier.config.json # Prettier config
-└── package.json        # Node 20.x, v0.0.27-beta
+└── package.json        # Node 20.x, v0.0.93-beta
 ```
 
 ---
 
-## Funcionalidades v0.0.27-beta
+## Funcionalidades v0.0.93-beta
 
 - **Monitor por parroquia** — 19 parroquias del Municipio Maracaibo con estado en tiempo real. Las parroquias con información real se priorizan sobre las que no tienen datos.
 - **Estados** — Corte activo / Intermitente / Estable / Sin info (nodata cuando no hay fila en Supabase)
@@ -53,6 +54,14 @@ hayluz/
 - **API versionada** — Endpoint `/api/v1/` con formato de respuestas estandarizado
 - **OpenTelemetry** — Telemetría integrada para monitoreo de rendimiento
 - **Tests** — Suite de tests con Vitest
+
+## Release v0.0.93-beta
+
+- Commit objetivo del release: `93`
+- Correcciones de bugs en API pública/admin y respuestas duplicadas
+- Endurecimiento de sanitización y validaciones de entrada
+- Mejoras de latencia con timeouts, lazy loading real del mapa y menos trabajo en segundo plano
+- Lint migrado a `eslint.config.js` y tests reforzados contra regresiones reales
 
 ---
 
